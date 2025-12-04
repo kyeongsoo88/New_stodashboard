@@ -1663,7 +1663,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                         {row.label}
                       </TableCell>
                       {(() => {
-                        const filteredValues = row.values.filter((_, colIdx) => {
+                        const filteredValues = row.values.filter((_: any, colIdx: number) => {
                           if (showAllMonths) return true;
                           // After adding YTD columns: values array has 16 elements
                           // 0-9: Jan to Oct, 10: Nov, 11: YTD, 12: 당월 YoY, 13: YTD YoY, 14: Dec, 15: Total
@@ -2602,7 +2602,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         {row.label}
                       </TableCell>
                       {(() => {
-                        const filteredValues = row.values.filter((_, colIdx) => {
+                        const filteredValues = row.values.filter((_: any, colIdx: number) => {
                           if (showAllMonths) return true;
                           // After adding YoY: values array has 13 elements
                           // 0-9: Jan to Oct, 10: Nov, 11: YoY, 12: Dec
@@ -2679,7 +2679,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                           {row.label}
                         </TableCell>
                         {(() => {
-                          const filteredValues = row.values.filter((_, colIdx) => {
+                          const filteredValues = row.values.filter((_: any, colIdx: number) => {
                             if (showAllMonths) return true;
                             // After adding YoY: values array has 13 elements
                             // 0-9: Jan to Oct, 10: Nov, 11: YoY, 12: Dec
