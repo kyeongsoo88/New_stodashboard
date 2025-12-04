@@ -1,0 +1,4934 @@
+"use client"
+
+import * as React from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { MetricCard } from "@/components/dashboard/metric-card"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie } from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Slider } from "@/components/ui/slider"
+import { Input } from "@/components/ui/input"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { ChevronDownIcon, ChevronUpIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+
+// --- Mock Data Generator ---
+// Helper to generate consistent random data for demo
+const generateConsistentData = (seed: string, length: number, min: number, max: number) => {
+    let data = [];
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    
+    for (let i = 0; i < length; i++) {
+        const x = Math.sin(hash + i) * 10000;
+        const rnd = x - Math.floor(x);
+        data.push(Math.floor(rnd * (max - min)) + min);
+    }
+    return data;
+};
+
+// Generate YOY Data (Consistent)
+const generateYoySeries = (label: string) => {
+    const data = generateConsistentData(label, 11, 80, 160); // 80% ~ 160%
+    return data.map((val, i) => ({ name: `${i+1}월`, yoy: val }));
+};
+
+// Moved TableCellStyled BEFORE Usage
+function TableCellStyled({ children, className, type="default" }: { children: React.ReactNode, className?: string, type?: "diff" | "yoy" | "default" }) {
+    let colorClass = "";
+    if (typeof children === 'string') {
+        if (type === 'diff') {
+             colorClass = "text-emerald-600 font-medium";
+             if (children.startsWith('-')) colorClass = "text-rose-500 font-medium";
+        }
+        if (type === 'yoy') {
+            // className이 전달되면 자동 배경색 적용하지 않음
+            if (!className || !className.includes('bg-')) {
+                const num = parseFloat(children.replace(/[^0-9.-]/g, ''));
+                if (num >= 100) colorClass = "bg-emerald-100 text-emerald-700 rounded px-1 py-0.5 inline-block text-xs font-bold";
+                else colorClass = "bg-rose-100 text-rose-700 rounded px-1 py-0.5 inline-block text-xs font-bold";
+            } else {
+                // className에 배경색이 있으면 텍스트 색상만 적용
+                colorClass = "font-medium";
+            }
+        }
+    }
+    return <TableCell className={cn("text-center p-2 text-xs", className, colorClass)}>{children}</TableCell>
+}
+
+function InsightBox({ title, children, color }: { title: string, children: React.ReactNode, color: "purple" | "blue" | "green" }) {
+    const colorStyles = {
+        purple: "bg-purple-50 text-purple-900",
+        blue: "bg-blue-50 text-blue-900",
+        green: "bg-green-50 text-green-900",
+    };
+    const titleColorStyles = {
+        purple: "text-purple-700",
+        blue: "text-blue-700",
+        green: "text-green-700",
+    };
+  return (
+        <div className={cn("p-3 rounded-md text-xs space-y-2", colorStyles[color])}>
+            <h4 className={cn("font-bold", titleColorStyles[color])}>{title}</h4>
+            <div className="leading-relaxed text-gray-700">
+                {children}
+            </div>
+        </div>
+    )
+}
+
+// Detailed Metric Card with Expandable Sections
+function DetailedMetricCard({
+    title,
+    value,
+    yoy,
+    yoyDesc,
+    yoyAdditional,
+    salesShare,
+    profitMargin,
+    operatingExpenseRatio,
+    trend,
+    channelDetails,
+    itemDetails,
+    channelProfitDetails,
+    topStoresDetails,
+    expenseBreakdown,
+    commonExpenses,
+    directProfitYtdDetails,
+    className,
+    expandAll
+}: {
+    title: string,
+    value: string,
+    yoy: string,
+    yoyDesc?: string,
+    yoyAdditional?: string,
+    salesShare?: string,
+    profitMargin?: string,
+    operatingExpenseRatio?: string,
+    trend?: "up" | "down",
+    channelDetails?: { name: string, value: string, yoy: string, percent: string }[],
+    itemDetails?: { name: string, value: string, yoy: string, percent: string }[],
+    channelProfitDetails?: { name: string, value: string, yoy: string, margin: string }[],
+    topStoresDetails?: { name: string, value: string, yoy: string }[],
+    expenseBreakdown?: { name: string, value?: string, yoy?: string, subItems?: { name: string, value?: string, yoy?: string }[] }[],
+    commonExpenses?: { name: string, value: string, yoy: string }[],
+    directProfitYtdDetails?: { name: string, value: string, percent: string, margin: string, change: string }[],
+    className?: string,
+    expandAll?: boolean
+}) {
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    const [isChannelExpanded, setIsChannelExpanded] = React.useState(false);
+    const [isItemExpanded, setIsItemExpanded] = React.useState(false);
+    const [isDirectProfitYtdExpanded, setIsDirectProfitYtdExpanded] = React.useState(false);
+    const [isTopStoresExpanded, setIsTopStoresExpanded] = React.useState(false);
+    
+    // YoY 값에서 괄호 제거하는 헬퍼 함수
+    const removeYoYParentheses = (yoyValue: string): string => {
+      if (!yoyValue) return yoyValue;
+      return yoyValue.replace(/[()]/g, '');
+    };
+    
+    // 외부에서 expandAll prop이 변경되면 모든 상세보기를 제어
+    React.useEffect(() => {
+        if (expandAll !== undefined) {
+            setIsChannelExpanded(expandAll);
+            setIsItemExpanded(expandAll);
+            setIsExpanded(expandAll);
+            setIsDirectProfitYtdExpanded(expandAll);
+            setIsTopStoresExpanded(expandAll);
+        }
+    }, [expandAll]);
+    
+    return (
+        <Card className={cn("overflow-hidden shadow-sm", className)}>
+            <CardHeader className="pb-0">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-bold text-black mb-0 leading-tight">{title}</CardTitle>
+                    {trend === "up" && <ChevronUpIcon className="h-4 w-4 text-red-500" />}
+                    {trend === "down" && <ChevronDownIcon className="h-4 w-4 text-blue-500" />}
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0 -mt-1">
+                <div className="text-2xl font-bold -mt-1 leading-tight">{value}</div>
+                <div className="flex items-center gap-1.5 text-xs flex-wrap">
+                    <span className={cn("font-bold px-2 py-0.5 rounded bg-emerald-100", (() => {
+                        const yoyText = removeYoYParentheses(yoy);
+                        // 음수 체크 (적자, 적자전환 등)
+                        if (yoy.includes("-") || yoy.includes("적자")) {
+                            return "text-red-600 bg-red-50";
+                        }
+                        // 퍼센트 값이 있는 경우
+                        if (yoyText.includes("%")) {
+                            const cleaned = yoyText.replace(/[^0-9.-]/g, '');
+                            const yoyNum = parseFloat(cleaned);
+                            if (!isNaN(yoyNum) && yoyNum < 100) {
+                                return "text-red-600";
+                            }
+                        }
+                        return "text-emerald-700";
+                    })())}>
+                        YoY {removeYoYParentheses(yoy)}
+                    </span>
+                    {yoyAdditional && (
+                        <span className={cn("font-bold px-2 py-0.5 rounded text-emerald-700 bg-emerald-100")}>
+                            {yoyAdditional}
+                        </span>
+                    )}
+                    {salesShare && (
+                        <span className="font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                            {salesShare}
+                        </span>
+                    )}
+                    {profitMargin && (
+                        <>
+                            <span className="font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                                {profitMargin}
+                            </span>
+                            {title.includes("직접이익") && (
+                                <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0">
+                                    YTD전년대비
+                                </span>
+                            )}
+                        </>
+                    )}
+                    {operatingExpenseRatio && (
+                        <span className="font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">
+                            {operatingExpenseRatio}
+                        </span>
+                    )}
+                </div>
+                
+                {/* Expandable Details */}
+                {(channelDetails || itemDetails || channelProfitDetails || topStoresDetails || expenseBreakdown || directProfitYtdDetails) && (
+                    <div className="space-y-2">
+                        {/* Channel Details - Separate Toggle */}
+                        {(channelDetails || channelProfitDetails || expenseBreakdown) && (
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[11px] px-2 w-full justify-between"
+                                    onClick={() => {
+                                        if (channelDetails && itemDetails) {
+                                            setIsChannelExpanded(!isChannelExpanded);
+                                        } else {
+                                            setIsExpanded(!isExpanded);
+                                        }
+                                    }}
+                                >
+                                    <span className="font-bold text-blue-700">
+                                        {expenseBreakdown ? "영업비 상세보기" : 
+                                         channelProfitDetails ? "채널별 직접이익[이익율]" : 
+                                         "채널별 상세보기"}
+                                    </span>
+                                    {(channelDetails && itemDetails ? isChannelExpanded : isExpanded) ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+                                </Button>
+                                
+                                {(channelDetails && itemDetails ? isChannelExpanded : isExpanded) && (
+                                    <div className="border-t pt-2 space-y-3 text-xs">
+                                        {channelDetails && !itemDetails && (
+                                            <div className="space-y-1">
+                                                {channelDetails.map((item, idx) => {
+                                                    const yoyText = removeYoYParentheses(item.yoy);
+                                                    let textColor = "text-emerald-700";
+                                                    
+                                                    // 할인율 카드의 경우: +면 빨간색, -면 초록색
+                                                    if (title.includes("할인율")) {
+                                                        if (yoyText.startsWith('+')) {
+                                                            textColor = "text-red-600";
+                                                        } else if (yoyText.startsWith('-')) {
+                                                            textColor = "text-emerald-700";
+                                                        }
+                                                    } else {
+                                                        // 기존 로직 (다른 카드들)
+                                                        const isNegative = yoyText.startsWith('-');
+                                                        if (isNegative) {
+                                                            textColor = "text-red-600";
+                                                        } else if (yoyText.includes("%")) {
+                                                            const yoyNum = parseFloat(yoyText.replace(/[^0-9.-]/g, ''));
+                                                            if (!isNaN(yoyNum) && yoyNum < 100) {
+                                                                textColor = "text-red-600";
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    return (
+                                                        <div key={idx} className="flex justify-between items-center py-0.5">
+                                                            <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                                <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
+                                                                <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{item.percent}</span>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {channelDetails && itemDetails && (
+                                            <div className="space-y-1">
+                                                {channelDetails.map((item, idx) => {
+                                                    const yoyText = removeYoYParentheses(item.yoy);
+                                                    let textColor = "text-emerald-700";
+                                                    
+                                                    // 할인율 카드의 경우: +면 빨간색, -면 초록색
+                                                    if (title.includes("할인율")) {
+                                                        if (yoyText.startsWith('+')) {
+                                                            textColor = "text-red-600";
+                                                        } else if (yoyText.startsWith('-')) {
+                                                            textColor = "text-emerald-700";
+                                                        }
+                                                    } else {
+                                                        // 기존 로직 (다른 카드들)
+                                                        const isNegative = yoyText.startsWith('-');
+                                                        if (isNegative) {
+                                                            textColor = "text-red-600";
+                                                        } else if (yoyText.includes("%")) {
+                                                            const yoyNum = parseFloat(yoyText.replace(/[^0-9.-]/g, ''));
+                                                            if (!isNaN(yoyNum) && yoyNum < 100) {
+                                                                textColor = "text-red-600";
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    return (
+                                                        <div key={idx} className="flex justify-between items-center py-0.5">
+                                                            <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                                <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
+                                                                <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{item.percent}</span>}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {channelProfitDetails && (
+                                    <div className="space-y-2">
+                                        <div className="space-y-1">
+                                            {channelProfitDetails.map((item, idx) => {
+                                                const yoyText = removeYoYParentheses(item.yoy);
+                                                const isNegative = yoyText.startsWith('-');
+                                                return (
+                                                    <div key={idx} className="flex justify-between items-center py-0.5">
+                                                        <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                            <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
+                                                            <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", isNegative ? "text-red-600" : "text-emerald-700")}>{yoyText}</span>
+                                                            {item.margin && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{item.margin}</span>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                {expenseBreakdown && (
+                                    <div className="space-y-2">
+                                        <div className="space-y-2">
+                                            {expenseBreakdown.map((item, idx) => (
+                                                <div key={idx}>
+                                                    <div className="flex justify-between items-center py-0.5">
+                                                        <span className="text-[11px] min-w-[80px]">{item.name}</span>
+                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
+                                                            {item.value && <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>}
+                                                            {item.yoy && <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100 text-emerald-700")}>{removeYoYParentheses(item.yoy)}</span>}
+                                                        </div>
+                                                    </div>
+                                                    {item.subItems && (
+                                                        <div className="space-y-1 pl-4">
+                                                            {item.subItems.map((subItem: any, subIdx: number) => (
+                                                                <div key={subIdx} className="flex justify-between items-center py-1">
+                                                                    <span className="text-[11px] min-w-[80px]">ㄴ {subItem.name}</span>
+                                                                    <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
+                                                                        {subItem.value && <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{subItem.value}</span>}
+                                                                        {subItem.yoy && <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100 text-emerald-700")}>{removeYoYParentheses(subItem.yoy)}</span>}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        
+                        {/* Direct Profit YTD Details - Separate Toggle */}
+                        {directProfitYtdDetails && (
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[11px] px-2 w-full justify-between"
+                                    onClick={() => setIsDirectProfitYtdExpanded(!isDirectProfitYtdExpanded)}
+                                >
+                                    <span className="font-bold text-blue-700">직접이익 YTD 상세보기</span>
+                                    {isDirectProfitYtdExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+                                </Button>
+                                
+                                {isDirectProfitYtdExpanded && (
+                                    <div className="border-t pt-2 space-y-1 text-xs">
+                                        {directProfitYtdDetails.map((item, idx) => (
+                                            <div key={idx} className="flex items-center justify-between py-0.5">
+                                                <span className="text-[11px] flex-shrink-0 tracking-tight">{item.name}</span>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="font-medium text-[11px] w-[35px] text-right tabular-nums flex-shrink-0">{item.value}</span>
+                                                    {item.percent && <span className="text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold w-[35px] text-right tabular-nums flex-shrink-0">{item.percent}</span>}
+                                                    {item.margin && <span className="text-[11px] px-1 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-right tabular-nums flex-shrink-0">{item.margin}</span>}
+                                                    {item.change && <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0 w-[40px] text-right tabular-nums">{item.change}</span>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* Top Stores Details (or Item Top 5) - Separate Toggle */}
+                        {topStoresDetails && (
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[11px] px-2 w-full justify-between"
+                                    onClick={() => setIsTopStoresExpanded(!isTopStoresExpanded)}
+                                >
+                                    <span className="font-bold text-blue-700">
+                                        {title.includes("M/U") ? "아이템별 TOP 5(TAG 발주액 기준)" : "TOP 5 매장"}
+                                    </span>
+                                    {isTopStoresExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+                                </Button>
+                                
+                                {isTopStoresExpanded && (
+                                    <div className="border-t pt-2 space-y-1 text-xs">
+                                        {topStoresDetails.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center py-0.5">
+                                                <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
+                                                    <span className="font-bold text-[11px] w-[60px] text-right tabular-nums">{item.value}</span>
+                                                    <span className="text-[11px] text-gray-500 min-w-[60px] text-right">{item.yoy}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        
+                        {/* Item Details - Separate Toggle (Only when both channelDetails and itemDetails exist) */}
+                        {channelDetails && itemDetails && (
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[11px] px-2 w-full justify-between"
+                                    onClick={() => setIsItemExpanded(!isItemExpanded)}
+                                >
+                                    <span className="font-bold text-blue-700">{title.includes("할인율") ? "US EC 할인율 상세보기" : "아이템별 상세보기"}</span>
+                                    {isItemExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+                                </Button>
+                                
+                                {isItemExpanded && (
+                                    <div className="border-t pt-2 space-y-1 text-xs">
+                                        {itemDetails.map((item, idx) => {
+                                            const yoyText = removeYoYParentheses(item.yoy);
+                                            let textColor = "text-emerald-700";
+                                            
+                                            // 할인율 카드의 경우: +면 빨간색, -면 초록색
+                                            if (title.includes("할인율")) {
+                                                if (yoyText.startsWith('+')) {
+                                                    textColor = "text-red-600";
+                                                } else if (yoyText.startsWith('-')) {
+                                                    textColor = "text-emerald-700";
+                                                }
+                                            } else {
+                                                // 기존 로직 (다른 카드들)
+                                                const isNegative = yoyText.startsWith('-');
+                                                if (isNegative) {
+                                                    textColor = "text-red-600";
+                                                } else if (yoyText.includes("%")) {
+                                                    const yoyNum = parseFloat(yoyText.replace(/[^0-9.-]/g, ''));
+                                                    if (!isNaN(yoyNum) && yoyNum < 100) {
+                                                        textColor = "text-red-600";
+                                                    }
+                                                }
+                                            }
+                                            
+                                            return (
+                                                <div key={idx} className="flex justify-between items-center py-0.5">
+                                                    <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                    <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                        <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
+                                                        <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{item.percent}</span>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        
+                        {/* Other details (when only itemDetails exists without channelDetails) */}
+                        {itemDetails && !channelDetails && (
+                            <>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 text-[11px] px-2 w-full justify-between"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                >
+                                    <span className="font-bold text-blue-700">아이템별 상세보기</span>
+                                    {isExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
+                                </Button>
+                                
+                                {isExpanded && (
+                                    <div className="border-t pt-2 space-y-1 text-xs">
+                                        {itemDetails.map((item, idx) => {
+                                            const yoyText = removeYoYParentheses(item.yoy);
+                                            let textColor = "text-emerald-700";
+                                            
+                                            // 할인율 카드의 경우: +면 빨간색, -면 초록색
+                                            if (title.includes("할인율")) {
+                                                if (yoyText.startsWith('+')) {
+                                                    textColor = "text-red-600";
+                                                } else if (yoyText.startsWith('-')) {
+                                                    textColor = "text-emerald-700";
+                                                }
+                                            } else {
+                                                // 기존 로직 (다른 카드들)
+                                                const isNegative = yoyText.startsWith('-');
+                                                if (isNegative) {
+                                                    textColor = "text-red-600";
+                                                } else if (yoyText.includes("%")) {
+                                                    const yoyNum = parseFloat(yoyText.replace(/[^0-9.-]/g, ''));
+                                                    if (!isNaN(yoyNum) && yoyNum < 100) {
+                                                        textColor = "text-red-600";
+                                                    }
+                                                }
+                                            }
+                                            
+                                            return (
+                                                <div key={idx} className="flex justify-between items-center py-0.5">
+                                                    <span className="text-[11px] min-w-[60px]">{item.name}</span>
+                                                    <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                        <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
+                                                        <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{item.percent}</span>}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
+                
+            </CardContent>
+        </Card>
+    )
+}
+
+// US/EU 건당 운반비 단가 팝업 컴포넌트
+function ShippingCostDialog({ data }: { data: any }) {
+    if (!data) {
+        return <div>데이터를 불러오는 중...</div>;
+    }
+    
+    const { chartData } = data;
+
+    return (
+        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold mb-3 text-slate-800">US/EU 건당 운반비 / EU 고객 부담 %</h3>
+            </div>
+            
+            <div className="h-[400px] bg-white p-4 rounded-lg shadow-sm">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="month" stroke="#6b7280" />
+                        <YAxis yAxisId="left" domain={[0, 30]} stroke="#6b7280" label={{ value: 'USD', angle: -90, position: 'insideLeft' }} />
+                        <YAxis yAxisId="right" orientation="right" domain={[0, 90]} stroke="#6b7280" label={{ value: '%', angle: 90, position: 'insideRight' }} />
+                        <Tooltip 
+                            contentStyle={{ 
+                                backgroundColor: 'white', 
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            }}
+                            formatter={(value: number, name: string) => {
+                                if (name === 'EU 고객 부담%') {
+                                    return [`${value.toFixed(1)}%`, name];
+                                }
+                                return [`$${value.toFixed(2)}`, name];
+                            }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <Line yAxisId="left" type="monotone" dataKey="usCost" stroke="#000000" strokeWidth={2} dot={{ r: 4, fill: "#000000" }} name="US 건당 운반비 단가" />
+                        <Line yAxisId="left" type="monotone" dataKey="euCost" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="EU 건당 운반비 단가" />
+                        <Line yAxisId="right" type="monotone" dataKey="euBurden" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} name="EU 고객 부담%" />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h4 className="text-sm font-bold mb-3 text-slate-800">채널</h4>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[200px]">채널</TableHead>
+                            <TableHead className="text-center">3월</TableHead>
+                            <TableHead className="text-center">4월</TableHead>
+                            <TableHead className="text-center">5월</TableHead>
+                            <TableHead className="text-center">6월</TableHead>
+                            <TableHead className="text-center">7월</TableHead>
+                            <TableHead className="text-center">8월</TableHead>
+                            <TableHead className="text-center">9월</TableHead>
+                            <TableHead className="text-center">10월</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell className="font-medium">US 건당 운반비 단가</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">${d.usCost.toFixed(2)}</TableCell>
+                            ))}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">EU 건당 운반비 단가</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">${d.euCost.toFixed(2)}</TableCell>
+                            ))}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">EU 고객 부담%</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">{d.euBurden.toFixed(1)}%</TableCell>
+                            ))}
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+}
+
+// SEM광고비 분석 팝업 컴포넌트
+function SEMAdAnalysisDialog({ data }: { data: any }) {
+    if (!data) {
+        return <div>데이터를 불러오는 중...</div>;
+    }
+    
+    const { chartData, textData, cumulative } = data;
+
+    return (
+        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold mb-3 text-slate-800">US EC SEM광고비 분석</h3>
+                <div className="space-y-2 text-sm">
+                    <div className="font-bold text-blue-700 bg-blue-100 px-3 py-2 rounded-md inline-block">{textData.yoyText}</div>
+                    <div className="text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
+                        {textData.desc1}
+                    </div>
+                    <div className="text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
+                        {textData.desc2}
+                    </div>
+                </div>
+            </div>
+            
+            <div className="h-[300px] bg-white p-4 rounded-lg shadow-sm">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="month" stroke="#6b7280" />
+                        <YAxis yAxisId="left" domain={[0, 1800]} stroke="#6b7280" />
+                        <YAxis yAxisId="right" orientation="right" domain={[0, 28]} stroke="#6b7280" />
+                        <Tooltip 
+                            contentStyle={{ 
+                                backgroundColor: 'white', 
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            }} 
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <Bar yAxisId="left" dataKey="sales" fill="#60a5fa" name="US EC 매출" radius={[4, 4, 0, 0]} />
+                        <Bar yAxisId="left" dataKey="adSpend" fill="#fbbf24" name="SEM광고비" radius={[4, 4, 0, 0]} />
+                        <Line yAxisId="right" type="monotone" dataKey="ratio2025" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25년 광고비율 (%)" />
+                        <Line yAxisId="right" type="monotone" dataKey="ratio2024" stroke="#a855f7" strokeWidth={2} dot={{ r: 4, fill: "#a855f7" }} name="24년 광고비율 (%)" />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+                <Card className="bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 shadow-md">
+                    <CardContent className="p-4">
+                        <div className="text-xs text-blue-800 mb-1 font-medium">US EC 누적 매출</div>
+                        <div className="text-lg font-bold text-blue-900">${cumulative.sales.toLocaleString()}K</div>
+                        <div className="text-xs text-blue-700 mt-1">(YOY : 114%)</div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 shadow-md">
+                    <CardContent className="p-4">
+                        <div className="text-xs text-orange-800 mb-1 font-medium">누적 SEM비용</div>
+                        <div className="text-lg font-bold text-orange-900">${cumulative.adSpend.toLocaleString()}K</div>
+                        <div className="text-xs text-orange-700 mt-1">(YOY : 107%)</div>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-pink-100 to-pink-200 border-pink-300 shadow-md">
+                    <CardContent className="p-4">
+                        <div className="text-xs text-pink-800 mb-1 font-medium">평균 광고비율</div>
+                        <div className="text-lg font-bold text-pink-900">{cumulative.avgRatio}%</div>
+                        <div className="text-xs text-pink-700 mt-1">(전년대비 : △1.5%p)</div>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+}
+
+// Detailed Expense Card Component
+function DetailedExpenseCard({ 
+    title, 
+    value, 
+    yoy, 
+    yoyDiff, 
+    details, 
+    showToggle,
+    period,
+    onPeriodChange,
+    className,
+    showDetailButton,
+    semPopupData,
+    showShippingButton,
+    shippingPopupData
+}: { 
+    title: string, 
+    value: string, 
+    yoy: string, 
+    yoyDiff: string, 
+    details: React.ReactNode,
+    showToggle?: boolean,
+    period?: "누적" | "당월",
+    onPeriodChange?: (period: "누적" | "당월") => void,
+    className?: string,
+    showDetailButton?: boolean,
+    semPopupData?: any,
+    showShippingButton?: boolean,
+    shippingPopupData?: any
+}) {
+    const yoyNum = parseFloat(yoy.replace('%', ''));
+    const yoyColor = yoyNum >= 100 ? "text-green-600" : "text-red-500";
+    const diffColor = "text-gray-500";
+    
+    return (
+        <Card className={cn("overflow-hidden shadow-sm gap-2", className)}>
+            <CardHeader className="px-6 pt-2 pb-0 min-h-[36px] gap-1">
+                <CardTitle className="text-xs font-medium text-muted-foreground flex items-center justify-between">
+                    <span>{title}</span>
+                    <div className="flex items-center gap-2">
+                        {showDetailButton && (
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
+                                        상세
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle>US EC SEM광고비 분석</DialogTitle>
+                                    </DialogHeader>
+                                    <SEMAdAnalysisDialog data={semPopupData} />
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                        {showToggle && period && onPeriodChange ? (
+                            <div className="flex gap-1">
+                                <Button 
+                                    variant={period === "누적" ? "default" : "outline"} 
+                                    size="sm" 
+                                    className={cn("h-6 text-[10px] px-2", period === "누적" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                                    onClick={() => onPeriodChange("누적")}
+                                >
+                                    누적
+                                </Button>
+                                <Button 
+                                    variant={period === "당월" ? "default" : "outline"} 
+                                    size="sm" 
+                                    className={cn("h-6 text-[10px] px-2", period === "당월" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                                    onClick={() => onPeriodChange("당월")}
+                                >
+                                    당월
+                                </Button>
+        </div>
+                        ) : period && (
+                            <span className="text-[10px] text-gray-500 font-medium">{period}</span>
+                        )}
+                    </div>
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 pt-1">
+                <div className="text-xl font-bold tabular-nums w-full">{value}</div>
+                <div className="flex items-center gap-2 text-xs">
+                    <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
+                    <span className={cn("text-xs", diffColor)}>({yoyDiff})</span>
+                </div>
+                <div className="text-xs space-y-1 text-gray-600">
+                    {details}
+                </div>
+                {showShippingButton && (
+                    <div className="pt-2 border-t">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
+                                    US/EU건당 운반비 단가
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>US/EU 건당 운반비 단가</DialogTitle>
+                                </DialogHeader>
+                                <ShippingCostDialog data={shippingPopupData} />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
+// Expense Summary Section Component
+function ExpenseSummarySection({
+    title,
+    iconColor,
+    cards,
+    defaultPeriod = "누적",
+    semPopupData,
+    shippingPopupData
+}: {
+    title: string,
+    iconColor: string,
+    cards: Array<{
+        title: string,
+        value: { 누적: string, 당월: string },
+        yoy: { 누적: string, 당월: string },
+        yoyDiff: { 누적: string, 당월: string },
+        details: { 누적: React.ReactNode, 당월: React.ReactNode }
+    }>,
+    defaultPeriod?: "누적" | "당월",
+    semPopupData?: any,
+    shippingPopupData?: any
+}) {
+    const [period, setPeriod] = React.useState<"누적" | "당월">(defaultPeriod);
+    
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center gap-2">
+                <div className={cn("w-2 h-2 rounded-full", iconColor)}></div>
+                <h3 className="font-bold text-lg">{title}</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {cards.map((card, index) => (
+                    <DetailedExpenseCard
+                        key={card.title}
+                        title={card.title}
+                        value={card.value[period]}
+                        yoy={card.yoy[period]}
+                        yoyDiff={card.yoyDiff[period]}
+                        details={card.details[period]}
+                        showToggle={index === 0}
+                        period={period}
+                        onPeriodChange={setPeriod}
+                        showDetailButton={card.title === "SEM광고비"}
+                        semPopupData={card.title === "SEM광고비" ? semPopupData : undefined}
+                        showShippingButton={card.title === "운반비"}
+                        shippingPopupData={card.title === "운반비" ? shippingPopupData : undefined}
+                        className={
+                            index === 0 && title === "직접비 요약" ? "bg-purple-100" :
+                            index === 0 && title === "영업비 요약" ? "bg-orange-100" :
+                            undefined
+                        }
+                    />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+// 25SS 재고소진 계획 팝업 컴포넌트
+function InventoryPlanDialog({ data }: { data: any }) {
+    if (!data) {
+        return <div>데이터를 불러오는 중...</div>;
+    }
+    
+    const { chartData, tableData } = data;
+
+    return (
+        <div className="space-y-4 bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold mb-3 text-slate-800">시즌별 재고 25년 연말 시뮬레이션 (K USD)</h3>
+                
+                <div className="h-[350px] mb-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis dataKey="month" stroke="#6b7280" />
+                            <YAxis 
+                                domain={[0, 'auto']} 
+                                stroke="#6b7280" 
+                                tickFormatter={(value) => value.toLocaleString()}
+                            />
+                            <Tooltip 
+                                formatter={(value: number) => [value.toLocaleString(), undefined]}
+                                contentStyle={{ 
+                                    backgroundColor: 'white', 
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                                }} 
+                            />
+                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                            <Line type="monotone" dataKey="fw25" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25FW" />
+                            <Line type="monotone" dataKey="ss25" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="25SS" />
+                            <Line type="monotone" dataKey="fw24" stroke="#fbbf24" strokeWidth={2} dot={{ r: 4, fill: "#fbbf24" }} name="FW과시즌" />
+                            <Line type="monotone" dataKey="core" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} name="SS과시즌" />
+                            <Line type="monotone" dataKey="past" stroke="#9ca3af" strokeWidth={2} dot={{ r: 4, fill: "#9ca3af" }} name="CORE" />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-bold mb-3 text-slate-800">재고 TAG(K USD)</h4>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[150px]"></TableHead>
+                                {tableData.map((item: any, idx: number) => (
+                                    <TableHead key={idx} className="text-center">{item.period}</TableHead>
+                                ))}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">합계</TableCell>
+                                {tableData.map((item: any, idx: number) => (
+                                    <TableCell key={idx} className="text-center">{item.total.toLocaleString()}</TableCell>
+                                ))}
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Reusable Interactive Chart Component
+function InteractiveChartSection({ 
+  title, 
+  unit, 
+  iconColor, 
+  filterOptions, 
+  insights,
+  chartColor="purple",
+  showPlanButton = false,
+  csvChartData,
+  chartType = "channel",
+  inventoryPopupData
+}: { 
+  title: string, 
+  unit: string, 
+  iconColor: string, 
+  filterOptions: string[], 
+  insights: {color: "purple"|"blue"|"green", title: string, content: string}[],
+  chartColor?: string,
+  showPlanButton?: boolean,
+  csvChartData?: Record<string, number[]>,
+  chartType?: "channel" | "item" | "inventory",
+  inventoryPopupData?: any
+}) {
+  const [selectedFilter, setSelectedFilter] = React.useState<string>("전체");
+  const [yMax, setYMax] = React.useState(280);
+  const [isYoyVisible, setIsYoyVisible] = React.useState(false);
+
+  const handleFilterClick = (filter: string) => {
+      if (selectedFilter === filter) {
+          if (filter === "전체") {
+             // "전체" is already selected, toggle visibility
+             setIsYoyVisible(!isYoyVisible);
+          } else {
+             // Specific filter already selected, toggle visibility
+             setIsYoyVisible(!isYoyVisible);
+          }
+      } else {
+          setSelectedFilter(filter);
+          // If switching to "전체", default to collapsed (hidden)
+          // If switching to specific filter, expand (visible)
+          setIsYoyVisible(filter !== "전체");
+      }
+  };
+
+  // 1. Prepare Data for Main Chart (Stacked Bars) & YOY Chart (Lines)
+  // We need data for ALL options to be available when "전체" is selected
+  
+  // Generate consistent values for each option or use CSV data
+  const allSeriesData = React.useMemo(() => {
+      if (csvChartData) {
+          // Use CSV data
+          return filterOptions.map(opt => {
+              let dataKey = '';
+              let cleanOpt = opt.replace(/ /g, '').replace(/&/g, '');
+              
+              if (chartType === "channel") {
+                  // 채널 이름 매핑: "US EC" -> "USEC", "EU EC" -> "EUEC"
+                  if (opt === "US EC") cleanOpt = "USEC";
+                  else if (opt === "EU EC") cleanOpt = "EUEC";
+                  dataKey = `차트_채널별매출추세_${cleanOpt}`;
+              } else if (chartType === "item") {
+                  dataKey = `차트_아이템별매출추세_${cleanOpt}`;
+              } else if (chartType === "inventory") {
+                  // 재고 차트: display name을 CSV 키로 매핑
+                  const inventoryMapping: Record<string, string> = {
+                      '25FW': '25FW',
+                      '25SS': '25SS',
+                      '24FW': 'FW과시즌',
+                      'CORE': 'SS과시즌',
+                      '과시즌': 'CORE'
+                  };
+                  const csvKey = inventoryMapping[opt] || opt;
+                  dataKey = `차트_아이템별재고추세_${csvKey}`;
+              }
+              
+              const values = csvChartData[dataKey] || Array(10).fill(0);
+              const yoyKey = `${dataKey}_YOY`;
+              // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
+              const yoyValues = csvChartData[yoyKey] || Array(10).fill(100);
+              
+              return { name: opt, values, yoyValues };
+          });
+      } else {
+          // Fallback to generated data
+          return filterOptions.map(opt => {
+              const values = generateConsistentData(opt + "sales", 10, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 10, 80, 180);
+              return { name: opt, values, yoyValues };
+          });
+      }
+  }, [filterOptions, csvChartData, chartType]);
+
+  const totalYoySeries = React.useMemo(() => {
+      const totalYoyKeyMap: Record<string, string> = {
+          channel: '차트_채널별매출추세_TOTAL_YOY',
+          item: '차트_아이템별매출추세_TOTAL_YOY',
+          inventory: '차트_아이템별재고추세_TOTAL_YOY'
+      };
+      const key = totalYoyKeyMap[chartType || 'channel'];
+      if (key && csvChartData && csvChartData[key]) {
+          return csvChartData[key];
+      }
+      // Fallback: average of available series YOY values
+      return Array(10).fill(0).map((_, i) => {
+          const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
+          if (seriesYoys.length === 0) return 0;
+          return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
+      });
+  }, [chartType, csvChartData, allSeriesData]);
+
+  // Main Chart Data (Monthly x-axis)
+  const mainChartData = React.useMemo(() => {
+      return Array(10).fill(0).map((_, i) => {
+          const monthItem: any = { name: `${i+1}월` };
+          let totalTarget = 0;
+          
+          allSeriesData.forEach(series => {
+              // Add specific series value to the month item
+              monthItem[series.name] = series.values[i];
+              monthItem[`${series.name}_YOY`] = series.yoyValues[i];
+              // Mock target as slightly higher than avg
+              totalTarget += series.values[i] * 1.05; 
+          });
+          
+          // Target line (sum of targets if 'All', or specific target)
+          monthItem.target = Math.floor(totalTarget / (selectedFilter === "전체" ? 1 : filterOptions.length)); 
+          // Actually for 'All', target should be total. For specific, it should be specific.
+          // Let's simplify: In 'All', we show Stacked Bars. In 'Specific', we show Single Bar.
+          if (selectedFilter === "전체" && totalYoySeries?.length) {
+              monthItem.totalYOY = totalYoySeries[i] || 0;
+          }
+          
+          return monthItem;
+      });
+  }, [allSeriesData, selectedFilter, filterOptions, chartType, totalYoySeries]);
+
+  const yoyMaxForMain = React.useMemo(() => {
+      const allYoys = [
+          ...allSeriesData.flatMap(series => series.yoyValues || []),
+          ...totalYoySeries
+      ];
+      const maxVal = Math.max(120, ...allYoys);
+      return Math.ceil(maxVal / 10) * 10;
+  }, [allSeriesData, totalYoySeries]);
+
+  // YOY Line Chart Data
+  const yoyChartData = React.useMemo(() => {
+      return Array(10).fill(0).map((_, i) => {
+          const item: any = { name: `${i+1}월` };
+          allSeriesData.forEach(series => {
+              item[series.name] = series.yoyValues[i];
+          });
+          return item;
+      });
+  }, [allSeriesData]);
+
+
+  // 2. Determine what to show based on filter
+  // If '전체': Show ALL bars (Stacked) and ALL YOY lines.
+  // If specific: Show ONLY that bar and ONLY that YOY line.
+  
+  const visibleSeries = selectedFilter === "전체" ? filterOptions : [selectedFilter];
+  
+  // Colors for series (Pastel tones - Tailwind 300)
+  const colors = ["#fcd34d", "#fca5a5", "#93c5fd", "#6ee7b7", "#c4b5fd", "#f9a8d4", "#67e8f9", "#fdba74", "#d1d5db"];
+  // Text colors for badges (Darker tones - Tailwind 700)
+  const textColors = ["#b45309", "#b91c1c", "#1d4ed8", "#047857", "#6d28d9", "#be185d", "#0e7490", "#c2410c", "#374151"];
+
+  return (
+    <div className="space-y-4 h-full flex flex-col">
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="pb-2 flex-none">
+            <CardTitle className="text-sm flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className={cn("w-2 h-2 rounded-full", iconColor)}></div>
+                    {title} <span className="text-gray-500 font-normal">({unit})</span>
+                </div>
+                {showPlanButton && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 text-xs px-3 bg-green-100 hover:bg-green-200 text-green-700 border-green-300">
+                                25SS 재고소진 계획
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>25SS 재고소진 계획</DialogTitle>
+                            </DialogHeader>
+                            <InventoryPlanDialog data={inventoryPopupData} />
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col space-y-6">
+            {/* Top Main Chart */}
+            <div className="h-[250px] w-full flex-none min-h-[250px]">
+                <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+                    <ComposedChart data={mainChartData} margin={{top:10, right:10, left:-10, bottom:0}}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{fontSize: 11}} axisLine={false} tickLine={false} />
+                        <YAxis 
+                            yAxisId="left" 
+                            orientation="left" 
+                            tick={{fontSize: 11}} 
+                            axisLine={false} 
+                            tickLine={false}
+                            tickFormatter={(value) => {
+                                if (chartType === "inventory") {
+                                    // 재고 차트: 콤마만 추가 (K 제거)
+                                    return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+                                }
+                                return value.toLocaleString();
+                            }}
+                        />
+                        <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            tick={{ fontSize: 11 }}
+                            axisLine={false}
+                            tickLine={false}
+                            domain={[0, 280]}
+                            ticks={[0, 40, 80, 120, 160, 200, 240, 280]}
+                            tickFormatter={(value) => `${value}%`}
+                        />
+                        <Tooltip 
+                            formatter={(value: number, name: string) => {
+                                if (typeof name === 'string' && name.includes('YoY')) {
+                                    return [`${value}%`, name];
+                                }
+                                if (chartType === "inventory") {
+                                    // 재고 차트: K USD 단위 제거, 숫자만 표시
+                                    return [`${value.toLocaleString('en-US', { maximumFractionDigits: 0 })}`, name];
+                                }
+                                return [value.toLocaleString(), name];
+                            }}
+                        />
+                        {/* Render Bars for visible series */}
+                        {visibleSeries.map((key, idx) => (
+                            <Bar 
+                                key={key} 
+                                yAxisId="left" 
+                                dataKey={key} 
+                                stackId={selectedFilter === "전체" ? "a" : undefined} // Stack only when 'All' is selected
+                                fill={colors[filterOptions.indexOf(key) % colors.length]} 
+                            />
+                        ))}
+                        {/* Render YOY lines */}
+                        {selectedFilter === "전체" && totalYoySeries?.length ? (
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="totalYOY"
+                                stroke="#6b7280"
+                                strokeWidth={2.5}
+                                dot={false}
+                                name="전체 YoY"
+                            />
+                        ) : (
+                            visibleSeries.map((key) => {
+                                const yoyKey = `${key}_YOY`;
+                                return (
+                                    <Line
+                                        key={`${key}-yoy`}
+                                        yAxisId="right"
+                                        type="monotone"
+                                        dataKey={yoyKey}
+                                        stroke="#4b5563"
+                                        strokeWidth={2}
+                                        dot={false}
+                                        name={`${key} YoY`}
+                                    />
+                                );
+                            })
+                        )}
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-1.5 flex-none">
+                <Button 
+                    variant={selectedFilter === "전체" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleFilterClick("전체")}
+                    className={cn("h-7 text-xs px-3", selectedFilter === "전체" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                >
+                    전체
+                </Button>
+                {filterOptions.map((opt, idx) => {
+                    const activeStyle = "ring-2 ring-offset-1 ring-black font-bold";
+                    const colorIndex = idx % colors.length;
+                    
+                    return (
+                        <Badge
+                            key={opt}
+                            variant="outline"
+                            onClick={() => handleFilterClick(opt)}
+                            className={cn("cursor-pointer h-7 px-3 font-normal border", selectedFilter === opt && activeStyle)}
+                            style={{
+                                backgroundColor: colors[colorIndex],
+                                color: textColors[colorIndex],
+                                borderColor: colors[colorIndex]
+                            }}
+                        >
+                            {opt}
+                        </Badge>
+                    )
+                })}
+            </div>
+
+            {/* Expanded Detail View (YOY & Table) - Show for "전체" too, displaying all lines */}
+            {(isYoyVisible) && (
+                <div className="space-y-4 pt-2 border-t flex-none">
+                    {/* Title & Slider */}
+                    <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-xs text-gray-800">
+                            {selectedFilter === "전체" ? "전체 채널" : selectedFilter} YOY 추이(%)
+                        </h4>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-gray-500">Y축 최대값:</span>
+                            <Slider 
+                                value={[yMax]} 
+                                onValueChange={(val) => setYMax(val[0])} 
+                                max={300} 
+                                step={10} 
+                                className="w-[80px]" 
+                            />
+                            <Input 
+                                type="number" 
+                                value={yMax} 
+                                onChange={(e) => setYMax(Number(e.target.value))} 
+                                className="w-[50px] h-6 text-[10px] text-right px-1" 
+                            />
+                            <span className="text-[10px] text-gray-500">%</span>
+                        </div>
+                    </div>
+
+                    {/* YOY Line Chart */}
+                    <div className="h-[150px] w-full min-h-[150px]">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={150}>
+                            <LineChart data={yoyChartData} margin={{top:5, right:10, left:-20, bottom:0}}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                                <YAxis domain={[0, yMax]} tick={{fontSize: 10}} axisLine={false} tickLine={false} unit="%" />
+                                <Tooltip />
+                                {/* Render Line for selected series or ALL series if "전체" */}
+                                {selectedFilter === "전체" ? (
+                                    filterOptions.map((opt, idx) => (
+                                        <Line 
+                                            key={opt}
+                                            type="monotone" 
+                                            dataKey={opt} 
+                                            stroke={colors[idx % colors.length]} 
+                                            strokeWidth={2} 
+                                            dot={{r:2}} 
+                                            activeDot={{r:4}} 
+                                        />
+                                    ))
+                                ) : (
+                                    <Line 
+                                        type="monotone" 
+                                        dataKey={selectedFilter} 
+                                        stroke={colors[filterOptions.indexOf(selectedFilter) % colors.length]} 
+                                        strokeWidth={3} 
+                                        dot={{r:3}} 
+                                        activeDot={{r:5}} 
+                                    />
+                                )}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Data Table with Scroll */}
+                    <ScrollArea className="h-[200px] w-full border rounded-md">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-50 hover:bg-slate-50 h-8">
+                                    <TableHead className="w-[80px] font-bold text-[11px] p-1 h-8">항목</TableHead>
+                                    {["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월"].map(m => (
+                                        <TableHead key={m} className="text-center font-bold text-[11px] min-w-[40px] p-1 h-8">{m}</TableHead>
+                                    ))}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {/* Render Row for selected series or ALL if "전체" */}
+                                {(() => {
+                                    if (selectedFilter === "전체") {
+                                        return filterOptions.map((opt, idx) => {
+                                            const series = allSeriesData.find(s => s.name === opt);
+                                            if (!series) return null;
+                                            return (
+                                                <TableRow key={opt} className="h-8 hover:bg-slate-50">
+                                                    <TableCell className="font-medium text-[11px] p-1 h-8 flex items-center gap-1">
+                                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }}></div>
+                                                        {opt}
+                                                    </TableCell>
+                                                    {series.yoyValues.map((val, j) => (
+                                                        <TableCell key={j} className={cn("text-center text-[11px] p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
+                                                            {val}%
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            );
+                                        });
+                                    }
+                                    
+                                    const series = allSeriesData.find(s => s.name === selectedFilter);
+                                    return series ? (
+                                        <TableRow className="h-8 hover:bg-slate-50 bg-purple-50/50">
+                                            <TableCell className="font-medium text-[11px] p-1 h-8">{selectedFilter}</TableCell>
+                                            {series.yoyValues.map((val, j) => (
+                                                <TableCell key={j} className={cn("text-center text-[11px] p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
+                                                    {val}%
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ) : null;
+                                })()}
+                            </TableBody>
+                        </Table>
+                        <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                </div>
+            )}
+            
+            {/* Insight Cards */}
+            <div className="grid grid-cols-1 gap-2 flex-none">
+                 {insights.map((insight, idx) => (
+                     <InsightBox key={idx} color={insight.color} title={insight.title}>
+                         {insight.content}
+                     </InsightBox>
+                 ))}
+            </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Mock Data for P&L Table (Existing)
+// CSV 파싱 헬퍼 함수
+function parseCSVLine(line: string): string[] {
+  const values: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      values.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  values.push(current.trim());
+  return values;
+}
+
+// 손익계산서 CSV 파싱 및 표시 컴포넌트
+function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
+  const [csvData, setCsvData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = React.useState(false);
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    // CSV 파일 읽기
+    fetch('/data/income-statement.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+        
+        // 헤더 파싱 (두 번째 줄)
+        const headerLine = lines[1];
+        const parsedHeaders = parseCSVLine(headerLine);
+        // 첫 번째 열(구분) 제외하고 Total까지의 열만 추출
+        const totalIndex = parsedHeaders.findIndex(h => h && h.trim() === 'Total');
+        const dataHeaders = totalIndex > 0 
+          ? parsedHeaders.slice(1, totalIndex + 1) // Total 포함
+          : parsedHeaders.slice(1).filter(h => h && h.trim() !== ''); // Total이 없으면 빈 열 제거
+        setHeaders(['구분', ...dataHeaders]);
+        
+        // 데이터 파싱
+        const parsed: any[] = [];
+        let currentParent: any = null;
+        let lastMainCategoryKey: string | null = null; // 마지막 메인 카테고리의 키 추적
+        
+        for (let i = 2; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim() || line.match(/^,{10,}/)) continue; // 빈 줄 스킵
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2 || !values[0]) continue;
+          
+          const label = values[0].trim();
+          
+          // 메인 카테고리인지 확인 (숫자.로 시작)
+          const isMainCategory = /^[0-9]+\./.test(label);
+          
+          // 하위 항목인지 확인
+          const isSubItem = !isMainCategory && 
+                           !['매출총이익', '직접이익', '영업이익', '당기순이익', '24년 대비 영업이익 증감'].includes(label) &&
+                           (label.includes('Ecommerce') || label.includes('Wholesale') || 
+                            label.includes('Other Income') || label.includes('License') ||
+                            ['SEM광고비', '운반비', '보관료', '지급수수료', '기타비용', 
+                             '급여', '광고선전비', '출장비/식대', '사무실임차료', '샘플', 
+                             '감가상각비', 'JVA중재 법률비용', '이자비용', '법인세비용'].includes(label));
+          
+          // 모든 월 데이터 추출 (구분 열 제외)
+          // Total까지의 데이터만 추출
+          const totalIndex = parsedHeaders.findIndex(h => h && h.trim() === 'Total');
+          const dataCount = totalIndex > 0 ? totalIndex : parsedHeaders.length - 1;
+          const monthValues = values.slice(1, 1 + dataCount); // Total까지만
+          
+          // 각 월별 값 정제
+          const cleanedValues = monthValues.map((val: string) => {
+            let cleaned = val.replace(/[$,"]/g, '').trim();
+            if (cleaned === '-' || !cleaned || cleaned === '') return '';
+            return cleaned;
+          });
+          
+          const cleanLabel = label.replace(/^[0-9]+\./, '').trim();
+          const isMain = isMainCategory || ['매출총이익', '직접이익', '영업이익', '당기순이익'].includes(label);
+          const isCalculationResult = ['매출총이익', '직접이익', '영업이익'].includes(cleanLabel);
+          
+          parsed.push({
+            label: cleanLabel,
+            values: cleanedValues,
+            isMainCategory: isMain,
+            isSubItem,
+            parentCategory: isSubItem ? currentParent : null,
+            categoryKey: isMain && !isCalculationResult ? cleanLabel : null,
+            isCalculationResult,
+            alignWithParent: isCalculationResult ? lastMainCategoryKey : null // 계산 결과는 이전 메인 카테고리와 같은 들여쓰기
+          });
+          
+          // 현재 부모 카테고리 업데이트
+          if (isMainCategory) {
+            currentParent = label.replace(/^[0-9]+\./, '').trim();
+            lastMainCategoryKey = currentParent; // 마지막 메인 카테고리 키 저장
+          }
+        }
+        
+        setCsvData(parsed);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []); // selectedMonth 제거 - 모든 데이터 표시
+
+  const formatValue = (value: string) => {
+    if (!value || value === '' || value === '-') return '-';
+    
+    // 특수 문자 처리 (△, + 등)
+    if (value.includes('△') || value.startsWith('+') || value.includes('%')) {
+      return value; // 특수 문자 유지
+    }
+    
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    if (num < 0) return `(${Math.abs(num).toLocaleString()})`;
+    return num.toLocaleString();
+  };
+
+  const getValueColor = (value: string) => {
+    if (!value || value === '' || value === '-') return '';
+    const num = parseFloat(value);
+    if (!isNaN(num) && num < 0 && !value.includes('△') && !value.includes('%')) {
+      return "text-red-600";
+    }
+    return "";
+  };
+
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryKey)) {
+        newSet.delete(categoryKey);
+      } else {
+        newSet.add(categoryKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedCategories(new Set());
+      setAllExpanded(false);
+    } else {
+      const allCategories = csvData
+        .filter(row => row.isMainCategory && row.categoryKey)
+        .map(row => row.categoryKey);
+      setExpandedCategories(new Set(allCategories));
+      setAllExpanded(true);
+    }
+  };
+
+  // 필터링된 데이터 (접힌 항목 제외)
+  const filteredData = React.useMemo(() => {
+    const result: any[] = [];
+    let currentCategory: string | null = null;
+    
+    for (const row of csvData) {
+      if (row.isMainCategory) {
+        currentCategory = row.categoryKey;
+        result.push(row);
+      } else if (row.isSubItem) {
+        // 하위 항목은 부모 카테고리가 펼쳐져 있을 때만 표시
+        if (currentCategory && expandedCategories.has(currentCategory)) {
+          result.push(row);
+        }
+      } else {
+        // 계산 결과 항목은 항상 표시
+        result.push(row);
+      }
+    }
+    
+    return result;
+  }, [csvData, expandedCategories]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg font-bold">손익계산서(단위:K USD)</CardTitle>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllMonths(!showAllMonths)}
+              className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+              {showAllMonths ? "월 접기" : "월 펼치기"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleAll}
+              className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+              {allExpanded ? "접기" : "열기"}
+            </Button>
+        </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {headers.filter((_, idx) => {
+                    if (showAllMonths) return true;
+                    // Keep first column (구분) and columns starting from Nov
+                    // After adding YTD columns: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=당월 YoY, 13=YTD, 14=YTD YoY, 15=Dec, 16=Total
+                    // We want to hide indices 1 to 10 (Jan to Oct), keep everything from Nov onwards
+                    return idx === 0 || idx >= 11;
+                  }).map((header, idx) => (
+                    <TableHead 
+                      key={idx} 
+                      className={cn(
+                        header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]",
+                        header === 'Total' ? "font-bold bg-blue-50" : ""
+                      )}
+                    >
+                      {header === '구분' ? header : header.replace('-25A', '').replace('-25F', '(예상)')}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((row, idx) => {
+                  const isExpanded = row.categoryKey ? expandedCategories.has(row.categoryKey) : false;
+                  
+                  return (
+                    <TableRow 
+                      key={idx}
+                      className={cn(
+                        row.isMainCategory ? "bg-gray-100 cursor-pointer" : 
+                        row.isSubItem ? "bg-gray-50" : "",
+                        "hover:bg-gray-50"
+                      )}
+                      onClick={() => row.isMainCategory && row.categoryKey && toggleCategory(row.categoryKey)}
+                    >
+                      <TableCell className={cn(
+                        row.isMainCategory ? "font-bold text-base" : "font-medium",
+                        row.isSubItem ? "pl-8 text-sm" : "",
+                        row.isCalculationResult && row.alignWithParent ? "pl-0" : "", // 계산 결과는 부모와 같은 들여쓰기
+                        row.isMainCategory && !row.isCalculationResult && "flex items-center gap-2"
+                      )}>
+                        {row.isMainCategory && row.categoryKey && !row.isCalculationResult && (
+                          <span className="text-xs">
+                            {isExpanded ? '▼' : '▶'}
+                          </span>
+                        )}
+                        {/* 계산 결과 항목은 화살표 공간만큼 여백 추가 */}
+                        {row.isCalculationResult && (
+                          <span className="w-4 inline-block"></span>
+                        )}
+                        {row.label}
+                      </TableCell>
+                      {(() => {
+                        const filteredValues = row.values.filter((_, colIdx) => {
+                          if (showAllMonths) return true;
+                          // After adding YTD columns: values array has 16 elements
+                          // 0-9: Jan to Oct, 10: Nov, 11: YTD, 12: 당월 YoY, 13: YTD YoY, 14: Dec, 15: Total
+                          // We want to hide indices 0 to 9 (Jan to Oct), keep everything from Nov onwards
+                          return colIdx > 9;
+                        });
+                        
+                        return filteredValues.map((value: string, colIdx: number) => {
+                          // "24년 대비 영업이익 증감" 행에 대한 특별 처리
+                          let displayValue = formatValue(value);
+                          let cellColorClass = getValueColor(value);
+                          
+                          if (row.label === '24년 대비 영업이익 증감') {
+                            if (value && value !== '' && value !== '-') {
+                              // △로 시작하는 경우 붉은색
+                              if (value.includes('△')) {
+                                cellColorClass = "text-red-600";
+                                displayValue = value;
+                              } else {
+                                // △가 아닌 경우 숫자를 추출하여 +로 시작하도록
+                                const cleanedValue = value.replace(/[^0-9.-]/g, '');
+                                const num = parseFloat(cleanedValue);
+                                if (!isNaN(num)) {
+                                  if (num >= 0) {
+                                    displayValue = `+${num.toLocaleString()}`;
+                                  } else {
+                                    displayValue = `△${Math.abs(num).toLocaleString()}`;
+                                    cellColorClass = "text-red-600";
+                                  }
+                                } else {
+                                  displayValue = value;
+                                }
+                              }
+                            }
+                          }
+                          
+                          // Total column is always the last element in the filtered array
+                          const isTotalColumn = colIdx === filteredValues.length - 1;
+
+                          return (
+                            <TableCell 
+                              key={colIdx}
+                              className={cn(
+                                "text-right font-medium",
+                                cellColorClass,
+                                isTotalColumn ? "bg-blue-50 font-bold" : ""
+                              )}
+                            >
+                              {displayValue}
+                            </TableCell>
+                          );
+                        });
+                      })()}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+        </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// 영업비 분석 CSV 파싱 및 표시 컴포넌트
+function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
+  const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
+  const [loading, setLoading] = React.useState(true);
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2025-10");
+  const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("YTD");
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
+
+  // 월 옵션 (1월부터 11월까지)
+  const monthOptions = Array.from({ length: 11 }, (_, i) => {
+    const month = i + 1;
+    return {
+      value: `2025-${String(month).padStart(2, '0')}`,
+      label: `${month}월`
+    };
+  });
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetch('/data/operatingexpense.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+        
+        // 헤더 파싱 (첫 번째 줄)
+        const headerLine = lines[0];
+        const parsedHeaders = parseCSVLine(headerLine);
+        
+        // 데이터 파싱
+        const data: Record<string, Record<string, string>> = {};
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2 || !values[0]) continue;
+          
+          const dataKey = values[0].trim();
+          const rowData: Record<string, string> = {};
+          
+          // 각 월별 데이터 저장
+          for (let j = 1; j < parsedHeaders.length && j < values.length; j++) {
+            const monthKey = parsedHeaders[j].trim();
+            rowData[monthKey] = values[j].trim();
+          }
+          
+          data[dataKey] = rowData;
+        }
+        
+        setCsvData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  // 선택된 월의 CSV 키 매핑 (2025-10 -> 25년 10월)
+  const getMonthKey = (month: string): string => {
+    const monthNum = parseInt(month.split('-')[1]);
+    return `25년 ${monthNum}월`;
+  };
+
+  // 데이터 값 가져오기
+  const getDataValue = (dataKey: string, month: string, defaultValue: string = '0'): string => {
+    const monthKey = getMonthKey(month);
+    if (!csvData[dataKey] || !csvData[dataKey][monthKey]) {
+      return defaultValue;
+    }
+    return csvData[dataKey][monthKey];
+  };
+
+  // YTD 값 계산 (1월부터 선택된 월까지 합계)
+  const getYTDValue = (dataKey: string, month: string, defaultValue: string = '0'): number => {
+    const monthNum = parseInt(month.split('-')[1]);
+    let sum = 0;
+    let hasValue = false;
+    
+    for (let i = 1; i <= monthNum; i++) {
+      const monthKey = `25년 ${i}월`;
+      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+          sum += num;
+          hasValue = true;
+        }
+      }
+    }
+    
+    if (!hasValue) return parseFloat(defaultValue) || 0;
+    return sum;
+  };
+
+  // 24년 당월 값 가져오기
+  const get24MonthValue = (dataKey: string, month: string): number => {
+    const monthNum = parseInt(month.split('-')[1]);
+    const monthKey = `24년 ${monthNum}월`;
+    if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+      const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+      return parseFloat(val) || 0;
+    }
+    return 0;
+  };
+
+  // 24년 YTD 값 계산 (24년 데이터 키 사용)
+  const get24YTDValue = (dataKey: string, month: string): number => {
+    const monthNum = parseInt(month.split('-')[1]);
+    let sum = 0;
+    
+    // 24년 데이터는 같은 키에 24년 월별 컬럼으로 저장됨
+    for (let i = 1; i <= monthNum; i++) {
+      const monthKey = `24년 ${i}월`;
+      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+          sum += num;
+        }
+      }
+    }
+    
+    return sum;
+  };
+
+  // 현재 표시할 값 (YTD 또는 당월)
+  const getCurrentValue = (dataKey: string, month: string): number => {
+    if (viewMode === "YTD") {
+      return getYTDValue(dataKey, month);
+    } else {
+      const val = getDataValue(dataKey, month, '0');
+      return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    }
+  };
+
+  // 현재 월 숫자
+  const currentMonthNum = parseInt(selectedMonthLocal.split('-')[1]);
+
+  // KPI 데이터
+  const totalOperatingExpense = getCurrentValue('영업비_총영업비', selectedMonthLocal);
+  const totalOperatingExpense24 = viewMode === "YTD" ? get24YTDValue('영업비_총영업비', selectedMonthLocal) : get24MonthValue('영업비_총영업비', selectedMonthLocal);
+  const totalOperatingExpenseYOY = totalOperatingExpense24 > 0 ? (totalOperatingExpense / totalOperatingExpense24 * 100) : 0;
+
+  const personnelCost = getCurrentValue('영업비_인건비', selectedMonthLocal);
+  const personnelCostRatio = totalOperatingExpense > 0 ? (personnelCost / totalOperatingExpense * 100) : 0;
+
+  const headcount = getCurrentValue('영업비_인원수', selectedMonthLocal) || 26;
+  const perPersonExpense = headcount > 0 ? totalOperatingExpense / headcount : 0;
+
+  const sales = getCurrentValue('영업비_매출', selectedMonthLocal);
+  const efficiencyRatio = sales > 0 ? (totalOperatingExpense / sales * 100) : 0;
+
+  // 계정별 비용 데이터
+  const accountCategories = [
+    { key: '인건비', name: '인건비' },
+    { key: '광고선전비', name: '광고선전비' },
+    { key: '지급수수료', name: '지급수수료' },
+    { key: '식대출장비', name: '식대/출장비' },
+    { key: '사무실임차료', name: '사무실임차료' },
+    { key: '샘플개발비', name: '샘플/개발비' },
+    { key: '감가상각비', name: '감가상각비' },
+    { key: '기타비용', name: '기타비용' },
+  ];
+
+  // 대분류별 중분류 매핑
+  const subCategoriesMap: Record<string, { key: string; name: string }[]> = {
+    '인건비': [
+      { key: '정규직인건비', name: '정규직인건비' },
+      { key: '계약직인건비', name: '계약직인건비' },
+      { key: '직원복리후생비', name: '직원복후비' },
+      { key: '직원보험', name: '직원보험' },
+    ],
+    '광고선전비': [
+      { key: '온라인광고', name: '온라인광고' },
+      { key: '오프라인광고', name: '오프라인광고' },
+      { key: '프로모션비', name: '프로모션비' },
+    ],
+    '지급수수료': [
+      { key: '판매수수료', name: '판매수수료' },
+      { key: '대행수수료', name: '대행수수료' },
+      { key: '기타수수료', name: '기타수수료' },
+    ],
+    '식대/출장비': [
+      { key: '식대', name: '식대' },
+      { key: '출장비', name: '출장비' },
+    ],
+    '사무실임차료': [
+      { key: '임차료', name: '임차료' },
+      { key: '관리비', name: '관리비' },
+    ],
+    '샘플/개발비': [
+      { key: '샘플비', name: '샘플비' },
+      { key: '개발비', name: '개발비' },
+    ],
+    '감가상각비': [
+      { key: '비품감가상각', name: '비품감가상각' },
+      { key: '장비감가상각', name: '장비감가상각' },
+    ],
+    '기타비용': [
+      { key: '통신비', name: '통신비' },
+      { key: '도서인쇄비', name: '도서인쇄비' },
+      { key: '접대비', name: '접대비' },
+    ],
+  };
+
+  const chartData = accountCategories.map(cat => ({
+    name: cat.name,
+    '24년 YTD': viewMode === "YTD" ? get24YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get24MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
+    '25년 YTD': viewMode === "YTD" ? getYTDValue(`영업비_${cat.key}`, selectedMonthLocal) : getCurrentValue(`영업비_${cat.key}`, selectedMonthLocal),
+  }));
+
+  // 선택된 대분류에 따른 파이 차트 데이터
+  const getPieChartData = () => {
+    const categoryName = selectedCategoryForPie || '인건비'; // 기본값: 인건비
+    const subCats = subCategoriesMap[categoryName] || [];
+    const categoryKey = accountCategories.find(c => c.name === categoryName)?.key || '';
+    const totalValue = getCurrentValue(`영업비_${categoryKey}`, selectedMonthLocal);
+    
+    if (!subCats.length || totalValue === 0) {
+      return [];
+    }
+    
+    return subCats.map(item => {
+      const dataKey = `영업비_${categoryKey}_${item.key}`;
+      const val = getCurrentValue(dataKey, selectedMonthLocal);
+      return {
+        name: item.name,
+        value: val,
+        percentage: totalValue > 0 ? (val / totalValue * 100).toFixed(0) : '0',
+      };
+    }).filter(item => item.value > 0);
+  };
+
+  const pieData = getPieChartData();
+  const COLORS = ['#1e293b', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+
+  // 대분류별 상세 테이블 데이터
+  const detailTableData = accountCategories.map(cat => {
+    const val25 = viewMode === "YTD" ? getYTDValue(`영업비_${cat.key}`, selectedMonthLocal) : getCurrentValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const val24 = viewMode === "YTD" ? get24YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get24MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const diff = val25 - val24;
+    const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+    
+    return {
+      name: cat.name,
+      ytd24: val24,
+      ytd25: val25,
+      diff: diff,
+      diffRate: diffRate,
+    };
+  });
+
+  const totalRow = {
+    name: '합계',
+    ytd24: totalOperatingExpense24,
+    ytd25: totalOperatingExpense,
+    diff: totalOperatingExpense - totalOperatingExpense24,
+    diffRate: totalOperatingExpenseYOY - 100,
+  };
+
+  const toggleCategory = (name: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(name)) {
+      newExpanded.delete(name);
+      // 축소할 때 파이 차트도 초기화
+      if (selectedCategoryForPie === name) {
+        setSelectedCategoryForPie(null);
+      }
+    } else {
+      newExpanded.add(name);
+      // 확장할 때 파이 차트에 반영
+      setSelectedCategoryForPie(name);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  // 중분류 데이터 가져오기
+  const getSubCategoryData = (categoryName: string) => {
+    const categoryKey = accountCategories.find(c => c.name === categoryName)?.key || '';
+    const subCats = subCategoriesMap[categoryName] || [];
+    
+    return subCats.map(sub => {
+      const dataKey = `영업비_${categoryKey}_${sub.key}`;
+      const val25 = viewMode === "YTD" ? getYTDValue(dataKey, selectedMonthLocal) : getCurrentValue(dataKey, selectedMonthLocal);
+      const val24 = viewMode === "YTD" ? get24YTDValue(dataKey, selectedMonthLocal) : get24MonthValue(dataKey, selectedMonthLocal);
+      const diff = val25 - val24;
+      const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+      
+      return {
+        name: sub.name,
+        ytd24: val24,
+        ytd25: val25,
+        diff: diff,
+        diffRate: diffRate,
+      };
+    });
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* 헤더 영역 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-bold mb-1">STO 영업비 분석</CardTitle>
+              <CardDescription className="text-sm">24년 1-10월 vs 25년 1-10월 (단위: K USD)</CardDescription>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Select value={selectedMonthLocal} onValueChange={setSelectedMonthLocal}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-1">
+                <Button
+                  variant={viewMode === "YTD" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("YTD")}
+                  className={cn("h-9 text-xs px-3", viewMode === "YTD" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                >
+                  YTD ({currentMonthNum}월)
+                </Button>
+                <Button
+                  variant={viewMode === "당월" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("당월")}
+                  className={cn("h-9 text-xs px-3", viewMode === "당월" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                >
+                  당월 ({currentMonthNum}월)
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* 상단 KPI 카드 */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600">총 영업비</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-1">${(totalOperatingExpense / 1000).toFixed(0)}K</div>
+            <div className={cn("text-sm font-medium", totalOperatingExpenseYOY >= 100 ? "text-red-600" : "text-emerald-600")}>
+              YOY {totalOperatingExpenseYOY.toFixed(0)}%
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600">인건비 비중</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-1">{personnelCostRatio.toFixed(1)}%</div>
+            <div className="text-xs text-gray-500">전체 비용 중</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600">인당 영업비</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-1">${(perPersonExpense / 1000).toFixed(0)}K</div>
+            <div className="text-xs text-gray-500">{headcount}명 연간</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-gray-600">효율성 지표</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-1">{efficiencyRatio.toFixed(1)}%</div>
+            <div className="text-xs text-gray-500">매출 대비</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 하단 차트 영역 */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* 계정별 비용 비교 막대 그래프 */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-bold">계정별 비용 비교</CardTitle>
+              <Button variant="outline" size="sm" className="h-7 text-xs">YTD 분석</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} fontSize={11} />
+                <YAxis label={{ value: 'K USD', angle: -90, position: 'insideLeft' }} fontSize={11} />
+                <Tooltip formatter={(value: number) => `${(value / 1000).toFixed(0)}K`} />
+                <Legend />
+                <Bar dataKey="24년 YTD" fill="#e5e7eb" />
+                <Bar dataKey="25년 YTD" fill="#374151" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* 세부내역 파이 차트 (동적 변경) */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-bold">
+                {selectedCategoryForPie ? `${selectedCategoryForPie} 세부내역` : '인건비 세부내역'}
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-7 text-xs"
+                onClick={() => {
+                  setSelectedCategoryForPie(null);
+                  setExpandedCategories(new Set());
+                }}
+              >
+                닫기
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percentage }) => `${name} ${percentage}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: number) => `${(value / 1000).toFixed(0)}K`} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                데이터가 없습니다
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 대분류별 영업비 상세 테이블 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-bold">대분류별 영업비 상세</CardTitle>
+          <CardDescription className="text-xs">클릭하여 세부 항목 보기</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">대분류</TableHead>
+                  <TableHead className="text-right">24년 YTD</TableHead>
+                  <TableHead className="text-right">25년 YTD</TableHead>
+                  <TableHead className="text-right">증감액</TableHead>
+                  <TableHead className="text-right">증감률</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {detailTableData.map((row) => (
+                  <React.Fragment key={row.name}>
+                    <TableRow 
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => toggleCategory(row.name)}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {expandedCategories.has(row.name) ? (
+                            <ChevronUpIcon className="h-4 w-4" />
+                          ) : (
+                            <ChevronDownIcon className="h-4 w-4" />
+                          )}
+                          {row.name}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{(row.ytd24 / 1000).toFixed(0)}K</TableCell>
+                      <TableCell className="text-right">{(row.ytd25 / 1000).toFixed(0)}K</TableCell>
+                      <TableCell className={cn("text-right font-medium", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                        {row.diff >= 0 ? '+' : ''}{(row.diff / 1000).toFixed(0)}K
+                      </TableCell>
+                      <TableCell className={cn("text-right font-medium", row.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                        {row.diffRate >= 0 ? '+' : ''}{row.diffRate.toFixed(1)}%
+                      </TableCell>
+                    </TableRow>
+                    {/* 확장된 세부 항목 표시 */}
+                    {expandedCategories.has(row.name) && getSubCategoryData(row.name).map((subRow) => (
+                      <TableRow key={`${row.name}-${subRow.name}`} className="bg-gray-50">
+                        <TableCell className="font-medium pl-8">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs">└</span>
+                            {subRow.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">{(subRow.ytd24 / 1000).toFixed(0)}K</TableCell>
+                        <TableCell className="text-right">{(subRow.ytd25 / 1000).toFixed(0)}K</TableCell>
+                        <TableCell className={cn("text-right font-medium", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                          {subRow.diff >= 0 ? '+' : ''}{(subRow.diff / 1000).toFixed(0)}K
+                        </TableCell>
+                        <TableCell className={cn("text-right font-medium", subRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                          {subRow.diffRate >= 0 ? '+' : ''}{subRow.diffRate.toFixed(1)}%
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </React.Fragment>
+                ))}
+                <TableRow className="bg-blue-50 font-bold">
+                  <TableCell className="font-bold">{totalRow.name}</TableCell>
+                  <TableCell className="text-right font-bold">{(totalRow.ytd24 / 1000).toFixed(0)}K</TableCell>
+                  <TableCell className="text-right font-bold">{(totalRow.ytd25 / 1000).toFixed(0)}K</TableCell>
+                  <TableCell className={cn("text-right font-bold", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                    {totalRow.diff >= 0 ? '+' : ''}{(totalRow.diff / 1000).toFixed(0)}K
+                  </TableCell>
+                  <TableCell className={cn("text-right font-bold", totalRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                    {totalRow.diffRate >= 0 ? '+' : ''}{totalRow.diffRate.toFixed(1)}%
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// 재무상태표 CSV 파싱 및 표시 컴포넌트
+function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
+  const [csvData, setCsvData] = React.useState<any[]>([]);
+  const [workingCapitalData, setWorkingCapitalData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = React.useState(false);
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    // CSV 파일 읽기
+    fetch('/data/balance-sheet.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+        
+        // 헤더 파싱 (두 번째 줄)
+        const headerLine = lines[1];
+        const parsedHeaders = parseCSVLine(headerLine);
+        // 첫 번째 열(구분) 제외하고 모든 열 추출
+        const dataHeaders = parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
+        setHeaders(['구분', ...dataHeaders]);
+        
+        // 데이터 파싱
+        const parsed: any[] = [];
+        const workingCapital: any[] = [];
+        let currentParent: any = null;
+        let currentSubParent: any = null;
+        let isWorkingCapitalSection = false;
+        
+        for (let i = 2; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim() || line.match(/^,{10,}/)) continue; // 빈 줄 스킵
+          
+          // 새로운 섹션 시작 체크 (운전자본 섹션)
+          if (line.startsWith('구분,')) {
+            isWorkingCapitalSection = true;
+            continue; // 헤더 라인 스킵
+          }
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2 || !values[0]) continue;
+          
+          const label = values[0].trim();
+          
+          // 모든 월 데이터 추출 (구분 열 제외)
+          const monthValues = values.slice(1, 1 + dataHeaders.length);
+          
+          // 각 월별 값 정제
+          const cleanedValues = monthValues.map((val: string) => {
+            let cleaned = val.replace(/[$,"]/g, '').trim();
+            if (cleaned === '-' || !cleaned || cleaned === '') return '';
+            return cleaned;
+          });
+          
+          // 운전자본 섹션 처리
+          if (isWorkingCapitalSection) {
+            const cleanLabel = label;
+            workingCapital.push({
+              label: cleanLabel,
+              values: cleanedValues
+            });
+            continue;
+          }
+          
+          // 재무상태표 본문 처리
+          // 메인 카테고리인지 확인 (숫자.로 시작)
+          const isMainCategory = /^[0-9]+\./.test(label);
+          
+          // 서브 카테고리인지 확인 ((숫자)로 시작)
+          const isSubCategory = /^\([0-9]+\)/.test(label);
+          
+          // 하위 항목인지 확인
+          const isSubItem = !isMainCategory && !isSubCategory && 
+                           !label.match(/^[0-9]+\./) &&
+                           !label.match(/^\([0-9]+\)/);
+          
+          const cleanLabel = label.replace(/^[0-9]+\./, '').replace(/^\([0-9]+\)/, '').trim();
+          const isMain = isMainCategory || ['부채총계'].includes(cleanLabel);
+          
+          // 카테고리 키 생성
+          let categoryKey: string | null = null;
+          if (isMainCategory) {
+            categoryKey = cleanLabel;
+            currentParent = cleanLabel;
+            currentSubParent = null;
+          } else if (isSubCategory) {
+            categoryKey = `${currentParent} - ${cleanLabel}`;
+            currentSubParent = cleanLabel;
+          } else if (isSubItem) {
+            // 서브 카테고리가 있으면 서브 카테고리 키, 없으면 부모 카테고리 키 사용
+            categoryKey = currentSubParent ? `${currentParent} - ${currentSubParent}` : null;
+          }
+          
+          // 계산 결과 항목인지 확인 (토글 없음)
+          const isCalculationResult = ['매출총이익', '직접이익', '영업이익'].includes(cleanLabel);
+          
+          parsed.push({
+            label: cleanLabel,
+            values: cleanedValues,
+            isMainCategory: isMain,
+            isSubCategory: isSubCategory,
+            isSubItem,
+            parentCategory: isSubItem ? (currentSubParent || currentParent) : null,
+            categoryKey: (isMain || isSubCategory) && !isCalculationResult ? categoryKey : null,
+            indentLevel: isSubItem ? 2 : isSubCategory ? 1 : 0,
+            isCalculationResult
+          });
+        }
+        
+        setCsvData(parsed);
+        setWorkingCapitalData(workingCapital);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatValue = (value: string) => {
+    if (!value || value === '' || value === '-') return '-';
+    
+    // 특수 문자 처리 (△, +, %는 유지)
+    if (value.includes('△') || value.startsWith('+') || value.includes('%')) {
+      return value;
+    }
+    
+    // 괄호로 감싸진 음수 처리 (예: ($12,853))
+    if (value.includes('(') && value.includes(')')) {
+      const cleaned = value.replace(/[($)]/g, '').replace(/,/g, '');
+      const num = parseFloat(cleaned);
+      if (!isNaN(num)) {
+        return `(${num.toLocaleString()})`;
+      }
+    }
+    
+    const num = parseFloat(value.replace(/,/g, ''));
+    if (isNaN(num)) return value;
+    if (num < 0) return `(${Math.abs(num).toLocaleString()})`;
+    return num.toLocaleString();
+  };
+
+  const getValueColor = (value: string) => {
+    if (!value || value === '' || value === '-') return '';
+    
+    // 괄호로 감싸진 음수 체크
+    if (value.includes('(') && value.includes(')')) {
+      return "text-red-600";
+    }
+    
+    const num = parseFloat(value.replace(/,/g, ''));
+    if (!isNaN(num) && num < 0 && !value.includes('△') && !value.includes('%')) {
+      return "text-red-600";
+    }
+    return "";
+  };
+
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryKey)) {
+        newSet.delete(categoryKey);
+      } else {
+        newSet.add(categoryKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedCategories(new Set());
+      setAllExpanded(false);
+    } else {
+      const allCategories = csvData
+        .filter(row => (row.isMainCategory || row.isSubCategory) && row.categoryKey)
+        .map(row => row.categoryKey);
+      setExpandedCategories(new Set(allCategories));
+      setAllExpanded(true);
+    }
+  };
+
+  // 필터링된 데이터 (접힌 항목 제외)
+  const filteredData = React.useMemo(() => {
+    const result: any[] = [];
+    let currentCategory: string | null = null;
+    let currentSubCategory: string | null = null;
+    
+    for (const row of csvData) {
+      if (row.isMainCategory) {
+        currentCategory = row.categoryKey;
+        currentSubCategory = null;
+        result.push(row);
+      } else if (row.isSubCategory) {
+        currentSubCategory = row.categoryKey;
+        // 서브 카테고리는 부모가 펼쳐져 있을 때만 표시
+        if (currentCategory && expandedCategories.has(currentCategory)) {
+          result.push(row);
+        }
+      } else if (row.isSubItem) {
+        // 하위 항목은 부모 서브 카테고리가 펼쳐져 있을 때만 표시
+        if (currentSubCategory && expandedCategories.has(currentSubCategory)) {
+          result.push(row);
+        } else if (currentCategory && expandedCategories.has(currentCategory) && !currentSubCategory) {
+          // 서브 카테고리가 없는 경우 (직접 메인 카테고리 아래 항목) 부모만 체크
+          result.push(row);
+        }
+      } else {
+        // 일반 항목 (운전자본 등)은 항상 표시
+        result.push(row);
+      }
+    }
+    
+    return result;
+  }, [csvData, expandedCategories]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 재무상태표 본문 */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg font-bold">재무상태표(K USD)</CardTitle>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllMonths(!showAllMonths)}
+              className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+              {showAllMonths ? "월 접기" : "월 펼치기"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleAll}
+              className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+              {allExpanded ? "접기" : "열기"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {headers.filter((_, idx) => {
+                    if (showAllMonths) return true;
+                    // Keep first column (구분) and columns starting from Nov
+                    // After adding YoY: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=YoY, 13=Dec
+                    // We want to hide indices 1 to 10 (Jan to Oct), keep everything from Nov onwards
+                    return idx === 0 || idx >= 11;
+                  }).map((header, idx) => (
+                    <TableHead 
+                      key={idx} 
+                      className={cn(
+                        header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]"
+                      )}
+                    >
+                      {header === '구분' ? header : header.replace('-25A', '').replace('-25F', '(예상)')}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((row, idx) => {
+                  const isExpanded = row.categoryKey ? expandedCategories.has(row.categoryKey) : false;
+                  
+                  return (
+                    <TableRow 
+                      key={idx}
+                      className={cn(
+                        row.isMainCategory ? "bg-gray-100 cursor-pointer" : 
+                        row.isSubCategory ? "bg-gray-50 cursor-pointer" :
+                        row.isSubItem ? "bg-white" : "",
+                        "hover:bg-gray-50"
+                      )}
+                      onClick={() => (row.isMainCategory || row.isSubCategory) && row.categoryKey && toggleCategory(row.categoryKey)}
+                    >
+                      <TableCell className={cn(
+                        row.isMainCategory ? "font-bold text-base" : 
+                        row.isSubCategory ? "font-bold text-sm pl-4" :
+                        "font-medium",
+                        row.isSubItem ? "pl-8 text-sm" : "",
+                        (row.isMainCategory || row.isSubCategory) && "flex items-center gap-2"
+                      )}>
+                        {(row.isMainCategory || row.isSubCategory) && row.categoryKey && (
+                          <span className="text-xs">
+                            {isExpanded ? '▼' : '▶'}
+                          </span>
+                        )}
+                        {row.label}
+                      </TableCell>
+                      {(() => {
+                        const filteredValues = row.values.filter((_, colIdx) => {
+                          if (showAllMonths) return true;
+                          // After adding YoY: values array has 13 elements
+                          // 0-9: Jan to Oct, 10: Nov, 11: YoY, 12: Dec
+                          // We want to hide indices 0 to 9 (Jan to Oct), keep everything from Nov onwards
+                          return colIdx > 9;
+                        });
+                        
+                        return filteredValues.map((value: string, colIdx: number) => (
+                          <TableCell 
+                            key={colIdx}
+                            className={cn(
+                              "text-right font-medium",
+                              getValueColor(value)
+                            )}
+                          >
+                            {formatValue(value)}
+                          </TableCell>
+                        ));
+                      })()}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 운전자본 섹션 */}
+      {workingCapitalData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">운전자본</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {headers.filter((_, idx) => {
+                      if (showAllMonths) return true;
+                      // Keep first column (구분) and columns starting from Nov
+                      // After adding YoY: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=YoY, 13=Dec
+                      // We want to hide indices 1 to 10 (Jan to Oct), keep everything from Nov onwards
+                      return idx === 0 || idx >= 11;
+                    }).map((header, idx) => (
+                      <TableHead 
+                        key={idx} 
+                        className={cn(
+                          header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]"
+                        )}
+                      >
+                        {header === '구분' ? header : header.replace('-25A', '').replace('-25F', '(예상)')}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {workingCapitalData.map((row, idx) => {
+                    const isWorkingCapitalRow = row.label === '운전자본';
+                    const isWorkingCapitalChangeRow = row.label === '운전자본증감';
+                    
+                    return (
+                      <TableRow 
+                        key={idx}
+                        className="hover:bg-gray-50"
+                      >
+                        <TableCell className={cn(
+                          "font-medium",
+                          isWorkingCapitalRow ? "font-bold text-base bg-gray-100" : 
+                          isWorkingCapitalChangeRow ? "pl-4 text-sm font-medium text-blue-600" : 
+                          "pl-4 text-sm"
+                        )}>
+                          {row.label}
+                        </TableCell>
+                        {(() => {
+                          const filteredValues = row.values.filter((_, colIdx) => {
+                            if (showAllMonths) return true;
+                            // After adding YoY: values array has 13 elements
+                            // 0-9: Jan to Oct, 10: Nov, 11: YoY, 12: Dec
+                            // We want to hide indices 0 to 9 (Jan to Oct), keep everything from Nov onwards
+                            return colIdx > 9;
+                          });
+                          
+                          return filteredValues.map((value: string, colIdx: number) => {
+                            // 운전자본증감 행에 대한 특별 처리
+                            let displayValue = formatValue(value);
+                            let cellColorClass = getValueColor(value);
+                            
+                            if (isWorkingCapitalChangeRow && value && value !== '' && value !== '-') {
+                              // 숫자 추출 (괄호, $, 콤마 등 제거)
+                              const cleanedValue = value.replace(/[$,"()]/g, '').replace(/△/g, '-').trim();
+                              const num = parseFloat(cleanedValue);
+                              
+                              if (!isNaN(num)) {
+                                if (num < 0 || value.includes('△') || value.includes('(')) {
+                                  // 음수인 경우: △ 기호와 붉은색
+                                  cellColorClass = "text-red-600";
+                                  displayValue = `△${Math.abs(num).toLocaleString()}`;
+                                } else if (num > 0) {
+                                  // 양수인 경우: + 기호 추가
+                                  displayValue = `+${num.toLocaleString()}`;
+                                } else {
+                                  // 0인 경우
+                                  displayValue = num.toLocaleString();
+                                }
+                              } else {
+                                // 숫자로 파싱되지 않는 경우 원래 값 유지
+                                displayValue = value;
+                              }
+                            }
+                            
+                            return (
+                              <TableCell 
+                                key={colIdx}
+                                className={cn(
+                                  "text-right font-medium",
+                                  cellColorClass,
+                                  isWorkingCapitalRow ? "bg-gray-100 font-bold" : ""
+                                )}
+                              >
+                                {displayValue}
+                              </TableCell>
+                            );
+                          });
+                        })()}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// 현금흐름표 CSV 파싱 및 표시 컴포넌트
+function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
+  const [cashFlowData, setCashFlowData] = React.useState<any[]>([]);
+  const [loanData, setLoanData] = React.useState<any[]>([]);
+  const [factorsData, setFactorsData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loanHeaders, setLoanHeaders] = React.useState<string[]>([]);
+  const [factorsHeaders, setFactorsHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  const [allExpanded, setAllExpanded] = React.useState(false);
+
+  React.useEffect(() => {
+    setLoading(true);
+    // CSV 파일 읽기
+    fetch('/data/cash-flow.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        // 현금흐름표 섹션 파싱
+        const cashFlowStart = lines.findIndex(line => line.includes('3. 현금흐름표'));
+        const cashFlowEnd = lines.findIndex((line, idx) => idx > cashFlowStart && line.includes('3-2. STO 차입현황'));
+        
+        if (cashFlowStart >= 0) {
+          // 헤더 파싱 (현금흐름표 섹션의 두 번째 줄, 인덱스: cashFlowStart + 1)
+          const headerLine = lines[cashFlowStart + 1];
+          const parsedHeaders = parseCSVLine(headerLine);
+          const totalIndex = parsedHeaders.findIndex(h => h && h.trim() === 'Total');
+          const dataHeaders = totalIndex > 0 
+            ? parsedHeaders.slice(1, totalIndex + 1)
+            : parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
+          setHeaders(['구분', ...dataHeaders]);
+          
+          // 현금흐름표 데이터 파싱 (세 번째 줄부터, 인덱스: cashFlowStart + 2)
+          const cashFlowEndLine = cashFlowEnd > 0 ? cashFlowEnd : lines.length;
+          const parsed: any[] = [];
+          let currentParent: any = null;
+          
+          for (let i = cashFlowStart + 2; i < cashFlowEndLine; i++) {
+            const line = lines[i];
+            if (!line.trim() || line.match(/^,{10,}/)) continue;
+            
+            const values = parseCSVLine(line);
+            if (values.length < 2 || !values[0]) continue;
+            
+            const label = values[0].trim();
+            
+            // (1), (2)로 시작하는 메인 카테고리
+            const isMainCategory = /^\([0-9]+\)/.test(label);
+            
+            // 하위 항목 확인
+            const isSubItem = !isMainCategory && 
+                             !['기초현금', '기말현금', '(1) 영업활동', '(2) 재무활동'].includes(label);
+            
+            const totalIndex = parsedHeaders.findIndex(h => h && h.trim() === 'Total');
+            const dataCount = totalIndex > 0 ? totalIndex : parsedHeaders.length - 1;
+            const monthValues = values.slice(1, 1 + dataCount);
+            
+            const cleanedValues = monthValues.map((val: string) => {
+              // 괄호는 유지하고 $, 따옴표만 제거
+              let cleaned = val.replace(/[$"]/g, '').trim();
+              if (cleaned === '-' || !cleaned || cleaned === '' || cleaned === ' ') return '';
+              return cleaned;
+            });
+            
+            const cleanLabel = label.replace(/^\([0-9]+\)/, '').trim();
+            const isMain = isMainCategory || ['기초현금', '기말현금'].includes(label);
+            
+            parsed.push({
+              label: cleanLabel || label,
+              values: cleanedValues,
+              isMainCategory: isMain,
+              isSubItem,
+              parentCategory: isSubItem ? currentParent : null,
+              categoryKey: isMain ? (cleanLabel || label) : null
+            });
+            
+            if (isMainCategory) {
+              currentParent = label;
+            }
+          }
+          
+          setCashFlowData(parsed);
+        }
+        
+        // STO 차입현황 섹션 파싱
+        const loanStart = lines.findIndex(line => line.includes('3-2. STO 차입현황'));
+        const loanEnd = lines.findIndex((line, idx) => idx > loanStart && line.includes('3-3.'));
+        
+        if (loanStart >= 0) {
+          const loanEndLine = loanEnd > 0 ? loanEnd : lines.length;
+          const loanParsed: any[] = [];
+          
+          // 헤더 찾기
+          for (let i = loanStart; i < loanEndLine; i++) {
+            const line = lines[i];
+            if (line.includes('기초금액') || line.includes('기말금액')) {
+              const values = parseCSVLine(line);
+              const cleanedHeaders = values.filter(h => h && h.trim() !== '').map(h => h.trim());
+              if (cleanedHeaders.length > 2) {
+                setLoanHeaders(cleanedHeaders);
+              }
+            }
+            
+            if (line.includes('본사 차입금')) {
+              const values = parseCSVLine(line);
+              const cleanedValues = values.filter(v => v && v.trim() !== '').map(v => {
+                let cleaned = v.replace(/[$,"]/g, '').trim();
+                if (cleaned === '-' || !cleaned || cleaned === '' || cleaned === ' ') return '';
+                return cleaned;
+              });
+              
+              if (cleanedValues.length > 0) {
+                loanParsed.push({
+                  label: cleanedValues[0],
+                  values: cleanedValues.slice(1)
+                });
+              }
+            }
+          }
+          
+          setLoanData(loanParsed);
+        }
+        
+        // 영업현금흐름 악화 요인 섹션 파싱
+        const factorsStart = lines.findIndex(line => line.includes('3-3. 2025년 STO 영업현금흐름 악화 요인'));
+        
+        if (factorsStart >= 0) {
+          // 헤더 줄 찾기 (구 분이 포함된 줄)
+          let headerStartIdx = -1;
+          let dataLineIdx = -1;
+          
+          for (let i = factorsStart; i < Math.min(factorsStart + 10, lines.length); i++) {
+            const line = lines[i];
+            if (line.includes('구 분') && headerStartIdx === -1) {
+              headerStartIdx = i;
+            }
+            if (line.includes('금 액') && dataLineIdx === -1) {
+              dataLineIdx = i;
+              break;
+            }
+          }
+          
+          if (headerStartIdx >= 0 && dataLineIdx >= 0) {
+            // 헤더 줄들을 합치기 (여러 줄에 걸쳐 있을 수 있음)
+            // CSV에서 따옴표로 감싸진 값이 여러 줄에 걸쳐 있을 수 있음
+            let headerText = '';
+            for (let i = headerStartIdx; i < dataLineIdx; i++) {
+              const line = lines[i];
+              // 줄바꿈을 공백으로 대체
+              headerText += line.replace(/\n/g, ' ') + ' ';
+            }
+            
+            // CSV 파싱 (따옴표 안의 콤마를 보존)
+            const headerValues = parseCSVLine(headerText.trim());
+            
+            // "구 분" 제외하고 헤더 추출
+            const cleanedHeaders: string[] = [];
+            let skipNext = false;
+            for (let i = 0; i < headerValues.length; i++) {
+              const val = headerValues[i] ? headerValues[i].trim() : '';
+              if (val === '구 분' || val === '' || !val) {
+                continue;
+              }
+              // 줄바꿈 제거 및 정리
+              const cleanHeader = val.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+              if (cleanHeader) {
+                cleanedHeaders.push(cleanHeader);
+              }
+            }
+            
+            // 데이터 줄 파싱
+            const dataLine = lines[dataLineIdx];
+            const dataValues = parseCSVLine(dataLine);
+            
+            // "금 액" 이후의 값들 추출
+            const cleanedValues: string[] = [];
+            let foundGeumaek = false;
+            for (let i = 0; i < dataValues.length; i++) {
+              const val = dataValues[i] ? dataValues[i].trim() : '';
+              if (!foundGeumaek && val.includes('금 액')) {
+                foundGeumaek = true;
+                continue;
+              }
+              if (foundGeumaek) {
+                // 값 정제 ($, 쉼표, 따옴표 제거)
+                let cleaned = val.replace(/[$,"]/g, '').trim();
+                if (cleaned === '-' || cleaned === '') {
+                  cleanedValues.push('');
+                } else {
+                  cleanedValues.push(cleaned);
+                }
+              }
+            }
+            
+            // 헤더와 값을 매핑
+            const factorsParsed: any[] = [];
+            const maxLength = Math.max(cleanedHeaders.length, cleanedValues.length);
+            
+            for (let i = 0; i < maxLength; i++) {
+              const header = cleanedHeaders[i];
+              const value = cleanedValues[i] || '';
+              
+              if (header) {
+                factorsParsed.push({
+                  label: header,
+                  value: value
+                });
+              }
+            }
+            
+            if (factorsParsed.length > 0) {
+              setFactorsData(factorsParsed);
+              setFactorsHeaders(['구 분', ...cleanedHeaders]);
+            }
+          }
+        }
+        
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatValue = (value: string) => {
+    if (!value || value === '' || value === '-') return '-';
+    
+    // 특수 문자 처리 (△, +, %는 유지)
+    if (value.includes('△') || value.startsWith('+') || value.includes('%')) {
+      return value;
+    }
+    
+    // 괄호로 감싸진 음수 처리 (예: ($2,223) 또는 ($662))
+    if (value.includes('(') && value.includes(')')) {
+      const cleaned = value.replace(/[($)]/g, '').replace(/,/g, '');
+      const num = parseFloat(cleaned);
+      if (!isNaN(num)) {
+        return `(${num.toLocaleString()})`;
+      }
+    }
+    
+    // 일반 숫자 처리
+    const cleanedValue = value.replace(/,/g, '').replace(/\$/g, '');
+    const num = parseFloat(cleanedValue);
+    if (isNaN(num)) return value;
+    if (num < 0) return `(${Math.abs(num).toLocaleString()})`;
+    return num.toLocaleString();
+  };
+
+  const getValueColor = (value: string) => {
+    if (!value || value === '' || value === '-') return '';
+    
+    // 괄호로 감싸진 음수 체크
+    if (value.includes('(') && value.includes(')')) {
+      return "text-red-600";
+    }
+    
+    // 일반 음수 체크
+    const cleanedValue = value.replace(/,/g, '').replace(/\$/g, '').replace(/[()]/g, '');
+    const num = parseFloat(cleanedValue);
+    if (!isNaN(num) && num < 0 && !value.includes('△') && !value.includes('%')) {
+      return "text-red-600";
+    }
+    return "";
+  };
+
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryKey)) {
+        newSet.delete(categoryKey);
+      } else {
+        newSet.add(categoryKey);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedCategories(new Set());
+      setAllExpanded(false);
+    } else {
+      const allCategories = cashFlowData
+        .filter(row => row.isMainCategory && row.categoryKey)
+        .map(row => row.categoryKey);
+      setExpandedCategories(new Set(allCategories));
+      setAllExpanded(true);
+    }
+  };
+
+  // 필터링된 데이터
+  const filteredData = React.useMemo(() => {
+    const result: any[] = [];
+    let currentCategory: string | null = null;
+    
+    for (const row of cashFlowData) {
+      if (row.isMainCategory) {
+        currentCategory = row.categoryKey;
+        result.push(row);
+      } else if (row.isSubItem) {
+        if (currentCategory && expandedCategories.has(currentCategory)) {
+          result.push(row);
+        }
+      } else {
+        result.push(row);
+      }
+    }
+    
+    return result;
+  }, [cashFlowData, expandedCategories]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 현금흐름표 본문 */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg font-bold">현금흐름표(단위:K USD)</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAll}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+          >
+            {allExpanded ? "접기" : "열기"}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {headers.map((header, idx) => (
+                    <TableHead 
+                      key={idx} 
+                      className={cn(
+                        idx === 0 ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]",
+                        header === 'Total' ? "font-bold bg-blue-50" : ""
+                      )}
+                    >
+                      {header === '구분' ? header : header.replace('-25A', '').replace('-25F', '(예상)')}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.map((row, idx) => {
+                  const isExpanded = row.categoryKey ? expandedCategories.has(row.categoryKey) : false;
+                  
+                  return (
+                    <TableRow 
+                      key={idx}
+                      className={cn(
+                        row.isMainCategory ? "bg-gray-100 cursor-pointer" : 
+                        row.isSubItem ? "bg-gray-50" : "",
+                        "hover:bg-gray-50"
+                      )}
+                      onClick={() => row.isMainCategory && row.categoryKey && toggleCategory(row.categoryKey)}
+                    >
+                      <TableCell className={cn(
+                        row.isMainCategory ? "font-bold text-base" : "font-medium",
+                        row.isSubItem ? "pl-8 text-sm" : "",
+                        row.isMainCategory && "flex items-center gap-2"
+                      )}>
+                        {row.isMainCategory && row.categoryKey && (
+                          <span className="text-xs">
+                            {isExpanded ? '▼' : '▶'}
+                          </span>
+                        )}
+                        {row.label}
+                      </TableCell>
+                      {row.values.map((value: string, colIdx: number) => (
+                        <TableCell 
+                          key={colIdx}
+                          className={cn(
+                            "text-right font-medium",
+                            getValueColor(value),
+                            headers[colIdx + 1] === 'Total' ? "bg-blue-50 font-bold" : ""
+                          )}
+                        >
+                          {formatValue(value)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* STO 차입현황 섹션 */}
+      {loanData.length > 0 && loanHeaders.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">STO 차입현황</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {loanHeaders.map((header, idx) => (
+                      <TableHead 
+                        key={idx} 
+                        className={cn(
+                          idx === 0 ? "w-[200px] font-bold text-left" : "text-right font-bold min-w-[100px]"
+                        )}
+                      >
+                        {header}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loanData.map((row, idx) => (
+                    <TableRow key={idx} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{row.label}</TableCell>
+                      {row.values.map((value: string, colIdx: number) => (
+                        <TableCell 
+                          key={colIdx}
+                          className={cn(
+                            "text-right font-medium",
+                            getValueColor(value)
+                          )}
+                        >
+                          {formatValue(value)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 영업현금흐름 악화 요인 섹션 */}
+      {factorsData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">2025년 STO 영업현금흐름 악화 요인</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[150px] font-bold text-left">구 분</TableHead>
+                    {factorsData.map((row, idx) => (
+                      <TableHead 
+                        key={idx} 
+                        className="text-right font-bold min-w-[120px]"
+                      >
+                        {row.label}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="hover:bg-gray-50">
+                    <TableCell className="font-medium">금 액</TableCell>
+                    {factorsData.map((row, idx) => (
+                      <TableCell 
+                        key={idx}
+                        className={cn(
+                          "text-right font-medium",
+                          getValueColor(row.value)
+                        )}
+                      >
+                        {formatValue(row.value)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+const pnlData = [
+  { label: "TAG가", m_prev: "45,104", m_prev_p: "148.4%", m_curr: "47,127", m_curr_p: "149.0%", m_diff: "+2,023", m_yoy: "104%", y_prev: "426,987", y_prev_p: "149.7%", y_curr: "404,688", y_curr_p: "149.2%", y_diff: "-22,299", y_yoy: "95%" },
+  { label: "실판(v+)", m_prev: "33,428", m_prev_p: "110.0%", m_curr: "34,803", m_curr_p: "110.0%", m_diff: "+1,375", m_yoy: "104%", y_prev: "313,702", y_prev_p: "110.0%", y_curr: "298,305", y_curr_p: "110.0%", y_diff: "-15,397", y_yoy: "95%" },
+  { label: "당시즌 생산원가", m_prev: "20.3%", m_prev_p: "", m_curr: "19.3%", m_curr_p: "", m_diff: "-1.0%", m_yoy: "95%", y_prev: "19.9%", y_prev_p: "", y_curr: "19.3%", y_curr_p: "", y_diff: "-0.6%", y_yoy: "95%" },
+  { label: "매출이익", m_prev: "14,985", m_prev_p: "49.3%", m_curr: "15,669", m_curr_p: "49.5%", m_diff: "+684", m_yoy: "105%", y_prev: "135,713", y_prev_p: "47.6%", y_curr: "130,388", y_curr_p: "48.1%", y_diff: "-5,325", y_yoy: "96%" },
+  { label: "직접비", m_prev: "5,586", m_prev_p: "18.4%", m_curr: "5,705", m_curr_p: "18.0%", m_diff: "+118", m_yoy: "102%", y_prev: "54,379", y_prev_p: "19.1%", y_curr: "54,684", y_curr_p: "20.2%", y_diff: "+305", y_yoy: "101%" },
+  { label: "직접이익", m_prev: "9,399", m_prev_p: "30.9%", m_curr: "9,964", m_curr_p: "31.5%", m_diff: "+565", m_yoy: "106%", y_prev: "81,334", y_prev_p: "28.5%", y_curr: "75,704", y_curr_p: "27.9%", y_diff: "-5,630", y_yoy: "93%" },
+  { label: "영업비", m_prev: "4,483", m_prev_p: "14.8%", m_curr: "4,659", m_curr_p: "14.7%", m_diff: "+176", m_yoy: "104%", y_prev: "39,996", y_prev_p: "14.0%", y_curr: "41,759", y_curr_p: "15.4%", y_diff: "+1,762", y_yoy: "104%" },
+  { label: "영업이익", m_prev: "4,916", m_prev_p: "16.2%", m_curr: "5,305", m_curr_p: "16.8%", m_diff: "+389", m_yoy: "108%", y_prev: "41,337", y_prev_p: "14.5%", y_curr: "33,945", y_curr_p: "12.5%", y_diff: "-7,392", y_yoy: "82%" },
+];
+
+// CSV 파일에서 대시보드 데이터를 파싱하는 함수
+function parseDashboardCSV(csvText: string): Record<string, Record<string, string>> {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return {};
+  
+  // 헤더 파싱
+  const headers = parseCSVLine(lines[0]);
+  const monthIndices: Record<string, number> = {};
+  headers.forEach((header, idx) => {
+    if (header && header !== '데이터키') {
+      monthIndices[header] = idx;
+    }
+  });
+  
+  // 데이터 파싱
+  const data: Record<string, Record<string, string>> = {};
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    if (values.length === 0 || !values[0]) continue;
+    
+    const dataKey = values[0];
+    data[dataKey] = {};
+    
+    // 각 월별 데이터 저장
+    Object.keys(monthIndices).forEach(month => {
+      const idx = monthIndices[month];
+      if (values[idx] !== undefined) {
+        // 따옴표 제거 및 trim
+        let value = values[idx].trim();
+        value = value.replace(/^["']|["']$/g, '');
+        data[dataKey][month] = value;
+      }
+    });
+  }
+  
+  return data;
+}
+
+// CSV 파일에서 대시보드 요약 데이터를 파싱하는 함수
+function parseSummaryCSV(csvText: string): Record<string, Record<string, string>> {
+  const lines = csvText.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return {};
+  
+  // 헤더 파싱
+  const headers = parseCSVLine(lines[0]);
+  const monthIndices: Record<string, number> = {};
+  headers.forEach((header, idx) => {
+    if (header && header !== '데이터키') {
+      monthIndices[header] = idx;
+    }
+  });
+  
+  // 데이터 파싱
+  const data: Record<string, Record<string, string>> = {};
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    if (values.length === 0 || !values[0]) continue;
+    
+    const dataKey = values[0];
+    data[dataKey] = {};
+    
+    // 각 월별 데이터 저장
+    Object.keys(monthIndices).forEach(month => {
+      const idx = monthIndices[month];
+      if (values[idx] !== undefined) {
+        data[dataKey][month] = values[idx].trim();
+      }
+    });
+  }
+  
+  return data;
+}
+
+export default function DashboardPage() {
+  const [expandAllDetails, setExpandAllDetails] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("대시보드");
+  
+  // 각 탭별로 독립적인 조회 기준 월 관리
+  const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
+    "대시보드": "2025-11",
+    "손익계산서": "2025-11",
+    "재무상태표": "2025-11",
+    "현금흐름표": "2025-11",
+    "영업비 분석": "2025-11",
+  });
+  
+  // CSV 데이터 로딩 상태
+  const [dashboardData, setDashboardData] = React.useState<Record<string, Record<string, string>>>({});
+  const [summaryData, setSummaryData] = React.useState<Record<string, Record<string, string>>>({});
+  const [loadingDashboard, setLoadingDashboard] = React.useState(true);
+  
+  // CSV 파일 로딩
+  React.useEffect(() => {
+    if (activeTab !== "대시보드") return;
+    
+    setLoadingDashboard(true);
+    Promise.all([
+      fetch('/data/dashboard-sample.csv').then(res => res.text()),
+      fetch('/data/dashboard-summary.csv').then(res => res.text())
+    ])
+    .then(([dashboardCsv, summaryCsv]) => {
+      setDashboardData(parseDashboardCSV(dashboardCsv));
+      setSummaryData(parseSummaryCSV(summaryCsv));
+      setLoadingDashboard(false);
+    })
+    .catch(err => {
+      console.error('Error loading CSV files:', err);
+      setLoadingDashboard(false);
+    });
+  }, [activeTab]);
+  
+  // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2025-11";
+  
+  // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
+  const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    const monthMapping: Record<string, string> = {
+      '2025-01': '25-Jan',
+      '2025-02': '25-Feb',
+      '2025-03': '25-Mar',
+      '2025-04': '25-Apr',
+      '2025-05': '25-May',
+      '2025-06': '25-Jun',
+      '2025-07': '25-Jul',
+      '2025-08': '25-Aug',
+      '2025-09': '25-Sep',
+      '2025-10': '25-Oct',
+      '2025-11': '25-Nov'
+    };
+    
+    const csvMonthKey = monthMapping[month] || month;
+    
+    if (!dashboardData[dataKey] || !dashboardData[dataKey][csvMonthKey]) {
+      return defaultValue;
+    }
+    // CSV 값에서 따옴표와 콤마 처리 (예: "1,936" -> "1936" 또는 "1,936" 유지)
+    let value = dashboardData[dataKey][csvMonthKey];
+    // 따옴표 제거는 이미 trim()에서 처리되지만, 명시적으로 처리
+    return value.replace(/^["']|["']$/g, '');
+  };
+  
+  const getSummaryValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
+    // CSV 헤더 형식(25-Jan, 25-Feb, ...)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    const monthMapping: Record<string, string> = {
+      '2025-01': '25-Jan',
+      '2025-02': '25-Feb',
+      '2025-03': '25-Mar',
+      '2025-04': '25-Apr',
+      '2025-05': '25-May',
+      '2025-06': '25-Jun',
+      '2025-07': '25-Jul',
+      '2025-08': '25-Aug',
+      '2025-09': '25-Sep',
+      '2025-10': '25-Oct',
+      '2025-11': '25-Nov'
+    };
+    
+    const csvMonthKey = monthMapping[month] || month;
+    
+    if (!summaryData[dataKey] || !summaryData[dataKey][csvMonthKey]) {
+      return defaultValue;
+    }
+    return summaryData[dataKey][csvMonthKey];
+  };
+  
+  // 선택된 월에 맞춰 카드 데이터 생성
+  const cardData = React.useMemo(() => {
+    const month = currentSelectedMonth;
+    if (loadingDashboard || Object.keys(dashboardData).length === 0) {
+      return null;
+    }
+    
+    const formatNumber = (val: string): string => {
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num.toLocaleString('en-US');
+    };
+    
+    return {
+      // 실판매출 카드
+      salesCard: {
+        value: `${formatNumber(getDataValue('카드_실판매출_값', month, '31755'))}K USD`,
+        yoy: getDataValue('카드_실판매출_YOY', month, '104%'),
+        salesShare: `매출비중 ${getDataValue('카드_실판매출_매출비중', month, '100%')}`,
+        channelDetails: [
+          {
+            name: "US홀세일",
+            value: formatNumber(getDataValue('카드_실판매출_채널_US홀세일_값', month, '8000')),
+            yoy: getDataValue('카드_실판매출_채널_US홀세일_YOY', month, '105%'),
+            percent: getDataValue('카드_실판매출_채널_US홀세일_비중', month, '25.2%')
+          },
+          {
+            name: "US EC",
+            value: formatNumber(getDataValue('카드_실판매출_채널_USEC_값', month, '12000')),
+            yoy: getDataValue('카드_실판매출_채널_USEC_YOY', month, '110%'),
+            percent: getDataValue('카드_실판매출_채널_USEC_비중', month, '37.8%')
+          },
+          {
+            name: "EU EC",
+            value: formatNumber(getDataValue('카드_실판매출_채널_EUEC_값', month, '9500')),
+            yoy: getDataValue('카드_실판매출_채널_EUEC_YOY', month, '98%'),
+            percent: getDataValue('카드_실판매출_채널_EUEC_비중', month, '29.9%')
+          },
+          {
+            name: "라이선스",
+            value: formatNumber(getDataValue('카드_실판매출_채널_라이선스_값', month, '2255')),
+            yoy: getDataValue('카드_실판매출_채널_라이선스_YOY', month, '95%'),
+            percent: getDataValue('카드_실판매출_채널_라이선스_비중', month, '7.1%')
+          }
+        ],
+        itemDetails: [
+          {
+            name: "25FW",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_25FW_값', month, '12500')),
+            yoy: getDataValue('카드_실판매출_아이템_25FW_YOY', month, '108%'),
+            percent: getDataValue('카드_실판매출_아이템_25FW_비중', month, '39.4%')
+          },
+          {
+            name: "25SS",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_25SS_값', month, '3500')),
+            yoy: getDataValue('카드_실판매출_아이템_25SS_YOY', month, '112%'),
+            percent: getDataValue('카드_실판매출_아이템_25SS_비중', month, '11.0%')
+          },
+          {
+            name: "FW과시즌",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_FW과시즌_값', month, '2800')),
+            yoy: getDataValue('카드_실판매출_아이템_FW과시즌_YOY', month, '85%'),
+            percent: getDataValue('카드_실판매출_아이템_FW과시즌_비중', month, '8.8%')
+          },
+          {
+            name: "SS과시즌",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_SS과시즌_값', month, '1200')),
+            yoy: getDataValue('카드_실판매출_아이템_SS과시즌_YOY', month, '78%'),
+            percent: getDataValue('카드_실판매출_아이템_SS과시즌_비중', month, '3.8%')
+          },
+          {
+            name: "CORE",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_CORE_값', month, '11755')),
+            yoy: getDataValue('카드_실판매출_아이템_CORE_YOY', month, '118%'),
+            percent: getDataValue('카드_실판매출_아이템_CORE_비중', month, '37.0%')
+          }
+        ]
+      },
+      // 직접이익 카드 (추가 구현 필요)
+      // 직접이익 카드
+      profitCard: {
+        value: `${formatNumber(getDataValue('카드_직접이익_값', month, '5305'))}K USD`,
+        yoy: getDataValue('카드_직접이익_YOY', month, '108%'),
+        profitMargin: `이익률 ${getDataValue('카드_직접이익_이익률', month, '16.8%')}`,
+        channelProfitDetails: [
+          {
+            name: "US홀세일",
+            value: formatNumber(getDataValue('카드_직접이익_채널_US홀세일_값', month, '1200')),
+            yoy: getDataValue('카드_직접이익_채널_US홀세일_YOY', month, '115%'),
+            margin: getDataValue('카드_직접이익_채널_US홀세일_이익율', month, '28.5%')
+          },
+          {
+            name: "US EC",
+            value: formatNumber(getDataValue('카드_직접이익_채널_USEC_값', month, '2800')),
+            yoy: getDataValue('카드_직접이익_채널_USEC_YOY', month, '125%'),
+            margin: getDataValue('카드_직접이익_채널_USEC_이익율', month, '32.1%')
+          },
+          {
+            name: "EU EC",
+            value: formatNumber(getDataValue('카드_직접이익_채널_EUEC_값', month, '1100')),
+            yoy: getDataValue('카드_직접이익_채널_EUEC_YOY', month, '98%'),
+            margin: getDataValue('카드_직접이익_채널_EUEC_이익율', month, '24.8%')
+          },
+          {
+            name: "라이선스",
+            value: formatNumber(getDataValue('카드_직접이익_채널_라이선스_값', month, '205')),
+            yoy: getDataValue('카드_직접이익_채널_라이선스_YOY', month, '110%'),
+            margin: getDataValue('카드_직접이익_채널_라이선스_이익율', month, '18.2%')
+          }
+        ],
+        directProfitYtdDetails: [
+          {
+            name: "US홀세일",
+            value: getDataValue('카드_직접이익_직접이익YTD_US홀세일_값', month, '533'),
+            percent: getDataValue('카드_직접이익_직접이익YTD_US홀세일_비중', month, '[36.4%]'),
+            margin: getDataValue('카드_직접이익_직접이익YTD_US홀세일_이익율', month, '30.0%'),
+            change: (() => {
+              const val = getDataValue('카드_직접이익_직접이익YTD_US홀세일_변동', month, '517').replace(/△/g, '');
+              return val.startsWith('-') ? `-${val.substring(1)}` : `+${val}`;
+            })()
+          },
+          {
+            name: "US EC",
+            value: getDataValue('카드_직접이익_직접이익YTD_USEC_값', month, '3220'),
+            percent: getDataValue('카드_직접이익_직접이익YTD_USEC_비중', month, '[24.1%]'),
+            margin: getDataValue('카드_직접이익_직접이익YTD_USEC_이익율', month, '7.0%'),
+            change: (() => {
+              const val = getDataValue('카드_직접이익_직접이익YTD_USEC_변동', month, '251').replace(/△/g, '');
+              return val.startsWith('-') ? `-${val.substring(1)}` : `+${val}`;
+            })()
+          },
+          {
+            name: "EU EC",
+            value: getDataValue('카드_직접이익_직접이익YTD_EUEC_값', month, '81'),
+            percent: getDataValue('카드_직접이익_직접이익YTD_EUEC_비중', month, '[11.6%]'),
+            margin: getDataValue('카드_직접이익_직접이익YTD_EUEC_이익율', month, '25.0%'),
+            change: (() => {
+              const val = getDataValue('카드_직접이익_직접이익YTD_EUEC_변동', month, '258').replace(/△/g, '');
+              return val.startsWith('-') ? `-${val.substring(1)}` : `+${val}`;
+            })()
+          },
+          {
+            name: "라이선스",
+            value: getDataValue('카드_직접이익_직접이익YTD_라이선스_값', month, '668'),
+            percent: getDataValue('카드_직접이익_직접이익YTD_라이선스_비중', month, '[100%]'),
+            margin: getDataValue('카드_직접이익_직접이익YTD_라이선스_이익율', month, '100.0%'),
+            change: (() => {
+              const val = getDataValue('카드_직접이익_직접이익YTD_라이선스_변동', month, '134').replace(/△/g, '');
+              return val.startsWith('-') ? `-${val.substring(1)}` : `+${val}`;
+            })()
+          }
+        ]
+      },
+      // 영업비 카드
+      expenseCard: {
+        value: `${formatNumber(getDataValue('카드_영업비_값', month, '4659'))}K USD`,
+        yoy: getDataValue('카드_영업비_YOY', month, '104%'),
+        operatingExpenseRatio: `영업비율 ${getDataValue('카드_영업비_영업비율', month, '15.0%')}`,
+        expenseBreakdown: [
+          {
+            name: "인건비",
+            value: formatNumber(getDataValue('카드_영업비_인건비_값', month, '1843')),
+            yoy: getDataValue('카드_영업비_인건비_YOY', month, '103%'),
+            subItems: [
+              {
+                name: "급여(정규/계약)",
+                value: formatNumber(getDataValue('카드_영업비_인건비_급여_값', month, '1450')),
+                yoy: getDataValue('카드_영업비_인건비_급여_YOY', month, '105%')
+              },
+              {
+                name: "보험,복지비등",
+                value: formatNumber(getDataValue('카드_영업비_인건비_보험복지_값', month, '280')),
+                yoy: getDataValue('카드_영업비_인건비_보험복지_YOY', month, '98%')
+              }
+            ]
+          },
+          {
+            name: "광고선전비",
+            value: formatNumber(getDataValue('카드_영업비_광고선전비_값', month, '898')),
+            yoy: getDataValue('카드_영업비_광고선전비_YOY', month, '76%')
+          },
+          {
+            name: "지급수수료",
+            value: formatNumber(getDataValue('카드_영업비_지급수수료_값', month, '213')),
+            yoy: getDataValue('카드_영업비_지급수수료_YOY', month, '114%')
+          },
+          {
+            name: "식대/출장비",
+            value: formatNumber(getDataValue('카드_영업비_식대출장비_값', month, '145')),
+            yoy: getDataValue('카드_영업비_식대출장비_YOY', month, '92%')
+          },
+          {
+            name: "임차료",
+            value: formatNumber(getDataValue('카드_영업비_임차료_값', month, '280')),
+            yoy: getDataValue('카드_영업비_임차료_YOY', month, '217%')
+          },
+          {
+            name: "샘플비/개발비",
+            value: formatNumber(getDataValue('카드_영업비_샘플비개발비_값', month, '165')),
+            yoy: getDataValue('카드_영업비_샘플비개발비_YOY', month, '292%')
+          },
+          {
+            name: "감가상각비",
+            value: formatNumber(getDataValue('카드_영업비_감가상각비_값', month, '145')),
+            yoy: getDataValue('카드_영업비_감가상각비_YOY', month, '168%')
+          },
+          {
+            name: "기타비용",
+            value: formatNumber(getDataValue('카드_영업비_기타비용_값', month, '134')),
+            yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%')
+          }
+        ]
+      },
+      // 할인율 카드
+      discountCard: {
+        value: getDataValue('카드_할인율_값', month, '4.7%'),
+        yoy: getDataValue('카드_할인율_YOY', month, '-0.4%p'),
+        channelDetails: [
+          {
+            name: "US홀세일",
+            value: getDataValue('카드_할인율_채널_US홀세일_값', month, '3.5%'),
+            yoy: getDataValue('카드_할인율_채널_US홀세일_YOY', month, '(2.0%)'),
+            percent: ""
+          },
+          {
+            name: "US EC",
+            value: getDataValue('카드_할인율_채널_USEC_값', month, '5.2%'),
+            yoy: getDataValue('카드_할인율_채널_USEC_YOY', month, '(1.7%)'),
+            percent: ""
+          },
+          {
+            name: "EU EC",
+            value: getDataValue('카드_할인율_채널_EUEC_값', month, '4.8%'),
+            yoy: getDataValue('카드_할인율_채널_EUEC_YOY', month, '(3.2%)'),
+            percent: ""
+          }
+        ],
+        itemDetails: [
+          {
+            name: "25FW",
+            value: getDataValue('카드_할인율_아이템_25FW_값', month, '4.8%'),
+            yoy: getDataValue('카드_할인율_아이템_25FW_YOY', month, '(4.5%)'),
+            percent: ""
+          },
+          {
+            name: "25SS",
+            value: getDataValue('카드_할인율_아이템_25SS_값', month, '5.2%'),
+            yoy: getDataValue('카드_할인율_아이템_25SS_YOY', month, '(3.1%)'),
+            percent: ""
+          },
+          {
+            name: "FW과시즌",
+            value: getDataValue('카드_할인율_아이템_FW과시즌_값', month, '8.5%'),
+            yoy: getDataValue('카드_할인율_아이템_FW과시즌_YOY', month, '(12.2%)'),
+            percent: ""
+          },
+          {
+            name: "SS과시즌",
+            value: getDataValue('카드_할인율_아이템_SS과시즌_값', month, '7.3%'),
+            yoy: getDataValue('카드_할인율_아이템_SS과시즌_YOY', month, '(9.8%)'),
+            percent: ""
+          },
+          {
+            name: "CORE",
+            value: getDataValue('카드_할인율_아이템_CORE_값', month, '3.2%'),
+            yoy: getDataValue('카드_할인율_아이템_CORE_YOY', month, '(1.5%)'),
+            percent: ""
+          }
+        ]
+      },
+      // 기타 메트릭 카드
+      metricCards: {
+        salesRate: {
+          value: getDataValue('카드_당시즌판매율_값', month, '16.6%'),
+          subValue: `전년 ${getDataValue('카드_당시즌판매율_전년비교', month, '21.1%')}`,
+          subValueColor: "text-red-500" as const,
+          description: `YoY ${getDataValue('카드_당시즌판매율_YOY', month, '-4.5%p')}`,
+          itemDetails: [
+            { 
+              name: "트랙자켓", 
+              value: getDataValue('카드_당시즌판매율_아이템_트랙자켓_값', month, '$8,404K'), 
+              share: getDataValue('카드_당시즌판매율_아이템_트랙자켓_비중', month, '42.1%'),
+              rate: getDataValue('카드_당시즌판매율_아이템_트랙자켓_비율', month, '4.0%') 
+            },
+            { 
+              name: "트랙팬츠", 
+              value: getDataValue('카드_당시즌판매율_아이템_트랙팬츠_값', month, '$6,407K'), 
+              share: getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비중', month, '32.1%'),
+              rate: getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비율', month, '4.4%') 
+            },
+            { 
+              name: "전체발주", 
+              value: getDataValue('카드_당시즌판매율_아이템_전체발주_값', month, '$14,811K'), 
+              share: getDataValue('카드_당시즌판매율_아이템_전체발주_비중', month, '76.2%'),
+              rate: getDataValue('카드_당시즌판매율_아이템_전체발주_비율', month, '4.1%') 
+            }
+          ]
+        },
+        mu: {
+          value: getDataValue('카드_당시즌MU_값', month, '5.22'),
+          subValue: `전년 ${getDataValue('카드_당시즌MU_전년비교', month, '5.48')}`,
+          subValueColor: "text-red-500" as const,
+          description: `YoY ${getDataValue('카드_당시즌MU_YOY', month, '-0.26')}`,
+          topStoresDetails: [
+            { 
+              name: "Track Jacket", 
+              value: getDataValue('카드_당시즌MU_아이템_TrackJacket_값', month, '5.12'), 
+              yoy: `(전년${getDataValue('카드_당시즌MU_아이템_TrackJacket_전년', month, '5.21')})` 
+            },
+            { 
+              name: "Track Pant", 
+              value: getDataValue('카드_당시즌MU_아이템_TrackPant_값', month, '5.39'), 
+              yoy: `(전년${getDataValue('카드_당시즌MU_아이템_TrackPant_전년', month, '6.03')})` 
+            },
+            { 
+              name: "Knitwear", 
+              value: getDataValue('카드_당시즌MU_아이템_Knitwear_값', month, '4.80'), 
+              yoy: `(전년${getDataValue('카드_당시즌MU_아이템_Knitwear_전년', month, '5.19')})` 
+            },
+            { 
+              name: "T-Shirt", 
+              value: getDataValue('카드_당시즌MU_아이템_T-Shirt_값', month, '5.53'), 
+              yoy: `(전년${getDataValue('카드_당시즌MU_아이템_T-Shirt_전년', month, '5.72')})` 
+            },
+            { 
+              name: "Short", 
+              value: getDataValue('카드_당시즌MU_아이템_Short_값', month, '5.34'), 
+              yoy: `(전년${getDataValue('카드_당시즌MU_아이템_Short_전년', month, '5.36')})` 
+            }
+          ]
+        },
+        inventory: {
+          value: `${getDataValue('카드_기말재고_값', month, '38,065')}K USD`,
+          subValue: `전년 ${getDataValue('카드_기말재고_전년비교', month, '18,099')}K USD`,
+          subValueColor: "text-green-500" as const,
+          description: `YoY ${getDataValue('카드_기말재고_YOY', month, '97.0%')}`,
+          topStoresDetails: [
+            { 
+              name: "FW당시즌", 
+              value: `${getDataValue('카드_기말재고_아이템_FW당시즌_값', month, '74,484')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_FW당시즌_전년', month, '111%')})` 
+            },
+            { 
+              name: "SS당시즌", 
+              value: `${getDataValue('카드_기말재고_아이템_SS당시즌_값', month, '34,423')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS당시즌_전년', month, '91%')})` 
+            },
+            { 
+              name: "FW과시즌", 
+              value: `${getDataValue('카드_기말재고_아이템_FW과시즌_값', month, '20,548')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_FW과시즌_전년', month, '43%')})` 
+            },
+            { 
+              name: "SS과시즌", 
+              value: `${getDataValue('카드_기말재고_아이템_SS과시즌_값', month, '109,632')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS과시즌_전년', month, '106%')})` 
+            },
+            { 
+              name: "CORE", 
+              value: `${getDataValue('카드_기말재고_아이템_CORE_값', month, '62,460')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_CORE_전년', month, '120%')})` 
+            }
+          ]
+        },
+        headcount: {
+          value: `${getDataValue('카드_인원수_값', month, '136')}명`,
+          subValue: `전년 ${getDataValue('카드_인원수_전년비교', month, '140')}명`,
+          subValueColor: "text-green-500" as const,
+          description: `YoY ${getDataValue('카드_인원수_YOY', month, '-4')}명`,
+          statsDetails: [
+            {
+              name: "인당 인건비",
+              value: `${getDataValue('카드_인원수_인당인건비_값', month, '13.6')}`,
+              yoy: getDataValue('카드_인원수_인당인건비_YOY', month, '106%')
+            },
+            {
+              name: "인당 매출액",
+              value: `${getDataValue('카드_인원수_인당매출액_값', month, '256')}`,
+              yoy: getDataValue('카드_인원수_인당매출액_YOY', month, '107%')
+            },
+            {
+              name: "인당 영업비",
+              value: `${getDataValue('카드_인원수_인당영업비_값', month, '28')}`,
+              yoy: getDataValue('카드_인원수_인당영업비_YOY', month, '108%')
+            }
+          ]
+        }
+      }
+    };
+  }, [dashboardData, currentSelectedMonth, loadingDashboard]);
+  
+  // 손익요약 데이터 생성
+  const pnlDataFromCSV = React.useMemo(() => {
+    const month = currentSelectedMonth;
+    if (loadingDashboard || Object.keys(summaryData).length === 0) {
+      return null;
+    }
+    
+    const formatNumber = (val: string): string => {
+      if (!val || val === '' || val === '-') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num.toLocaleString('en-US');
+    };
+    
+    const formatDiff = (val: string): string => {
+      if (!val || val === '') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num >= 0 ? `+${num.toLocaleString('en-US')}` : num.toLocaleString('en-US');
+    };
+    
+    const rows = [
+      {
+        label: "TAG가",
+        m_prev: formatNumber(getSummaryValue('손익요약_TAG가_당월실적_전년', month, '45104')),
+        m_prev_p: getSummaryValue('손익요약_TAG가_당월실적_전년비율', month, '-'),
+        m_curr: formatNumber(getSummaryValue('손익요약_TAG가_당월실적_당년', month, '47127')),
+        m_curr_p: getSummaryValue('손익요약_TAG가_당월실적_당년비율', month, '-'),
+        m_diff: formatDiff(getSummaryValue('손익요약_TAG가_당월실적_전년비', month, '2023')),
+        m_yoy: getSummaryValue('손익요약_TAG가_당월실적_YOY', month, '104%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_TAG가_연간누적_전년', month, '426987')),
+        y_prev_p: getSummaryValue('손익요약_TAG가_연간누적_전년비율', month, '-'),
+        y_curr: formatNumber(getSummaryValue('손익요약_TAG가_연간누적_당년', month, '404688')),
+        y_curr_p: getSummaryValue('손익요약_TAG가_연간누적_당년비율', month, '-'),
+        y_diff: formatDiff(getSummaryValue('손익요약_TAG가_연간누적_전년비', month, '-22299')),
+        y_yoy: getSummaryValue('손익요약_TAG가_연간누적_YOY', month, '95%')
+      },
+      {
+        label: "실판(v+)",
+        m_prev: formatNumber(getSummaryValue('손익요약_실판(v+)_당월실적_전년', month, '33428')),
+        m_prev_p: getSummaryValue('손익요약_실판(v+)_당월실적_전년비율', month, '110.0%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_실판(v+)_당월실적_당년', month, '34803')),
+        m_curr_p: getSummaryValue('손익요약_실판(v+)_당월실적_당년비율', month, '110.0%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_실판(v+)_당월실적_전년비', month, '1375')),
+        m_yoy: getSummaryValue('손익요약_실판(v+)_당월실적_YOY', month, '104%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_실판(v+)_연간누적_전년', month, '313702')),
+        y_prev_p: getSummaryValue('손익요약_실판(v+)_연간누적_전년비율', month, '110.0%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_실판(v+)_연간누적_당년', month, '298305')),
+        y_curr_p: getSummaryValue('손익요약_실판(v+)_연간누적_당년비율', month, '110.0%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_실판(v+)_연간누적_전년비', month, '-15397')),
+        y_yoy: getSummaryValue('손익요약_실판(v+)_연간누적_YOY', month, '95%')
+      },
+      {
+        label: "생산원가",
+        m_prev: getSummaryValue('손익요약_생산원가_당월실적_전년', month, '20.3%'),
+        m_prev_p: '',
+        m_curr: getSummaryValue('손익요약_생산원가_당월실적_당년', month, '19.3%'),
+        m_curr_p: '',
+        m_diff: getSummaryValue('손익요약_생산원가_당월실적_전년비', month, '-1.0%'),
+        m_yoy: getSummaryValue('손익요약_생산원가_당월실적_YOY', month, '95%'),
+        y_prev: getSummaryValue('손익요약_생산원가_연간누적_전년', month, '19.9%'),
+        y_prev_p: '',
+        y_curr: getSummaryValue('손익요약_생산원가_연간누적_당년', month, '19.3%'),
+        y_curr_p: '',
+        y_diff: getSummaryValue('손익요약_생산원가_연간누적_전년비', month, '-0.6%'),
+        y_yoy: getSummaryValue('손익요약_생산원가_연간누적_YOY', month, '95%')
+      },
+      {
+        label: "매출이익",
+        m_prev: formatNumber(getSummaryValue('손익요약_매출이익_당월실적_전년', month, '14985')),
+        m_prev_p: getSummaryValue('손익요약_매출이익_당월실적_전년비율', month, '49.3%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_매출이익_당월실적_당년', month, '15669')),
+        m_curr_p: getSummaryValue('손익요약_매출이익_당월실적_당년비율', month, '49.5%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_매출이익_당월실적_전년비', month, '684')),
+        m_yoy: getSummaryValue('손익요약_매출이익_당월실적_YOY', month, '105%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_매출이익_연간누적_전년', month, '135713')),
+        y_prev_p: getSummaryValue('손익요약_매출이익_연간누적_전년비율', month, '47.6%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_매출이익_연간누적_당년', month, '130388')),
+        y_curr_p: getSummaryValue('손익요약_매출이익_연간누적_당년비율', month, '48.1%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_매출이익_연간누적_전년비', month, '-5325')),
+        y_yoy: getSummaryValue('손익요약_매출이익_연간누적_YOY', month, '96%')
+      },
+      {
+        label: "직접비",
+        m_prev: formatNumber(getSummaryValue('손익요약_직접비_당월실적_전년', month, '5586')),
+        m_prev_p: getSummaryValue('손익요약_직접비_당월실적_전년비율', month, '18.4%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_직접비_당월실적_당년', month, '5705')),
+        m_curr_p: getSummaryValue('손익요약_직접비_당월실적_당년비율', month, '18.0%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_직접비_당월실적_전년비', month, '118')),
+        m_yoy: getSummaryValue('손익요약_직접비_당월실적_YOY', month, '102%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_직접비_연간누적_전년', month, '54379')),
+        y_prev_p: getSummaryValue('손익요약_직접비_연간누적_전년비율', month, '19.1%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_직접비_연간누적_당년', month, '54684')),
+        y_curr_p: getSummaryValue('손익요약_직접비_연간누적_당년비율', month, '20.2%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_직접비_연간누적_전년비', month, '305')),
+        y_yoy: getSummaryValue('손익요약_직접비_연간누적_YOY', month, '101%')
+      },
+      {
+        label: "직접이익",
+        m_prev: formatNumber(getSummaryValue('손익요약_직접이익_당월실적_전년', month, '9399')),
+        m_prev_p: getSummaryValue('손익요약_직접이익_당월실적_전년비율', month, '30.9%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_직접이익_당월실적_당년', month, '9964')),
+        m_curr_p: getSummaryValue('손익요약_직접이익_당월실적_당년비율', month, '31.5%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_직접이익_당월실적_전년비', month, '565')),
+        m_yoy: getSummaryValue('손익요약_직접이익_당월실적_YOY', month, '106%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_직접이익_연간누적_전년', month, '81334')),
+        y_prev_p: getSummaryValue('손익요약_직접이익_연간누적_전년비율', month, '28.5%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_직접이익_연간누적_당년', month, '75704')),
+        y_curr_p: getSummaryValue('손익요약_직접이익_연간누적_당년비율', month, '27.9%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_직접이익_연간누적_전년비', month, '-5630')),
+        y_yoy: getSummaryValue('손익요약_직접이익_연간누적_YOY', month, '93%')
+      },
+      {
+        label: "영업비",
+        m_prev: formatNumber(getSummaryValue('손익요약_영업비_당월실적_전년', month, '4483')),
+        m_prev_p: getSummaryValue('손익요약_영업비_당월실적_전년비율', month, '14.8%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_영업비_당월실적_당년', month, '4659')),
+        m_curr_p: getSummaryValue('손익요약_영업비_당월실적_당년비율', month, '14.7%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_영업비_당월실적_전년비', month, '176')),
+        m_yoy: getSummaryValue('손익요약_영업비_당월실적_YOY', month, '104%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_영업비_연간누적_전년', month, '39996')),
+        y_prev_p: getSummaryValue('손익요약_영업비_연간누적_전년비율', month, '14.0%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_영업비_연간누적_당년', month, '41759')),
+        y_curr_p: getSummaryValue('손익요약_영업비_연간누적_당년비율', month, '15.4%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_영업비_연간누적_전년비', month, '1762')),
+        y_yoy: getSummaryValue('손익요약_영업비_연간누적_YOY', month, '104%')
+      },
+      {
+        label: "영업이익",
+        m_prev: formatNumber(getSummaryValue('손익요약_영업이익_당월실적_전년', month, '4916')),
+        m_prev_p: getSummaryValue('손익요약_영업이익_당월실적_전년비율', month, '16.2%'),
+        m_curr: formatNumber(getSummaryValue('손익요약_영업이익_당월실적_당년', month, '5305')),
+        m_curr_p: getSummaryValue('손익요약_영업이익_당월실적_당년비율', month, '16.8%'),
+        m_diff: formatDiff(getSummaryValue('손익요약_영업이익_당월실적_전년비', month, '389')),
+        m_yoy: getSummaryValue('손익요약_영업이익_당월실적_YOY', month, '108%'),
+        y_prev: formatNumber(getSummaryValue('손익요약_영업이익_연간누적_전년', month, '41337')),
+        y_prev_p: getSummaryValue('손익요약_영업이익_연간누적_전년비율', month, '14.5%'),
+        y_curr: formatNumber(getSummaryValue('손익요약_영업이익_연간누적_당년', month, '33945')),
+        y_curr_p: getSummaryValue('손익요약_영업이익_연간누적_당년비율', month, '12.5%'),
+        y_diff: formatDiff(getSummaryValue('손익요약_영업이익_연간누적_전년비', month, '-7392')),
+        y_yoy: getSummaryValue('손익요약_영업이익_연간누적_YOY', month, '82%')
+      }
+    ];
+    
+    return rows;
+  }, [summaryData, currentSelectedMonth, loadingDashboard]);
+  
+  // 직접비요약 데이터 생성
+  const directExpenseSummaryData = React.useMemo(() => {
+    const month = currentSelectedMonth;
+    if (loadingDashboard || Object.keys(summaryData).length === 0) {
+      return null;
+    }
+    
+    const formatNumber = (val: string): string => {
+      if (!val || val === '' || val === '-') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num.toLocaleString('en-US');
+    };
+    
+    const formatDiff = (val: string): string => {
+      if (!val || val === '' || val === '-') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num >= 0 ? `+${formatNumber(val.replace(/[^0-9.-]/g, ''))}K USD` : `${formatNumber(val.replace(/[^0-9.-]/g, ''))}K USD`;
+    };
+    
+    return [
+      {
+        title: "전체 직접비율",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('직접비요약_전체직접비율_누적_값', month, '5704.8'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('직접비요약_전체직접비율_당월_값', month, '4850.5'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_전체직접비율_누적_YOY', month, '102.1%'), 
+          당월: getSummaryValue('직접비요약_전체직접비율_당월_YOY', month, '103.2%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_전체직접비율_누적_전년비', month, '118')), 
+          당월: formatDiff(getSummaryValue('직접비요약_전체직접비율_당월_전년비', month, '95')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_전체직접비율_누적_당년비율', month, '18.0%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_전체직접비율_누적_전년비율', month, '18.4%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-green-600">{getSummaryValue('직접비요약_전체직접비율_누적_감소율', month, '-0.4%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_전체직접비율_당월_당년비율', month, '17.8%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_전체직접비율_당월_전년비율', month, '18.5%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-green-600">{getSummaryValue('직접비요약_전체직접비율_당월_감소율', month, '-0.7%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "운반비",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('직접비요약_운반비_누적_값', month, '15240'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('직접비요약_운반비_당월_값', month, '1805'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_운반비_누적_YOY', month, '99.2%'), 
+          당월: getSummaryValue('직접비요약_운반비_당월_YOY', month, '98.0%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_운반비_누적_전년비', month, '-125')), 
+          당월: formatDiff(getSummaryValue('직접비요약_운반비_당월_전년비', month, '-35')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_운반비_누적_당년비율', month, '13.0%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_운반비_누적_전년비율', month, '14.0%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-green-600">{getSummaryValue('직접비요약_운반비_누적_증감율', month, '-0.5%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_운반비_당월_당년비율', month, '12.5%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_운반비_당월_전년비율', month, '13.5%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_운반비_당월_증감율', month, '-1.0%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "보관료",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('직접비요약_보관료_누적_값', month, '6890'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('직접비요약_보관료_당월_값', month, '809.6'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_보관료_누적_YOY', month, '121.5%'), 
+          당월: getSummaryValue('직접비요약_보관료_당월_YOY', month, '123.4%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_보관료_누적_전년비', month, '1180')), 
+          당월: formatDiff(getSummaryValue('직접비요약_보관료_당월_전년비', month, '154')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_보관료_누적_당년비율', month, '26.2%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_보관료_누적_전년비율', month, '28.0%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_보관료_누적_감소율', month, '-1.8%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_보관료_당월_당년비율', month, '26.0%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_보관료_당월_전년비율', month, '27.8%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_보관료_당월_감소율', month, '-1.8%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "SEM광고비",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('직접비요약_SEM광고비_누적_값', month, '11205'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('직접비요약_SEM광고비_당월_값', month, '1313.5'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_SEM광고비_누적_YOY', month, '98.1%'), 
+          당월: getSummaryValue('직접비요약_SEM광고비_당월_YOY', month, '97.4%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_SEM광고비_누적_전년비', month, '-215')), 
+          당월: formatDiff(getSummaryValue('직접비요약_SEM광고비_당월_전년비', month, '-35')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_SEM광고비_누적_당년비율', month, '4.3%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_SEM광고비_누적_전년비율', month, '4.5%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_누적_감소율', month, '-0.2%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_SEM광고비_당월_당년비율', month, '4.2%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_SEM광고비_당월_전년비율', month, '4.4%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_당월_감소율', month, '-0.2%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "지급수수료",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('직접비요약_지급수수료_누적_값', month, '72450'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('직접비요약_지급수수료_당월_값', month, '8537'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_지급수수료_누적_YOY', month, '104.8%'), 
+          당월: getSummaryValue('직접비요약_지급수수료_당월_YOY', month, '105.0%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_지급수수료_누적_전년비', month, '3240')), 
+          당월: formatDiff(getSummaryValue('직접비요약_지급수수료_당월_전년비', month, '373')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_지급수수료_누적_당년비율', month, '9.2%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_지급수수료_누적_전년비율', month, '8.7%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_지급수수료_누적_증감율', month, '+0.5%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_지급수수료_당월_당년비율', month, '9.1%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('직접비요약_지급수수료_당월_전년비율', month, '8.4%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_지급수수료_당월_증감율', month, '+0.7%p')}</span></div>
+          </>
+        }
+      }
+    ];
+  }, [summaryData, currentSelectedMonth, loadingDashboard]);
+  
+  // 영업비요약 데이터 생성 (유사한 구조로 추가 필요)
+  const operatingExpenseSummaryData = React.useMemo(() => {
+    const month = currentSelectedMonth;
+    if (loadingDashboard || Object.keys(summaryData).length === 0) {
+      return null;
+    }
+    
+    const formatNumber = (val: string): string => {
+      if (!val || val === '' || val === '-') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num.toLocaleString('en-US');
+    };
+    
+    const formatDiff = (val: string): string => {
+      if (!val || val === '' || val === '-') return '';
+      const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+      if (isNaN(num)) return val;
+      return num >= 0 ? `+${formatNumber(val.replace(/[^0-9.-]/g, ''))}K USD` : `${formatNumber(val.replace(/[^0-9.-]/g, ''))}K USD`;
+    };
+    
+    return [
+      {
+        title: "전체 영업비용",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('영업비요약_전체영업비용_누적_값', month, '39560'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('영업비요약_전체영업비용_당월_값', month, '4659'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('영업비요약_전체영업비용_누적_YOY', month, '104.2%'), 
+          당월: getSummaryValue('영업비요약_전체영업비용_당월_YOY', month, '103.9%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('영업비요약_전체영업비용_누적_전년비', month, '1485')), 
+          당월: formatDiff(getSummaryValue('영업비요약_전체영업비용_당월_전년비', month, '176')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_전체영업비용_누적_당년비율', month, '1.3%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_전체영업비용_누적_전년비율', month, '1.3%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_전체영업비용_누적_증가율', month, '0.0%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_전체영업비용_당월_당년비율', month, '1.3%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_전체영업비용_당월_전년비율', month, '1.3%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_전체영업비용_당월_증가율', month, '0.0%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "인건비",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('영업비요약_인건비_누적_값', month, '15680'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('영업비요약_인건비_당월_값', month, '1843'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('영업비요약_인건비_누적_YOY', month, '103.1%'), 
+          당월: getSummaryValue('영업비요약_인건비_당월_YOY', month, '102.7%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('영업비요약_인건비_누적_전년비', month, '485')), 
+          당월: formatDiff(getSummaryValue('영업비요약_인건비_당월_전년비', month, '48')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>영업비 구성비:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_누적_영업비구성비', month, '39.6%')}</span></div>
+            <div className="flex justify-between"><span>인원수:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_누적_인원수', month, '136명')}</span></div>
+            <div className="flex justify-between"><span>인당 인건비:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_누적_인당인건비', month, '115.3K USD')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>영업비 구성비:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_당월_영업비구성비', month, '39.6%')}</span></div>
+            <div className="flex justify-between"><span>인원수:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_당월_인원수', month, '136명')}</span></div>
+            <div className="flex justify-between"><span>인당 인건비:</span><span className="font-medium">{getSummaryValue('영업비요약_인건비_당월_인당인건비', month, '13.6K USD')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "일반광고비",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('영업비요약_일반광고비_누적_값', month, '7650'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('영업비요약_일반광고비_당월_값', month, '898'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('영업비요약_일반광고비_누적_YOY', month, '76.8%'), 
+          당월: getSummaryValue('영업비요약_일반광고비_당월_YOY', month, '75.6%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('영업비요약_일반광고비_누적_전년비', month, '-2315')), 
+          당월: formatDiff(getSummaryValue('영업비요약_일반광고비_당월_전년비', month, '-289')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_일반광고비_누적_당년비율', month, '2.9%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_일반광고비_누적_전년비율', month, '4.0%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_일반광고비_누적_감소율', month, '-1.1%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_일반광고비_당월_당년비율', month, '2.8%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_일반광고비_당월_전년비율', month, '3.9%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_일반광고비_당월_감소율', month, '-1.1%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "지급수수료",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('영업비요약_지급수수료_누적_값', month, '8785'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('영업비요약_지급수수료_당월_값', month, '1034'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('영업비요약_지급수수료_누적_YOY', month, '104.5%'), 
+          당월: getSummaryValue('영업비요약_지급수수료_당월_YOY', month, '103.4%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('영업비요약_지급수수료_누적_전년비', month, '3125')), 
+          당월: formatDiff(getSummaryValue('영업비요약_지급수수료_당월_전년비', month, '366')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_지급수수료_누적_당년비율', month, '3.9%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_지급수수료_누적_전년비율', month, '3.6%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_지급수수료_누적_증감율', month, '+0.3%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_지급수수료_당월_당년비율', month, '4.1%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_지급수수료_당월_전년비율', month, '3.8%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_지급수수료_당월_증감율', month, '+0.3%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "임차료",
+        value: { 
+          누적: `${formatNumber(getSummaryValue('영업비요약_임차료_누적_값', month, '21645'))}K USD`, 
+          당월: `${formatNumber(getSummaryValue('영업비요약_임차료_당월_값', month, '2547'))}K USD` 
+        },
+        yoy: { 
+          누적: getSummaryValue('영업비요약_임차료_누적_YOY', month, '111.2%'), 
+          당월: getSummaryValue('영업비요약_임차료_당월_YOY', month, '110.5%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('영업비요약_임차료_누적_전년비', month, '2190')), 
+          당월: formatDiff(getSummaryValue('영업비요약_임차료_당월_전년비', month, '242')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_임차료_누적_당년비율', month, '8.2%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_임차료_누적_전년비율', month, '7.7%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_임차료_누적_증가율', month, '0.5%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_임차료_당월_당년비율', month, '8.1%')}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{getSummaryValue('영업비요약_임차료_당월_전년비율', month, '7.6%')}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('영업비요약_임차료_당월_증가율', month, '0.5%p')}</span></div>
+          </>
+        }
+      }
+    ];
+  }, [summaryData, currentSelectedMonth, loadingDashboard]);
+  
+  // 차트 데이터 생성 (CSV에서 로드)
+  const chartDataForComponents = React.useMemo(() => {
+    if (loadingDashboard || Object.keys(dashboardData).length === 0) {
+      return null;
+    }
+    
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
+    
+    // 채널별 매출 추세 데이터
+    const channelSalesData: Record<string, number[]> = {};
+    // CSV 키와 표시 이름 매핑
+    const channelKeys = ['US홀세일', 'USEC', 'EUEC', '라이선스'];
+    channelKeys.forEach(csvKey => {
+      const dataKey = `차트_채널별매출추세_${csvKey}`;
+      channelSalesData[dataKey] = months.map(month => {
+        const val = getDataValue(dataKey, month, '0');
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+      });
+      const yoyKey = `${dataKey}_YOY`;
+      channelSalesData[yoyKey] = months.map(month => {
+        const val = getDataValue(yoyKey, month, '0');
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+      });
+      // 표시 이름으로도 저장 (US EC -> USEC, EU EC -> EUEC 매핑)
+      const displayKey = csvKey === 'USEC' ? 'USEC' : csvKey === 'EUEC' ? 'EUEC' : csvKey;
+      if (displayKey !== csvKey || csvKey === 'USEC' || csvKey === 'EUEC') {
+        channelSalesData[`차트_채널별매출추세_${displayKey}`] = channelSalesData[dataKey];
+        channelSalesData[`차트_채널별매출추세_${displayKey}_YOY`] = channelSalesData[yoyKey];
+      }
+    });
+    const totalChannelYoyKey = '차트_채널별매출추세_TOTAL_YOY';
+    channelSalesData[totalChannelYoyKey] = months.map(month => {
+      const val = getDataValue(totalChannelYoyKey, month, '0');
+      return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    });
+    
+    // 아이템별 매출 추세 데이터
+    const itemSalesData: Record<string, number[]> = {};
+    const itemNames = ['25FW', '25SS', 'FW과시즌', 'SS과시즌', 'CORE'];
+    itemNames.forEach(item => {
+      const dataKey = `차트_아이템별매출추세_${item}`;
+      itemSalesData[dataKey] = months.map(month => {
+        const val = getDataValue(dataKey, month, '0');
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+      });
+      const yoyKey = `${dataKey}_YOY`;
+      itemSalesData[yoyKey] = months.map(month => {
+        const val = getDataValue(yoyKey, month, '0');
+        return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+      });
+    });
+    const totalItemYoyKey = '차트_아이템별매출추세_TOTAL_YOY';
+    itemSalesData[totalItemYoyKey] = months.map(month => {
+      const val = getDataValue(totalItemYoyKey, month, '0');
+      return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    });
+    
+    // 아이템별 재고 추세 데이터
+    const inventoryData: Record<string, number[]> = {};
+    const inventoryMapping: Record<string, string> = {
+      '25FW': '25FW',
+      '25SS': '25SS',
+      '24FW': 'FW과시즌',
+      'CORE': 'SS과시즌',
+      '과시즌': 'CORE'
+    };
+    Object.entries(inventoryMapping).forEach(([displayName, csvKey]) => {
+      const dataKey = `차트_아이템별재고추세_${csvKey}`;
+      const yoyKey = `${dataKey}_YOY`;
+      
+      inventoryData[dataKey] = months.map(month => {
+        const val = getDataValue(dataKey, month, '0');
+        // 재고 데이터: CSV 값을 그대로 사용 (콤마 제거 후 숫자로 변환)
+        const numValue = parseFloat(val.replace(/,/g, '')) || 0;
+        return numValue;
+      });
+      
+      // YOY 데이터 로딩
+      inventoryData[yoyKey] = months.map(month => {
+        const val = getDataValue(yoyKey, month, '100%');
+        return parseFloat(val.replace(/[%]/g, '')) || 100;
+      });
+
+      // displayName을 키로도 저장 (컴포넌트에서 사용)
+      const displayKey = `차트_아이템별재고추세_${displayName.replace(/ /g, '').replace(/&/g, '')}`;
+      inventoryData[displayKey] = inventoryData[dataKey];
+      inventoryData[`${displayKey}_YOY`] = inventoryData[yoyKey];
+    });
+    const totalInventoryYoyKey = '차트_아이템별재고추세_TOTAL_YOY';
+    inventoryData[totalInventoryYoyKey] = months.map(month => {
+      const val = getDataValue(totalInventoryYoyKey, month, '0');
+      return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+    });
+    
+    return {
+      channelSales: channelSalesData,
+      itemSales: itemSalesData,
+      inventory: inventoryData
+    };
+  }, [dashboardData, currentSelectedMonth, loadingDashboard]);
+  
+  // 팝업 데이터 준비 (SEM광고비, 재고소진계획, 운반비)
+  const popupData = React.useMemo(() => {
+    if (loadingDashboard || Object.keys(dashboardData).length === 0 || Object.keys(summaryData).length === 0) {
+      return null;
+    }
+    
+      const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
+      const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월'];
+      
+      const monthMapping: Record<string, string> = {
+        '2025-01': '25-Jan',
+        '2025-02': '25-Feb',
+        '2025-03': '25-Mar',
+        '2025-04': '25-Apr',
+        '2025-05': '25-May',
+        '2025-06': '25-Jun',
+        '2025-07': '25-Jul',
+        '2025-08': '25-Aug',
+        '2025-09': '25-Sep',
+        '2025-10': '25-Oct',
+        '2025-11': '25-Nov'
+      };
+
+      const getValue = (key: string, month: string, defaultValue: string = '') => {
+        const csvMonthKey = monthMapping[month] || month;
+        if (!dashboardData[key] || !dashboardData[key][csvMonthKey]) {
+          return defaultValue;
+        }
+        return dashboardData[key][csvMonthKey];
+      };
+      
+      // SEM광고비 팝업 데이터
+      const semChartData = months.map((month, idx) => {
+        const sales = parseFloat(getValue('팝업_SEM광고비_sales', month, '0').replace(/[,%]/g, '')) || 0;
+        const adSpend = parseFloat(getValue('팝업_SEM광고비_adSpend', month, '0').replace(/[,%]/g, '')) || 0;
+        const ratio2025 = parseFloat(getValue('팝업_SEM광고비_ratio2025', month, '0').replace(/[,%]/g, '')) || 0;
+        const ratio2024 = parseFloat(getValue('팝업_SEM광고비_ratio2024', month, '0').replace(/[,%]/g, '')) || 0;
+        return {
+          month: monthLabels[idx],
+          sales,
+          adSpend,
+          ratio2025,
+          ratio2024
+        };
+      });
+      
+      const latestMonthForSem = months[months.length - 1];
+      const latestMonthNumber = latestMonthForSem.split('-')[1];
+      const semTextData = {
+        yoyText: getValue('팝업_SEM광고비_YOY_텍스트', latestMonthForSem, `25.${latestMonthNumber}월 YOY 데이터 준비 중`),
+        desc1: getValue('팝업_SEM광고비_설명1', latestMonthForSem, `${parseInt(latestMonthNumber, 10)}월 데이터 입력 필요`),
+        desc2: getValue('팝업_SEM광고비_설명2', latestMonthForSem, `${parseInt(latestMonthNumber, 10)}월 세부 코멘트 입력 필요`)
+      };
+    
+    // SEM광고비 누적 데이터 계산
+    const semCumulativeSales = semChartData.reduce((sum, d) => sum + d.sales, 0);
+    const semCumulativeAdSpend = semChartData.reduce((sum, d) => sum + d.adSpend, 0);
+    const semAvgRatio = semChartData.length > 0 ? (semCumulativeAdSpend / semCumulativeSales * 100).toFixed(0) : '0';
+    
+    // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 12월까지 데이터를 나타냄
+    const inventoryChartData: any[] = [];
+    const inventoryTableData: any[] = [];
+    
+    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 인덱스: 0=3월, 1=4월, ..., 9=12월)
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월(예상)', '12월(예상)'];
+    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct'];
+    
+    inventoryMonths.forEach((monthLabel, idx) => {
+      const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
+      const getValue = (key: string, month: string, defaultValue: string = '') => {
+        if (!dashboardData[key] || !dashboardData[key][month]) {
+          return defaultValue;
+        }
+        return dashboardData[key][month];
+      };
+      const fw25 = parseFloat(getValue('팝업_재고소진계획_fw25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const ss25 = parseFloat(getValue('팝업_재고소진계획_ss25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const fw24 = parseFloat(getValue('팝업_재고소진계획_FW과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const core = parseFloat(getValue('팝업_재고소진계획_SS과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const past = parseFloat(getValue('팝업_재고소진계획_CORE_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const total = parseFloat(getValue('팝업_재고소진계획_테이블_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      
+      inventoryChartData.push({
+        month: monthLabel,
+        fw25,
+        ss25,
+        fw24,
+        core,
+        past
+      });
+      
+      const periodLabel = monthLabel.replace('월', '').replace('(예상)', '예상 재고');
+      inventoryTableData.push({
+        period: idx < 8 ? `25.${periodLabel}실적` : `25.${periodLabel}`,
+        total
+      });
+    });
+    
+    // 운반비 팝업 데이터 (3월부터 10월까지) - summaryData에서 읽기
+    const getSummaryValueForPopup = (key: string, month: string, defaultValue: string = '0') => {
+      const csvMonthKey = monthMapping[month] || month;
+      if (!summaryData[key] || !summaryData[key][csvMonthKey]) {
+        return defaultValue;
+      }
+      return summaryData[key][csvMonthKey];
+    };
+    
+    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월'];
+    const shippingChartData = shippingMonths.map((month, idx) => {
+      const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
+      const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
+      const euBurden = parseFloat(getSummaryValueForPopup('팝업_운반비_EU고객부담%', month, '0').replace(/[%,]/g, '')) || 0;
+      return {
+        month: shippingLabels[idx],
+        usCost,
+        euCost,
+        euBurden
+      };
+    });
+    
+    return {
+      semAd: {
+        chartData: semChartData,
+        textData: semTextData,
+        cumulative: {
+          sales: semCumulativeSales,
+          adSpend: semCumulativeAdSpend,
+          avgRatio: semAvgRatio
+        }
+      },
+      inventoryPlan: {
+        chartData: inventoryChartData,
+        tableData: inventoryTableData
+      },
+      shippingCost: {
+        chartData: shippingChartData
+      }
+    };
+  }, [dashboardData, summaryData, loadingDashboard]);
+  
+  const tabs = [
+    { id: "대시보드", label: "대시보드", icon: BarChart3Icon },
+    { id: "손익계산서", label: "손익계산서", icon: TrendingUpIcon },
+    { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
+    { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
+    { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
+  ];
+  
+  // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
+  const handleMonthChange = (month: string) => {
+    setTabSelectedMonths(prev => ({
+      ...prev,
+      [activeTab]: month
+    }));
+  };
+  
+  return (
+    <div className="flex min-h-screen flex-col bg-slate-50/50">
+      {/* Header Section */}
+      <div className="bg-slate-900 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-white">STO 경영실적 대시보드</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-white">조회 기준:</span>
+          <Select value={currentSelectedMonth} onValueChange={handleMonthChange}>
+            <SelectTrigger className="w-[160px] bg-white">
+              <SelectValue placeholder="2025년 10월" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2025-01">2025년 01월</SelectItem>
+              <SelectItem value="2025-02">2025년 02월</SelectItem>
+              <SelectItem value="2025-03">2025년 03월</SelectItem>
+              <SelectItem value="2025-04">2025년 04월</SelectItem>
+              <SelectItem value="2025-05">2025년 05월</SelectItem>
+              <SelectItem value="2025-06">2025년 06월</SelectItem>
+              <SelectItem value="2025-07">2025년 07월</SelectItem>
+              <SelectItem value="2025-08">2025년 08월</SelectItem>
+              <SelectItem value="2025-09">2025년 09월</SelectItem>
+              <SelectItem value="2025-10">2025년 10월</SelectItem>
+              <SelectItem value="2025-11">2025년 11월</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <main className="flex-1 p-6 space-y-6 max-w-[2400px] mx-auto w-full overflow-x-hidden">
+        
+        {/* Tab Navigation */}
+        <div className="bg-gray-100 rounded-lg p-2 flex items-center gap-2">
+          {tabs.map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeTab === tab.id ? "default" : "ghost"}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-md transition-colors",
+                activeTab === tab.id 
+                  ? "bg-blue-600 text-white hover:bg-blue-700" 
+                  : "bg-transparent text-gray-700 hover:bg-gray-200"
+              )}
+            >
+              <tab.icon className={cn("h-5 w-5", activeTab === tab.id ? "text-white" : "text-gray-600")} />
+              <span className="font-medium">{tab.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        {/* 손익계산서 탭 콘텐츠 */}
+        {activeTab === "손익계산서" && <IncomeStatementSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 재무상태표 탭 콘텐츠 */}
+        {activeTab === "재무상태표" && <BalanceSheetSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 현금흐름표 탭 콘텐츠 */}
+        {activeTab === "현금흐름표" && <CashFlowSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 영업비 분석 탭 콘텐츠 */}
+        {activeTab === "영업비 분석" && <OperatingExpenseSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 대시보드 탭 콘텐츠 */}
+        {activeTab === "대시보드" && (
+          <>
+            {/* 실적 요약 및 CEO 인사이트 */}
+            <div className="space-y-4">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            실적 요약 및 CEO 인사이트
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none">
+            <CardContent className="pt-4">
+              <h3 className="font-bold text-purple-700 mb-2 flex items-center gap-2">
+                <LightbulbIcon className="h-4 w-4" />
+                핵심 성과
+              </h3>
+              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
+                <li>✓ 실판매출 115% 달성: $1,936K로 전년 대비 15% 성장</li>
+                <li>✓ US EC 안정적 성장: $1,615K 매출, YOY 129% 달성</li>
+                <li>✓ 25FW 매출 성장: $617K로 본격 시즌 진입</li>
+              </ul>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none">
+            <CardContent className="pt-4">
+              <h3 className="font-bold text-blue-700 mb-2 flex items-center gap-2">
+                <AlertTriangleIcon className="h-4 w-4" />
+                주요 리스크
+              </h3>
+              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
+                <li>✓ 영업이익 적자: -$389K 기록, 이익률 -20.1%로 수익성 악화</li>
+                <li>✓ 높은 할인율: US EC 할인율 50.5%로 전년 대비 +11.8%p 상승</li>
+                <li>✓ 재고 급증: $38,777K로 YOY 216%, 25SS 재고 연말까지 60% 소진중</li>
+              </ul>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none">
+            <CardContent className="pt-4">
+              <h3 className="font-bold text-green-700 mb-2 flex items-center gap-2">
+                <TargetIcon className="h-4 w-4" />
+                CEO 전략 방향
+              </h3>
+              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
+                <li>✓ 수익성 개선: 할인율 관리 및 마진 개선을 통한 흑자 전환 집중</li>
+                <li>✓ 재고 최적화: 25SS/과시즌 재고 소진 계획 수립 및 신속 실행</li>
+                <li>✓ 아이템 다각화: 트랙자켓·팬츠 의존도 완화, 제품 포트폴리오 확대</li>
+              </ul>
+            </CardContent>
+          </Card>
+          </div>
+        </div>
+
+        {/* Main Metrics Row 1 */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            🏢 STO 미국 법인 경영실적
+          </h2>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setExpandAllDetails(!expandAllDetails)}
+          >
+            {expandAllDetails ? "접기" : "전체 보기"}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           {loadingDashboard ? (
+             <div className="col-span-4 text-center text-gray-500 py-8">데이터 로딩 중...</div>
+           ) : cardData ? (
+             <>
+               <DetailedMetricCard
+                   title="📊 실판매출"
+                   value={cardData.salesCard.value}
+                   yoy={cardData.salesCard.yoy}
+                   salesShare={cardData.salesCard.salesShare}
+                   trend="up"
+                   expandAll={expandAllDetails}
+                   channelDetails={cardData.salesCard.channelDetails}
+                   itemDetails={cardData.salesCard.itemDetails}
+               />
+               <DetailedMetricCard
+                   title="🏷️ 할인율"
+                   value={cardData.discountCard.value}
+                   yoy={cardData.discountCard.yoy}
+                   trend="up"
+                   expandAll={expandAllDetails}
+                   channelDetails={cardData.discountCard.channelDetails}
+                   itemDetails={cardData.discountCard.itemDetails}
+               />
+               <DetailedMetricCard
+                   title="💰 직접이익"
+                   value={cardData.profitCard.value}
+                   yoy={cardData.profitCard.yoy}
+                   profitMargin={cardData.profitCard.profitMargin}
+                   trend="up"
+                   expandAll={expandAllDetails}
+                   channelProfitDetails={cardData.profitCard.channelProfitDetails}
+                   directProfitYtdDetails={cardData.profitCard.directProfitYtdDetails}
+               />
+               <DetailedMetricCard
+                   title="📈 영업비"
+                   value={cardData.expenseCard.value}
+                   yoy={cardData.expenseCard.yoy}
+                   operatingExpenseRatio={cardData.expenseCard.operatingExpenseRatio}
+                   trend="down"
+                   expandAll={expandAllDetails}
+                   expenseBreakdown={cardData.expenseCard.expenseBreakdown}
+               />
+             </>
+           ) : null}
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+           {loadingDashboard || !cardData ? (
+             <>
+               <MetricCard title="📈 당시즌 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
+               <MetricCard title="🎯 당시즌 M/U" value="5.22" subValue="전년 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+               <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
+               <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
+             </>
+           ) : (
+             <>
+               <MetricCard 
+                 title="📈 US EC 당시즌 판매율" 
+                 value={cardData.metricCards.salesRate.value} 
+                 subValue={cardData.metricCards.salesRate.subValue} 
+                 subValueColor={cardData.metricCards.salesRate.subValueColor} 
+                 description={cardData.metricCards.salesRate.description} 
+                 itemDetails={cardData.metricCards.salesRate.itemDetails}
+                 expandAll={expandAllDetails}
+               />
+               <MetricCard 
+                 title="🎯 당시즌 M/U" 
+                 value={cardData.metricCards.mu.value} 
+                 subValue={cardData.metricCards.mu.subValue} 
+                 subValueColor={cardData.metricCards.mu.subValueColor} 
+                 description={cardData.metricCards.mu.description} 
+                 topStoresDetails={cardData.metricCards.mu.topStoresDetails}
+                 expandAll={expandAllDetails}
+               />
+               <MetricCard 
+                 title="🏭 기말재고" 
+                 value={cardData.metricCards.inventory.value} 
+                 subValue={cardData.metricCards.inventory.subValue} 
+                 subValueColor={cardData.metricCards.inventory.subValueColor} 
+                 description={cardData.metricCards.inventory.description} 
+                 topStoresDetails={cardData.metricCards.inventory.topStoresDetails}
+                 detailsTitle="아이템별 기말재고"
+                 expandAll={expandAllDetails}
+               >
+                 <Dialog>
+                   <DialogTrigger asChild>
+                     <Button variant="outline" size="sm" className="w-full text-xs h-7 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800">
+                       25SS 재고소진 계획 상세보기
+                     </Button>
+                   </DialogTrigger>
+                   <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                     <DialogHeader>
+                       <DialogTitle>25SS 재고소진 계획</DialogTitle>
+                     </DialogHeader>
+                     <InventoryPlanDialog data={popupData?.inventoryPlan} />
+                   </DialogContent>
+                 </Dialog>
+               </MetricCard>
+               <MetricCard 
+                 title="👥 인원수" 
+                 value={cardData.metricCards.headcount.value} 
+                 subValue={cardData.metricCards.headcount.subValue} 
+                 subValueColor={cardData.metricCards.headcount.subValueColor} 
+                 description={cardData.metricCards.headcount.description} 
+                 statsDetails={cardData.metricCards.headcount.statsDetails}
+                 expandAll={expandAllDetails}
+               />
+             </>
+           )}
+        </div>
+
+        {/* Profit & Loss Table */}
+         <div className="space-y-4">
+           <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <h3 className="font-bold text-lg">손익요약</h3>
+           </div>
+           <Card className="overflow-hidden border-t-4 border-t-green-500">
+             <CardHeader className="bg-slate-50/50 py-4 border-b">
+                {currentSelectedMonth === '2025-10' && (
+                  <CardDescription className="text-green-700 font-bold">
+                    당월 실판 매출 1,936K USD, 영업이익 -389K USD 적자
+                  </CardDescription>
+                )}
+             </CardHeader>
+             <CardContent className="p-0 overflow-x-auto">
+               <Table>
+                 <TableHeader>
+                   <TableRow className="bg-slate-100/50 text-xs hover:bg-slate-100/50">
+                     <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
+                     <TableHead className="text-center font-bold text-blue-700 bg-blue-50" colSpan={6}>당월 실적</TableHead>
+                     <TableHead className="text-center font-bold w-2 bg-white"></TableHead>
+                     <TableHead className="text-center font-bold text-purple-700 bg-purple-50" colSpan={6}>연간 누적</TableHead>
+                   </TableRow>
+                   <TableRow className="text-xs text-muted-foreground bg-slate-50/30 hover:bg-slate-100/50">
+                      <TableHead className="text-center border-r">구분</TableHead>
+                      <React.Fragment>
+                              <TableHead className="text-center min-w-[60px] bg-blue-50">전년</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-blue-50">(%)</TableHead>
+                              <TableHead className="text-center font-bold min-w-[60px] bg-blue-50">당년</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-blue-50">(%)</TableHead>
+                              <TableHead className="text-center min-w-[60px] bg-blue-50">전년비</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-blue-50">YOY</TableHead>
+                          </React.Fragment>
+                      <TableHead className="text-center w-2 bg-white"></TableHead>
+                      <React.Fragment>
+                              <TableHead className="text-center min-w-[60px] bg-purple-50">전년</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-purple-50">(%)</TableHead>
+                              <TableHead className="text-center font-bold min-w-[60px] bg-purple-50">당년</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-purple-50">(%)</TableHead>
+                              <TableHead className="text-center min-w-[60px] bg-purple-50">전년비</TableHead>
+                              <TableHead className="text-center min-w-[50px] bg-purple-50">YOY</TableHead>
+                          </React.Fragment>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {(pnlDataFromCSV || pnlData).map((row, index) => (
+                     <TableRow key={index} className="hover:bg-slate-50/80">
+                       <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
+                       <TableCell className="text-center text-xs bg-blue-50">{row.m_prev}</TableCell>
+                       <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_prev_p || '-'}</TableCell>
+                       <TableCell className="text-center text-xs font-bold bg-blue-50">{row.m_curr}</TableCell>
+                       <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_curr_p || '-'}</TableCell>
+                       <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
+                       <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
+                       <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
+                       <TableCell className="text-center text-xs bg-purple-50">{row.y_prev}</TableCell>
+                       <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_prev_p || '-'}</TableCell>
+                       <TableCell className="text-center text-xs font-bold bg-purple-50">{row.y_curr}</TableCell>
+                       <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_curr_p || '-'}</TableCell>
+                       <TableCellStyled type="diff" className="text-center text-xs bg-purple-50">{row.y_diff}</TableCellStyled>
+                       <TableCellStyled type="yoy" className="text-center text-xs bg-purple-50">{row.y_yoy}</TableCellStyled>
+                     </TableRow>
+                   ))}
+                 </TableBody>
+               </Table>
+             </CardContent>
+           </Card>
+        </div>
+
+        {/* Detailed Interactive Charts Section (3 Columns) */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* 1. Channel Sales Trend */}
+            <InteractiveChartSection 
+                title="2025년 월별 채널별 매출 추세"
+                unit="K USD"
+                iconColor="bg-green-500"
+                filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
+                insights={[
+                    {color: "purple", title: "주요 인사이트", content: "• US EC 월평균 $1,336K, 10월 $1,615K 성장"},
+                    {color: "blue", title: "채널 트렌드", content: "• US EC 안정적 성장, EU EC 감소 추세"},
+                    {color: "green", title: "전략 포인트", content: "• US EC 집중 강화, EU EC 회복 필요"}
+                ]}
+                csvChartData={chartDataForComponents?.channelSales}
+                chartType="channel"
+            />
+            
+            {/* 2. Item Sales Trend */}
+            <InteractiveChartSection 
+                title="2025년 월별 아이템별 매출 추세"
+                unit="K USD"
+                iconColor="bg-orange-500"
+                filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                insights={[
+                    {color: "purple", title: "시즌 트렌드", content: "• 25SS: 5월 피크 $1,306K\n• 25FW: 7월 출시 지속 성장\n• 24FW: 자연 감소 추세"},
+                    {color: "blue", title: "카테고리", content: "• 25SS: 565% YOY (6월)\n• 24FW: 383% YOY (10월)\n• 과시즌: 높은 변동성"},
+                    {color: "green", title: "핵심액션", content: "• 25FW 판촉 강화 필요\n• 과시즌 재고 소진 관리\n• 26SS 준비 시작"}
+                ]}
+                csvChartData={chartDataForComponents?.itemSales}
+                chartType="item"
+            />
+
+            {/* 3. Inventory Trend */}
+            <InteractiveChartSection 
+                title="2025년 월별 아이템별 재고 추세"
+                unit="K USD"
+                iconColor="bg-purple-500"
+                filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                insights={[
+                    {color: "purple", title: "조기경보", content: "• 25FW 재고 급증\n• 9월 $20,417K → 10월 $19,602K\n• 25SS 514% YOY (10월)"},
+                    {color: "blue", title: "긍정신호", content: "• 24FW 지속 감소\n• $9,508K → $2,406K\n• 24SS 소진 양호"},
+                    {color: "green", title: "인사이트", content: "• 총재고 10월 $38,777K\n• 25FW 비중 50.5%\n• 과시즌 관리 필요"}
+                ]}
+                csvChartData={chartDataForComponents?.inventory}
+                chartType="inventory"
+            />
+        </div>
+
+        {/* 직접비 요약 */}
+        {directExpenseSummaryData ? (
+          <ExpenseSummarySection
+              title="직접비 요약"
+              iconColor="bg-purple-500"
+              defaultPeriod="당월"
+              cards={directExpenseSummaryData}
+              semPopupData={popupData?.semAd}
+              shippingPopupData={popupData?.shippingCost}
+          />
+        ) : (
+          <ExpenseSummarySection
+              title="직접비 요약"
+              iconColor="bg-purple-500"
+              defaultPeriod="당월"
+              cards={[]}
+          />
+        )}
+
+        {/* 영업비 요약 */}
+        {operatingExpenseSummaryData ? (
+          <ExpenseSummarySection
+              title="영업비 요약"
+              iconColor="bg-orange-500"
+              defaultPeriod="당월"
+              cards={operatingExpenseSummaryData}
+              semPopupData={popupData?.semAd}
+          />
+        ) : (
+          <ExpenseSummarySection
+              title="영업비 요약"
+              iconColor="bg-orange-500"
+              defaultPeriod="당월"
+              cards={[]}
+          />
+        )}
+          </>
+        )}
+      </main>
+    </div>
+  )
+}
