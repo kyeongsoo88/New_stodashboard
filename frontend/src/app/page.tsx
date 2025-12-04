@@ -1612,7 +1612,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {headers.filter((_, idx) => {
+                  {headers.filter((_: any, idx: number) => {
                     if (showAllMonths) return true;
                     // Keep first column (구분) and columns starting from Nov
                     // After adding YTD columns: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=당월 YoY, 13=YTD, 14=YTD YoY, 15=Dec, 16=Total
@@ -2554,7 +2554,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {headers.filter((_, idx) => {
+                  {headers.filter((_: any, idx: number) => {
                     if (showAllMonths) return true;
                     // Keep first column (구분) and columns starting from Nov
                     // After adding YoY: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=YoY, 13=Dec
@@ -2642,7 +2642,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {headers.filter((_, idx) => {
+                    {headers.filter((_: any, idx: number) => {
                       if (showAllMonths) return true;
                       // Keep first column (구분) and columns starting from Nov
                       // After adding YoY: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov, 12=YoY, 13=Dec
