@@ -143,6 +143,15 @@ function DetailedMetricCard({
     className?: string,
     expandAll?: boolean
 }) {
+    // 퍼센트 배지용 헬퍼: 100%는 100.0%로 표기
+    const formatPercentBadge = (val: string): string => {
+        if (!val) return val;
+        const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+        if (!isNaN(num) && num === 100) {
+            return `${num.toFixed(1)}%`;
+        }
+        return formatPercent(val);
+    };
     const [isExpanded, setIsExpanded] = React.useState(false);
     const [isChannelExpanded, setIsChannelExpanded] = React.useState(false);
     const [isItemExpanded, setIsItemExpanded] = React.useState(false);
@@ -317,7 +326,7 @@ function DetailedMetricCard({
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                 <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
                                                                 <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercent(item.percent)}</span>}
+                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                             </div>
                                                         </div>
                                                     );
@@ -356,7 +365,7 @@ function DetailedMetricCard({
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                 <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
                                                                 <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercent(item.percent)}</span>}
+                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                             </div>
                                                         </div>
                                                     );
@@ -454,7 +463,7 @@ function DetailedMetricCard({
                                                 <span className="text-[11px] flex-shrink-0 tracking-tight mr-1">{item.name}</span>
                                                 <div className="flex items-center gap-1">
                                                     <span className="font-medium text-[11px] w-[40px] text-right tabular-nums flex-shrink-0">{item.value}</span>
-                                                    {item.percent && <span className="text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold w-[45px] text-center tabular-nums flex-shrink-0">{formatPercent(item.percent.replace(/[\[\]]/g, ''))}</span>}
+                                                    {item.percent && <span className="text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold w-[45px] text-center tabular-nums flex-shrink-0">{formatPercentBadge(item.percent.replace(/[\[\]]/g, ''))}</span>}
                                                     {item.margin && <span className="text-[11px] px-1 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center tabular-nums flex-shrink-0">{item.margin}</span>}
                                                     {item.change && <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0 w-[60px] text-center tabular-nums">{item.change.replace(/\+\+/g, '+')}</span>}
                                                 </div>
@@ -549,7 +558,7 @@ function DetailedMetricCard({
                                                     <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                         <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
                                                         <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercent(item.percent)}</span>}
+                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                     </div>
                                                 </div>
                                             );
@@ -604,7 +613,7 @@ function DetailedMetricCard({
                                                     <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                         <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
                                                         <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercent(item.percent)}</span>}
+                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                     </div>
                                                 </div>
                                             );
@@ -5276,9 +5285,9 @@ export default function DashboardPage() {
                 핵심 성과
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 실판매출 115% 달성: $1,936K로 전년 대비 15% 성장</li>
-                <li>✓ US EC 안정적 성장: $1,615K 매출, YOY 129% 달성</li>
-                <li>✓ 25FW 매출 성장: $617K로 본격 시즌 진입</li>
+                <li>✓ 역대 최고 실적: $3,003K 매출, YOY 159% 달성</li>
+                <li>✓ US EC 폭발적 성장: $2,839K(전체 95%), YOY 174% 달성</li>
+                <li>✓ 25FW 본격 시즌: $1,305K 매출, 전체 비중 45% 차지</li>
               </ul>
             </CardContent>
           </Card>
@@ -5289,9 +5298,9 @@ export default function DashboardPage() {
                 주요 리스크
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 영업이익 적자: -$389K 기록, 이익률 -20.1%로 수익성 악화</li>
-                <li>✓ 높은 할인율: US EC 할인율 50.5%로 전년 대비 +11.8%p 상승</li>
-                <li>✓ 재고 급증: $38,777K로 YOY 216%, 25SS 재고 연말까지 60% 소진중</li>
+                <li>✓ 할인율 급등: 60.6%로 전년 대비 +19.7%p, US EC 61.1%(+18.7%p)</li>
+                <li>✓ 낮은 직접이익률: 19.1% 기록, 과도한 프로모션으로 수익성 악화</li>
+                <li>✓ 높은 재고 수준: $30,457K로 YOY 195%, 25SS $9,616K 소진 중</li>
               </ul>
             </CardContent>
           </Card>
@@ -5302,9 +5311,9 @@ export default function DashboardPage() {
                 CEO 전략 방향
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 수익성 개선: 할인율 관리 및 마진 개선을 통한 흑자 전환 집중</li>
-                <li>✓ 재고 최적화: 25SS/과시즌 재고 소진 계획 수립 및 신속 실행</li>
-                <li>✓ 아이템 다각화: 트랙자켓·팬츠 의존도 완화, 제품 포트폴리오 확대</li>
+                <li>✓ 연말 세일 효율화: 25FW 정상가 판매 확대, 할인율 60% 이하 관리</li>
+                <li>✓ 수익성 회복: 직접이익률 25% 이상 목표, 프로모션 선별 집행</li>
+                <li>✓ 채널 다각화: US EC 의존도(95%) 완화, US홀세일/EU 성장 전략 수립</li>
               </ul>
             </CardContent>
           </Card>
@@ -5376,7 +5385,7 @@ export default function DashboardPage() {
            {loadingDashboard || !cardData ? (
              <>
                <MetricCard title="📈 당시즌 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
-               <MetricCard title="🎯 당시즌 M/U" value="5.22" subValue="전년 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+               <MetricCard title="🎯 US EC 25FW M/U" value="5.22" subValue="전년 5.48" subValueColor="text-red-500" description="YoY -0.26" />
                <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
                <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
              </>
@@ -5392,7 +5401,7 @@ export default function DashboardPage() {
                  expandAll={expandAllDetails}
                />
                <MetricCard 
-                 title="🎯 당시즌 M/U" 
+                 title="🎯 US EC 25FW M/U" 
                  value={cardData.metricCards.mu.value} 
                  subValue={cardData.metricCards.mu.subValue} 
                  subValueColor={cardData.metricCards.mu.subValueColor} 
@@ -5526,9 +5535,9 @@ export default function DashboardPage() {
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
                 insights={[
-                    {color: "purple", title: "주요 인사이트", content: "• US EC 월평균 $1,336K, 10월 $1,615K 성장"},
-                    {color: "blue", title: "채널 트렌드", content: "• US EC 안정적 성장, EU EC 감소 추세"},
-                    {color: "green", title: "전략 포인트", content: "• US EC 집중 강화, EU EC 회복 필요"}
+                    {color: "purple", title: "주요 인사이트", content: "• US EC 월평균 $1,471K, 11월 $2,839K로 급성장\n• US EC가 전체 매출의 95% 차지, US홀세일 $34K 최저"},
+                    {color: "blue", title: "채널 트렌드", content: "• US EC 폭발적 성장 (YOY 174%)\n• EU EC($54K), US홀세일($34K) 미미한 수준\n• 라이선스($77K) 안정적 성장세 (YOY 125%)"},
+                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 95% 리스크 관리 시급\n• US홀세일/EU 채널 회복 전략 수립\n• 라이선스 채널 성장 기회 확대"}
                 ]}
                 csvChartData={chartDataForComponents?.channelSales}
                 chartType="channel"
@@ -5541,9 +5550,9 @@ export default function DashboardPage() {
                 iconColor="bg-orange-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "시즌 트렌드", content: "• 25SS: 5월 피크 $1,306K\n• 25FW: 7월 출시 지속 성장\n• 24FW: 자연 감소 추세"},
-                    {color: "blue", title: "카테고리", content: "• 25SS: 565% YOY (6월)\n• 24FW: 383% YOY (10월)\n• 과시즌: 높은 변동성"},
-                    {color: "green", title: "핵심액션", content: "• 25FW 판촉 강화 필요\n• 과시즌 재고 소진 관리\n• 26SS 준비 시작"}
+                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 11월 $1,305K로 전체 45% 차지\n• 25SS: $1,054K, 시즌 재고 소진 가속화\n• CORE: $364K, YOY 155% 안정적 성장"},
+                    {color: "blue", title: "카테고리", content: "• 25FW 본격 시즌 진입 (비중 45%)\n• 25SS 소진 완료 단계 (비중 36%)\n• 과시즌 합계: $203K (비중 7%)"},
+                    {color: "green", title: "핵심액션", content: "• 25FW 정상가 판매 확대\n• 25SS 연말 소진 완료\n• CORE 상시 판매 강화"}
                 ]}
                 csvChartData={chartDataForComponents?.itemSales}
                 chartType="item"
@@ -5556,9 +5565,9 @@ export default function DashboardPage() {
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "조기경보", content: "• 25FW 재고 급증\n• 9월 $20,417K → 10월 $19,602K\n• 25SS 514% YOY (10월)"},
-                    {color: "blue", title: "긍정신호", content: "• 24FW 지속 감소\n• $9,508K → $2,406K\n• 24SS 소진 양호"},
-                    {color: "green", title: "인사이트", content: "• 총재고 10월 $38,777K\n• 25FW 비중 50.5%\n• 과시즌 관리 필요"}
+                    {color: "purple", title: "조기경보", content: "• 총재고 $30,457K, YOY 195% 여전히 높은 수준\n• 25FW: $17,107K (비중 56%), YOY 154%\n• 25SS: $9,616K (비중 32%), YOY 409%"},
+                    {color: "blue", title: "긍정신호", content: "• 10월 대비 재고 감소: $38,777K → $30,457K\n• 과시즌 소진 양호: FW $1,312K, SS $308K\n• 전월 대비 21% 감소"},
+                    {color: "green", title: "인사이트", content: "• 11월 연말 세일로 재고 감소 추세\n• 25FW 재고 비중 56%, 25년 판매 집중\n• 25SS 연말까지 추가 소진 필요"}
                 ]}
                 csvChartData={chartDataForComponents?.inventory}
                 chartType="inventory"
