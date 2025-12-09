@@ -2480,13 +2480,13 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <ResponsiveContainer width="100%" height={300}>
               <BarChart 
                 data={chartData}
-                onClick={(data: any, index: number) => {
+                onClick={(data: any) => {
                   // 클릭된 데이터 포인트 찾기
                   let clickedCategory: string | null = null;
                   if (data && data.activeLabel) {
                     clickedCategory = data.activeLabel;
-                  } else if (chartData && index !== undefined && chartData[index]) {
-                    clickedCategory = chartData[index].name;
+                  } else if (data && data.activePayload && data.activePayload[0] && data.activePayload[0].payload) {
+                    clickedCategory = data.activePayload[0].payload.name;
                   }
                   
                   if (clickedCategory) {
