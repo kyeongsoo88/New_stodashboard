@@ -1787,7 +1787,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-bold">손익계산서(단위: $)</CardTitle>
+          <CardTitle className="text-lg font-bold">손익계산서(단위: K $)</CardTitle>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -1988,6 +1988,21 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                           const isSet3Start = isTotalColumn;
                           const isSet3 = isTotalColumn || isSumYoY;
                           const isSet3End = isSumYoY;
+                          
+                          // "당월 YoY", "YTD YoY", "합계 YoY" 컬럼의 숫자에 천 단위 콤마 추가
+                          if ((currentHeader === '당월 YoY' || currentHeader === 'YTD YoY' || currentHeader === '합계 YoY') && displayValue && displayValue !== '' && displayValue !== '-') {
+                            // + 또는 - 기호와 숫자 추출
+                            const match = displayValue.match(/^([+-]?)(\d+)(.*)$/);
+                            if (match) {
+                              const sign = match[1]; // + 또는 -
+                              const number = match[2]; // 숫자 부분
+                              const suffix = match[3]; // 나머지 (예: %)
+                              const num = parseInt(number);
+                              if (!isNaN(num)) {
+                                displayValue = sign + num.toLocaleString() + suffix;
+                              }
+                            }
+                          }
                           
                           // 세트 구분을 위한 스타일 - 파스텔톤 색상, 세트 사이에만 구분선
                           let setStyle = "";
@@ -2401,7 +2416,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <div>
               <CardTitle className="text-xl font-bold mb-1">STO 영업비 분석</CardTitle>
               <CardDescription className="text-sm">
-                {viewMode === "YTD" ? "24년 YTD vs 25년 YTD (단위: $)" : "24년 당월 vs 25년 당월 (단위: $)"}
+                {viewMode === "YTD" ? "24년 YTD vs 25년 YTD (단위: K $)" : "24년 당월 vs 25년 당월 (단위: K $)"}
               </CardDescription>
             </div>
             <div className="flex gap-2 items-center">
@@ -2517,8 +2532,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} fontSize={11} />
-                <YAxis label={{ value: '$', angle: -90, position: 'insideLeft' }} fontSize={11} />
-                <Tooltip formatter={(value: number) => `$${value.toFixed(0)}K`} />
+                <YAxis 
+                  label={{ value: 'K $', angle: -90, position: 'insideLeft' }} 
+                  fontSize={11}
+                  tickFormatter={(value) => value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                />
+                <Tooltip formatter={(value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}K`} />
                 <Legend />
                 <Bar 
                   dataKey={year24Label} 
@@ -2640,10 +2659,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                           {row.name}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">${row.ytd24.toFixed(0)}K</TableCell>
-                      <TableCell className="text-right">${row.ytd25.toFixed(0)}K</TableCell>
+                      <TableCell className="text-right">${row.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                      <TableCell className="text-right">${row.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                       <TableCell className={cn("text-right font-medium", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                        {row.diff >= 0 ? '+' : ''}${row.diff.toFixed(0)}K
+                        {row.diff >= 0 ? '+' : ''}${row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                       </TableCell>
                       <TableCell className={cn("text-right font-medium", row.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                         {row.diffRate >= 0 ? '+' : ''}{row.diffRate.toFixed(1)}%
@@ -2658,10 +2677,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                             {subRow.name}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">${subRow.ytd24.toFixed(0)}K</TableCell>
-                        <TableCell className="text-right">${subRow.ytd25.toFixed(0)}K</TableCell>
+                        <TableCell className="text-right">${subRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                        <TableCell className="text-right">${subRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                         <TableCell className={cn("text-right font-medium", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                          {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toFixed(0)}K
+                          {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                         </TableCell>
                         <TableCell className={cn("text-right font-medium", subRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                           {subRow.diffRate >= 0 ? '+' : ''}{subRow.diffRate.toFixed(1)}%
@@ -2672,10 +2691,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 ))}
                 <TableRow className="bg-blue-50 font-bold">
                   <TableCell className="font-bold">{totalRow.name}</TableCell>
-                  <TableCell className="text-right font-bold">${totalRow.ytd24.toFixed(0)}K</TableCell>
-                  <TableCell className="text-right font-bold">${totalRow.ytd25.toFixed(0)}K</TableCell>
+                  <TableCell className="text-right font-bold">${totalRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                  <TableCell className="text-right font-bold">${totalRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                   <TableCell className={cn("text-right font-bold", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                    {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toFixed(0)}K
+                    {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                   </TableCell>
                   <TableCell className={cn("text-right font-bold", totalRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                     {totalRow.diffRate >= 0 ? '+' : ''}{totalRow.diffRate.toFixed(1)}%
@@ -2954,7 +2973,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       {/* 재무상태표 본문 */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-bold">재무상태표($)</CardTitle>
+          <CardTitle className="text-lg font-bold">재무상태표 (단위 : K $)</CardTitle>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -5527,9 +5546,9 @@ export default function DashboardPage() {
                        <TableRow key={index} className="hover:bg-slate-50/80">
                          <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
                          <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_prev_p || '-'}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_prev_p === '100.00%' ? '100.0%' : (row.m_prev_p || '-')}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_curr_p || '-'}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_curr_p === '100.00%' ? '100.0%' : (row.m_curr_p || '-')}</TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
