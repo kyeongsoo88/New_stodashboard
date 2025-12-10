@@ -967,6 +967,51 @@ function InventoryPlanDialog({ data }: { data: any }) {
     }
     
     const { chartData, tableData } = data;
+    const lineColors: Record<string, string> = {
+        fw25: "#ef4444",   // 25FW
+        ss25: "#10b981",   // 25SS
+        fw24: "#fbbf24",   // FW과시즌
+        core: "#3b82f6",   // SS과시즌
+        past: "#9ca3af"    // CORE
+    };
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (!active || !payload || payload.length === 0) return null;
+
+        const rows = payload.map((entry: any) => {
+            const key = entry.dataKey;
+            const color = lineColors[key] || "#4b5563";
+            const name = entry.name || key;
+            const val = entry.value ?? 0;
+            return { key, color, name, value: val };
+        });
+
+        const total = rows.reduce((sum, r) => sum + (Number(r.value) || 0), 0);
+
+        return (
+            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1">
+                <div className="font-semibold text-gray-800 mb-1">{label}</div>
+                {rows.map((r) => (
+                    <div key={r.key} className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                            <span
+                                className="inline-block w-3 h-3 rounded-full"
+                                style={{ backgroundColor: r.color }}
+                            />
+                            <span className="text-gray-700">{r.name}</span>
+                        </div>
+                        <span className="font-medium text-gray-900">
+                            {Number(r.value || 0).toLocaleString()}
+                        </span>
+                    </div>
+                ))}
+                <div className="pt-1 mt-1 border-t border-gray-100 flex items-center justify-between text-gray-900 font-semibold">
+                    <span>합계</span>
+                    <span>{total.toLocaleString()}</span>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-4 bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
@@ -983,15 +1028,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
                                 stroke="#6b7280" 
                                 tickFormatter={(value) => value.toLocaleString()}
                             />
-                            <Tooltip 
-                                formatter={(value: number) => [value.toLocaleString(), undefined]}
-                                contentStyle={{ 
-                                    backgroundColor: 'white', 
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                                }} 
-                            />
+                            <Tooltip content={<CustomTooltip />} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
                             <Line type="monotone" dataKey="fw25" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25FW" />
                             <Line type="monotone" dataKey="ss25" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="25SS" />
@@ -5134,14 +5171,14 @@ export default function DashboardPage() {
     const semCumulativeAdSpend = semChartData.reduce((sum, d) => sum + d.adSpend, 0);
     const semAvgRatio = semChartData.length > 0 ? (semCumulativeAdSpend / semCumulativeSales * 100).toFixed(0) : '0';
     
-    // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 12월까지 데이터를 나타냄
+    // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
-    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 인덱스: 0=3월, 1=4월, ..., 9=12월)
+    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 매핑: 25-Jan -> 3월, ..., 25-Oct -> 12월)
     const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-    // CSV 헤더와 매핑 (3월 -> 25-Mar, ..., 11월 -> 25-Nov)
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec'];
+    // CSV 헤더와 매핑 (사용자 요청: 25-Jan 컬럼을 3월 데이터로 사용하여 12월까지 표시)
+    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
