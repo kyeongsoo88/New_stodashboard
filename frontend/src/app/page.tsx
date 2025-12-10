@@ -991,7 +991,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
         return (
             <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1">
                 <div className="font-semibold text-gray-800 mb-1">{label}</div>
-                {rows.map((r) => (
+                {rows.map((r: { key: string; color: string; name: string; value: number }) => (
                     <div key={r.key} className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                             <span
