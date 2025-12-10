@@ -5325,8 +5325,8 @@ export default function DashboardPage() {
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
                 <li>✓ 역대 최고 실적: $3,003K 매출, YOY 159% 달성</li>
-                <li>✓ US EC 폭발적 성장: $2,839K(전체 95%), YOY 174% 달성</li>
-                <li>✓ 25FW 본격 시즌: $1,305K 매출, 전체 비중 45% 차지</li>
+                <li>✓ US EC 압도적 성장: $2,839K(전체 95%), YOY 174% 달성</li>
+                <li>✓ 25FW 본격화: $1,305K 매출로 전체 비중 45% 차지</li>
               </ul>
             </CardContent>
           </Card>
@@ -5337,9 +5337,9 @@ export default function DashboardPage() {
                 주요 리스크
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 할인율 급등: 60.6%로 전년 대비 +19.7%p, US EC 61.1%(+18.7%p)</li>
-                <li>✓ 낮은 직접이익률: 19.1% 기록, 과도한 프로모션으로 수익성 악화</li>
-                <li>✓ 높은 재고 수준: $30,457K로 YOY 195%, 25SS $9,616K 소진 중</li>
+                <li>✓ 할인율 급등: 61.2%로 전년 대비 +19.5%p, US EC 61.1%(+18.7%p)</li>
+                <li>✓ 낮은 직접이익률: 19.5% 기록, 과도한 할인으로 수익성 악화</li>
+                <li>✓ 재고 부담: $31,076K로 YOY 199%, 25SS $9,610K 추가 소진 필요</li>
               </ul>
             </CardContent>
           </Card>
@@ -5350,9 +5350,9 @@ export default function DashboardPage() {
                 CEO 전략 방향
               </h3>
               <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 연말 세일 효율화: 25FW 정상가 판매 확대, 할인율 60% 이하 관리</li>
-                <li>✓ 수익성 회복: 직접이익률 25% 이상 목표, 프로모션 선별 집행</li>
-                <li>✓ 채널 다각화: US EC 의존도(95%) 완화, US홀세일/EU 성장 전략 수립</li>
+                <li>✓ 할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리</li>
+                <li>✓ 수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영</li>
+                <li>✓ 균형 성장: US EC 의존도(95%) 완화, US홀세일/EU 채널 확대</li>
               </ul>
             </CardContent>
           </Card>
@@ -5542,21 +5542,31 @@ export default function DashboardPage() {
                        return val;
                      };
                      
+                     // 백분율 값을 소수점 첫째 자리로 포맷팅하는 함수
+                     const formatPercentToOneDecimal = (val: string) => {
+                       if (!val || val === '' || val === '-') return val || '-';
+                       // 퍼센트 기호 제거 후 숫자 추출
+                       const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
+                       if (isNaN(num)) return val;
+                       // 소수점 첫째 자리로 포맷팅
+                       return `${num.toFixed(1)}%`;
+                     };
+                     
                      return (
                        <TableRow key={index} className="hover:bg-slate-50/80">
                          <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
                          <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_prev_p === '100.00%' ? '100.0%' : (row.m_prev_p || '-')}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_curr_p === '100.00%' ? '100.0%' : (row.m_curr_p || '-')}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_curr_p)}</TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
                         <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
                         <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_prev_p || '-'}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_curr_p || '-'}</TableCell>
+                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_curr_p)}</TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-purple-50">{row.y_diff}</TableCellStyled>
                          <TableCellStyled type="yoy" className="text-center text-xs bg-purple-50">{row.y_yoy}</TableCellStyled>
                        </TableRow>
@@ -5608,7 +5618,7 @@ export default function DashboardPage() {
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
                     {color: "purple", title: "조기경보", content: "• 총재고 $30,457K, YOY 195% 여전히 높은 수준\n• 25FW: $17,107K (비중 56%), YOY 154%\n• 25SS: $9,616K (비중 32%), YOY 409%"},
-                    {color: "blue", title: "긍정신호", content: "• 10월 대비 재고 감소: $38,777K → $30,457K\n• 과시즌 소진 양호: FW $1,312K, SS $308K\n• 전월 대비 21% 감소"},
+                    {color: "blue", title: "긍정신호", content: "• 10월 대비 재고 대폭 감소: $38,777K → $31,076K\n• FW과시즌 소진 가속: $2,197K → $1,831K\n• 전월 대비 20% 감소로 재고 부담 완화"},
                     {color: "green", title: "인사이트", content: "• 11월 연말 세일로 재고 감소 추세\n• 25FW 재고 비중 56%, 25년 판매 집중\n• 25SS 연말까지 추가 소진 필요"}
                 ]}
                 csvChartData={chartDataForComponents?.inventory}
