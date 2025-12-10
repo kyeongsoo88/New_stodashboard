@@ -986,7 +986,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
             return { key, color, name, value: val };
         });
 
-        const total = rows.reduce((sum: number, r) => sum + (Number(r.value) || 0), 0);
+        const total = rows.reduce((sum: number, r: { value: number }) => sum + (Number(r.value) || 0), 0);
 
         return (
             <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1">
