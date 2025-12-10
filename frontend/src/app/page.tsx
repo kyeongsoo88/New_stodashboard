@@ -1096,9 +1096,9 @@ function InteractiveChartSection({
                   const inventoryMapping: Record<string, string> = {
                       '25FW': '25FW',
                       '25SS': '25SS',
-                      '24FW': 'FW과시즌',
-                      'CORE': 'SS과시즌',
-                      '과시즌': 'CORE'
+                      'FW과시즌': 'FW과시즌',
+                      'SS과시즌': 'SS과시즌',
+                      'CORE': 'CORE'
                   };
                   const csvKey = inventoryMapping[opt] || opt;
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
@@ -2200,7 +2200,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const personnelCostRatio = totalOperatingExpense > 0 ? (personnelCost / totalOperatingExpense * 100) : 0;
 
   const headcount = getCurrentValue('영업비_인원수', selectedMonthLocal) || 26;
-  const perPersonExpense = headcount > 0 ? totalOperatingExpense / headcount : 0;
+  
+  // 인당 영업비 (인당 인건비): 정규직 + 계약직 급여 / 인원수
+  const regularSalary = getCurrentValue('영업비_인건비_정규직인건비', selectedMonthLocal);
+  const contractSalary = getCurrentValue('영업비_인건비_계약직인건비', selectedMonthLocal);
+  const salarySum = regularSalary + contractSalary;
+  const perPersonExpense = headcount > 0 ? salarySum / headcount : 0;
 
   const sales = getCurrentValue('영업비_매출', selectedMonthLocal);
   const efficiencyRatio = sales > 0 ? (totalOperatingExpense / sales * 100) : 0;
@@ -2310,7 +2315,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   };
 
   const pieData = getPieChartData();
-  const COLORS = ['#1e293b', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
+  const COLORS = [
+    '#1e293b', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', 
+    '#3b82f6', '#ec4899', '#06b6d4', '#f97316', '#6366f1', 
+    '#84cc16', '#d946ef', '#14b8a6', '#eab308', '#a855f7',
+    '#f43f5e', '#22c55e', '#64748b', '#0ea5e9', '#d946ef'
+  ];
 
   // 대분류별 상세 테이블 데이터
   const detailTableData = accountCategories.map(cat => {
@@ -2437,7 +2447,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <CardTitle className="text-sm font-medium text-gray-600">총 영업비</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold mb-1">${totalOperatingExpense.toFixed(0)}K</div>
+            <div className="text-2xl font-bold mb-1">${totalOperatingExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</div>
             <div className={cn("text-sm font-medium", totalOperatingExpenseYOY >= 100 ? "text-red-600" : "text-emerald-600")}>
               YOY {totalOperatingExpenseYOY.toFixed(0)}%
             </div>
@@ -2459,7 +2469,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <CardTitle className="text-sm font-medium text-gray-600">인당 영업비</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold mb-1">${perPersonExpense.toFixed(0)}K</div>
+            <div className="text-2xl font-bold mb-1">${perPersonExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</div>
             <div className="text-xs text-gray-500">{headcount}명 연간</div>
           </CardContent>
         </Card>
@@ -2565,11 +2575,11 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 <PieChart>
                   <Pie
                     data={pieData}
-                    cx="50%"
+                    cx="40%"
                     cy="50%"
                     labelLine={false}
-                    label={(entry: any) => `${entry.name} ${entry.percentage}% ($${entry.value.toFixed(0)}K)`}
-                    outerRadius={100}
+                    label={(entry: any) => parseFloat(entry.percentage) >= 5 ? `${entry.percentage}%` : ''}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -2577,7 +2587,13 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `$${value.toFixed(0)}K`} />
+                  <Tooltip formatter={(value: number, name: string, props: any) => [`$${value.toFixed(0)}K (${props.payload.percentage}%)`, name]} />
+                  <Legend 
+                    layout="vertical" 
+                    verticalAlign="middle" 
+                    align="right"
+                    wrapperStyle={{ fontSize: "11px", maxWidth: "45%" }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -4335,22 +4351,25 @@ export default function DashboardPage() {
           description: `YoY ${getDataValue('카드_당시즌판매율_YOY', month, '-4.5%p')}`,
           itemDetails: [
             { 
-              name: "Track Jacket", 
+              name: "TJ", 
               value: getDataValue('카드_당시즌판매율_아이템_트랙자켓_값', month, '$8,404K'), 
               share: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_비중', month, '42.1%')),
-              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_비율', month, '4.0%')) 
+              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_비율', month, '4.0%')),
+              prevRate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_전년', month, '0.0%')) 
             },
             { 
-              name: "Track Pant", 
+              name: "TP", 
               value: getDataValue('카드_당시즌판매율_아이템_트랙팬츠_값', month, '$6,407K'), 
               share: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비중', month, '32.1%')),
-              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비율', month, '4.4%')) 
+              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비율', month, '4.4%')),
+              prevRate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_전년', month, '0.0%')) 
             },
             { 
               name: "Total", 
               value: getDataValue('카드_당시즌판매율_아이템_전체발주_값', month, '$14,811K'), 
               share: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_전체발주_비중', month, '76.2%')),
-              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_전체발주_비율', month, '4.1%')) 
+              rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_전체발주_비율', month, '4.1%')),
+              prevRate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_전체발주_전년', month, '0.0%'))
             }
           ]
         },
@@ -4371,7 +4390,7 @@ export default function DashboardPage() {
               yoy: `(전년${getDataValue('카드_당시즌MU_아이템_TrackPant_전년', month, '6.03')})` 
             },
             { 
-              name: "Knitwear", 
+              name: "Hoodie", 
               value: getDataValue('카드_당시즌MU_아이템_Knitwear_값', month, '4.80'), 
               yoy: `(전년${getDataValue('카드_당시즌MU_아이템_Knitwear_전년', month, '5.19')})` 
             },
@@ -4998,9 +5017,9 @@ export default function DashboardPage() {
     const inventoryMapping: Record<string, string> = {
       '25FW': '25FW',
       '25SS': '25SS',
-      '24FW': 'FW과시즌',
-      'CORE': 'SS과시즌',
-      '과시즌': 'CORE'
+      'FW과시즌': 'FW과시즌',
+      'SS과시즌': 'SS과시즌',
+      'CORE': 'CORE'
     };
     Object.entries(inventoryMapping).forEach(([displayName, csvKey]) => {
       const dataKey = `차트_아이템별재고추세_${csvKey}`;
@@ -5102,7 +5121,8 @@ export default function DashboardPage() {
     
     // 3월부터 12월까지 데이터 수집 (CSV 컬럼 인덱스: 0=3월, 1=4월, ..., 9=12월)
     const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct'];
+    // CSV 헤더와 매핑 (3월 -> 25-Mar, ..., 11월 -> 25-Nov)
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -5467,7 +5487,8 @@ export default function DashboardPage() {
                      <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
                      <TableHead className="text-center font-bold text-blue-700 bg-blue-50" colSpan={6}>당월 실적</TableHead>
                      <TableHead className="text-center font-bold w-2 bg-white"></TableHead>
-                     <TableHead className="text-center font-bold text-purple-700 bg-purple-50" colSpan={6}>연간 누적</TableHead>
+                     <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
+                     <TableHead className="text-center font-bold text-purple-700 bg-purple-50" colSpan={6}>연간 누적 YTD</TableHead>
                    </TableRow>
                    <TableRow className="text-xs text-muted-foreground bg-slate-50/30 hover:bg-slate-100/50">
                       <TableHead className="text-center border-r">구분</TableHead>
@@ -5480,6 +5501,7 @@ export default function DashboardPage() {
                               <TableHead className="text-center min-w-[50px] bg-blue-50">YOY</TableHead>
                           </React.Fragment>
                       <TableHead className="text-center w-2 bg-white"></TableHead>
+                      <TableHead className="text-center border-r">구분</TableHead>
                       <React.Fragment>
                               <TableHead className="text-center min-w-[60px] bg-purple-50">전년</TableHead>
                               <TableHead className="text-center min-w-[50px] bg-purple-50">(%)</TableHead>
@@ -5509,9 +5531,10 @@ export default function DashboardPage() {
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{row.m_curr_p || '-'}</TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
-                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
-                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
-                         <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
+                        <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
+                        <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
+                        <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
+                        <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_prev_p || '-'}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{row.y_curr_p || '-'}</TableCell>

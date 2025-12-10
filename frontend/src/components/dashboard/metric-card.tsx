@@ -19,7 +19,7 @@ interface MetricCardProps {
   trendValue?: string // e.g. "4.5%p"
   className?: string
   children?: React.ReactNode
-  itemDetails?: { name: string; value: string; share?: string; rate: string; isTotal?: boolean }[]
+  itemDetails?: { name: string; value: string; share?: string; rate: string; prevRate?: string; isTotal?: boolean }[]
   topStoresDetails?: { name: string; value: string; yoy: string }[]
   statsDetails?: { name: string; value: string; yoy: string }[]
   detailsTitle?: string
@@ -118,13 +118,15 @@ export function MetricCard({
             {isExpanded && (
               <div className="border-t pt-2 space-y-1 text-xs">
                 <div className="flex justify-between items-center text-[11px] text-gray-500 mb-1 pb-1 border-b border-dashed">
-                  <span>아이템별</span>
+                  <span className="w-[30px]">아이템</span>
                   <div className="flex items-center gap-0.5">
-                    <span className="w-[60px] min-w-[60px] text-right whitespace-nowrap">발주(TAG)</span>
+                    <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">발주</span>
                     <span className="w-[4px] text-center">|</span>
-                    <span className="w-[60px] min-w-[60px] text-right whitespace-nowrap">발주YoY</span>
+                    <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">YoY</span>
                     <span className="w-[4px] text-center">|</span>
-                    <span className="w-[60px] min-w-[60px] text-right whitespace-nowrap">당년 판매율</span>
+                    <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">당년</span>
+                    <span className="w-[4px] text-center">|</span>
+                    <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">전년</span>
                   </div>
                 </div>
                 {itemDetails.map((item, idx) => (
@@ -135,11 +137,11 @@ export function MetricCard({
                       item.isTotal ? "font-bold border-t border-gray-200 mt-1 pt-1" : ""
                     )}
                   >
-                    <span className="text-[11px]">{item.name}</span>
+                    <span className="text-[11px] w-[30px]">{item.name}</span>
                     <div className="flex items-center gap-0.5 text-[11px]">
-                      <span className="w-[60px] min-w-[60px] text-right font-medium tabular-nums">{item.value}</span>
+                      <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{item.value}</span>
                       <span className="w-[4px] text-center text-gray-300">|</span>
-                      <span className="w-[60px] min-w-[60px] text-right font-medium tabular-nums">{
+                      <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{
                         item.share && typeof item.share === 'string' && item.share.includes('%') 
                           ? (() => {
                               const num = parseFloat(item.share.replace(/[^0-9.-]/g, ''));
@@ -148,7 +150,7 @@ export function MetricCard({
                           : item.share
                       }</span>
                       <span className="w-[4px] text-center text-gray-300">|</span>
-                      <span className="w-[60px] min-w-[60px] text-right text-blue-600 font-medium tabular-nums">{
+                      <span className="w-[45px] min-w-[45px] text-right text-blue-600 font-medium tabular-nums">{
                         item.rate && typeof item.rate === 'string' && item.rate.includes('%') 
                           ? (() => {
                               const cleaned = item.rate.replace(/[^0-9.-]/g, '');
@@ -158,6 +160,17 @@ export function MetricCard({
                               return `${num.toFixed(1)}%`;
                             })()
                           : item.rate
+                      }</span>
+                      <span className="w-[4px] text-center text-gray-300">|</span>
+                      <span className="w-[45px] min-w-[45px] text-right text-gray-500 font-medium tabular-nums">{
+                        item.prevRate && typeof item.prevRate === 'string' && item.prevRate.includes('%') 
+                          ? (() => {
+                              const cleaned = item.prevRate.replace(/[^0-9.-]/g, '');
+                              const num = parseFloat(cleaned);
+                              if (isNaN(num)) return item.prevRate;
+                              return `${num.toFixed(1)}%`;
+                            })()
+                          : item.prevRate
                       }</span>
                     </div>
                   </div>
