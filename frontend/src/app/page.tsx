@@ -3937,7 +3937,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
 const pnlData = [
   { label: "TAG가", m_prev: "45,104", m_prev_p: "148.4%", m_curr: "47,127", m_curr_p: "149.0%", m_diff: "+2,023", m_yoy: "104%", y_prev: "426,987", y_prev_p: "149.7%", y_curr: "404,688", y_curr_p: "149.2%", y_diff: "-22,299", y_yoy: "95%" },
-  { label: "실판(v+)", m_prev: "33,428", m_prev_p: "110.0%", m_curr: "34,803", m_curr_p: "110.0%", m_diff: "+1,375", m_yoy: "104%", y_prev: "313,702", y_prev_p: "110.0%", y_curr: "298,305", y_curr_p: "110.0%", y_diff: "-15,397", y_yoy: "95%" },
+  { label: "실판매출", m_prev: "33,428", m_prev_p: "110.0%", m_curr: "34,803", m_curr_p: "110.0%", m_diff: "+1,375", m_yoy: "104%", y_prev: "313,702", y_prev_p: "110.0%", y_curr: "298,305", y_curr_p: "110.0%", y_diff: "-15,397", y_yoy: "95%" },
   { label: "당시즌 생산원가", m_prev: "20.3%", m_prev_p: "", m_curr: "19.3%", m_curr_p: "", m_diff: "-1.0%", m_yoy: "95%", y_prev: "19.9%", y_prev_p: "", y_curr: "19.3%", y_curr_p: "", y_diff: "-0.6%", y_yoy: "95%" },
   { label: "매출이익", m_prev: "14,985", m_prev_p: "49.3%", m_curr: "15,669", m_curr_p: "49.5%", m_diff: "+684", m_yoy: "105%", y_prev: "135,713", y_prev_p: "47.6%", y_curr: "130,388", y_curr_p: "48.1%", y_diff: "-5,325", y_yoy: "96%" },
   { label: "직접비", m_prev: "5,586", m_prev_p: "18.4%", m_curr: "5,705", m_curr_p: "18.0%", m_diff: "+118", m_yoy: "102%", y_prev: "54,379", y_prev_p: "19.1%", y_curr: "54,684", y_curr_p: "20.2%", y_diff: "+305", y_yoy: "101%" },
@@ -4560,7 +4560,7 @@ export default function DashboardPage() {
         y_yoy: getSummaryValue('손익요약_TAG가_연간누적_YOY', month, '95%')
       },
       {
-        label: "실판(v+)",
+        label: "실판매출",
         m_prev: formatNumber(getSummaryValue('손익요약_실판(v+)_당월실적_전년', month, '33428')),
         m_prev_p: getSummaryValue('손익요약_실판(v+)_당월실적_전년비율', month, '110.0%'),
         m_curr: formatNumber(getSummaryValue('손익요약_실판(v+)_당월실적_당년', month, '34803')),
