@@ -4615,12 +4615,12 @@ export default function DashboardPage() {
       return num >= 0 ? `+$${formatNumber(val.replace(/[^0-9.-]/g, ''))}K` : `-$${formatNumber(Math.abs(num).toString())}K`;
     };
     
-    // 퍼센트 값을 반올림해서 정수로 표시하는 함수 (2.90% → 3%, 3.80% → 4%)
+    // 퍼센트 값을 소수점 첫째 자리까지 표시하는 함수 (2.90% -> 2.9%, 3.80% -> 3.8%)
     const formatPercentRound = (val: string): string => {
       if (!val || val === '' || val === '-') return val;
       const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
       if (isNaN(num)) return val;
-      return `${Math.round(num)}%`;
+      return `${num.toFixed(1)}%`;
     };
     
     return [
@@ -4648,6 +4648,33 @@ export default function DashboardPage() {
             <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_전체직접비율_당월_당년비율', month, '17.8%'))}</span></div>
             <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_전체직접비율_당월_전년비율', month, '18.5%'))}</span></div>
             <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_전체직접비율_당월_감소율', month, '-0.7%p')}</span></div>
+          </>
+        }
+      },
+      {
+        title: "SEM광고비",
+        value: { 
+          누적: `$${formatNumber(getSummaryValue('직접비요약_SEM광고비_누적_값', month, '11205'))}K`, 
+          당월: `$${formatNumber(getSummaryValue('직접비요약_SEM광고비_당월_값', month, '1313.5'))}K` 
+        },
+        yoy: { 
+          누적: getSummaryValue('직접비요약_SEM광고비_누적_YOY', month, '98.1%'), 
+          당월: getSummaryValue('직접비요약_SEM광고비_당월_YOY', month, '97.4%') 
+        },
+        yoyDiff: { 
+          누적: formatDiff(getSummaryValue('직접비요약_SEM광고비_누적_전년비', month, '-215')), 
+          당월: formatDiff(getSummaryValue('직접비요약_SEM광고비_당월_전년비', month, '-35')) 
+        },
+        details: {
+          누적: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_누적_당년비율', month, '4.3%'))}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_누적_전년비율', month, '4.5%'))}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_누적_감소율', month, '-0.2%p')}</span></div>
+          </>,
+          당월: <>
+            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_당월_당년비율', month, '4.2%'))}</span></div>
+            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_당월_전년비율', month, '4.4%'))}</span></div>
+            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_당월_감소율', month, '-0.2%p')}</span></div>
           </>
         }
       },
@@ -4706,33 +4733,6 @@ export default function DashboardPage() {
         }
       },
       {
-        title: "SEM광고비",
-        value: { 
-          누적: `$${formatNumber(getSummaryValue('직접비요약_SEM광고비_누적_값', month, '11205'))}K`, 
-          당월: `$${formatNumber(getSummaryValue('직접비요약_SEM광고비_당월_값', month, '1313.5'))}K` 
-        },
-        yoy: { 
-          누적: getSummaryValue('직접비요약_SEM광고비_누적_YOY', month, '98.1%'), 
-          당월: getSummaryValue('직접비요약_SEM광고비_당월_YOY', month, '97.4%') 
-        },
-        yoyDiff: { 
-          누적: formatDiff(getSummaryValue('직접비요약_SEM광고비_누적_전년비', month, '-215')), 
-          당월: formatDiff(getSummaryValue('직접비요약_SEM광고비_당월_전년비', month, '-35')) 
-        },
-        details: {
-          누적: <>
-            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_누적_당년비율', month, '4.3%'))}</span></div>
-            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_누적_전년비율', month, '4.5%'))}</span></div>
-            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_누적_감소율', month, '-0.2%p')}</span></div>
-          </>,
-          당월: <>
-            <div className="flex justify-between"><span>당년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_당월_당년비율', month, '4.2%'))}</span></div>
-            <div className="flex justify-between"><span>전년비율:</span><span className="font-medium">{formatPercentRound(getSummaryValue('직접비요약_SEM광고비_당월_전년비율', month, '4.4%'))}</span></div>
-            <div className="flex justify-between"><span>증감율:</span><span className="font-medium text-gray-500">{getSummaryValue('직접비요약_SEM광고비_당월_감소율', month, '-0.2%p')}</span></div>
-          </>
-        }
-      },
-      {
         title: "지급수수료",
         value: { 
           누적: `$${formatNumber(getSummaryValue('직접비요약_지급수수료_누적_값', month, '72450'))}K`, 
@@ -4783,12 +4783,12 @@ export default function DashboardPage() {
       return num >= 0 ? `+$${formatNumber(val.replace(/[^0-9.-]/g, ''))}K` : `-$${formatNumber(Math.abs(num).toString())}K`;
     };
     
-    // 퍼센트 값을 반올림해서 정수로 표시하는 함수 (2.90% → 3%, 3.80% → 4%)
+    // 퍼센트 값을 소수점 첫째 자리까지 표시하는 함수 (2.90% -> 2.9%, 3.80% -> 3.8%)
     const formatPercentRound = (val: string): string => {
       if (!val || val === '' || val === '-') return val;
       const num = parseFloat(val.replace(/[^0-9.-]/g, ''));
       if (isNaN(num)) return val;
-      return `${Math.round(num)}%`;
+      return `${num.toFixed(1)}%`;
     };
     
     return [
