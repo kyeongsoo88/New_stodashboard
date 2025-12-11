@@ -1600,12 +1600,26 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           }
         }
         
-        // CSV에 이미 24-Nov가 있으므로 중복 추가하지 않음
+        // 24-Nov를 Nov-25F 앞으로 이동 (이미 존재하면 이동, 없으면 생성 후 이동)
         const novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
-        const has24Nov = dataHeaders.some(h => h && (h.trim() === '24-Nov' || h.trim().startsWith('24-Nov')));
+        const existing24NovIndex = dataHeaders.findIndex(h => h && (h.trim() === '24-Nov' || h.trim().startsWith('24-Nov')));
         
-        if (novIndex >= 0 && !has24Nov) {
-          dataHeaders.splice(novIndex + 1, 0, '24-Nov');
+        if (novIndex >= 0) {
+          if (existing24NovIndex >= 0) {
+            // 이미 존재하면 제거하고 Nov-25F 앞에 삽입
+            // 단, 이미 앞에 있는지 확인
+            if (existing24NovIndex !== novIndex - 1) {
+              const removed = dataHeaders.splice(existing24NovIndex, 1)[0];
+              // 제거 후 novIndex 다시 찾기
+              const newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+              if (newNovIndex >= 0) {
+                dataHeaders.splice(newNovIndex, 0, removed);
+              }
+            }
+          } else {
+             // 없으면 새로 추가
+             dataHeaders.splice(novIndex, 0, '24-Nov');
+          }
         }
         
         setHeaders(['구분', ...dataHeaders]);
@@ -1629,7 +1643,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           
           // 하위 항목인지 확인
           const isSubItem = !isMainCategory && 
-                           !['매출총이익', '직접이익', '영업이익', '24년 대비 영업이익 증감'].includes(label) &&
+                           !['매출총이익', '직접이익', '영업이익', '24년 대비 영업이익 증감', '할인율', '생산원가율', '직접비용율', '영업이익율'].includes(label) &&
                            (label.includes('Ecommerce') || label.includes('Wholesale') || 
                             label.includes('Other Income') || label.includes('License') ||
                             ['SEM광고비', '운반비', '보관료', '지급수수료', '기타비용', 
@@ -1686,7 +1700,13 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           }
           
           // 각 월별 값 정제
-          const cleanedValues = monthValues.map((val: string) => {
+          const cleanedValues = monthValues.map((val: string, idx: number) => {
+            const header = dataHeaders[idx];
+            // YoY 컬럼은 정제하지 않고 원본 형태 유지 (단, 따옴표는 제거)
+            if (header && (header.trim() === '당월 YoY' || header.trim() === 'YTD YoY' || header.trim() === '합계 YoY')) {
+               return val.replace(/["]/g, '').trim();
+            }
+
             let cleaned = val.replace(/[$,"]/g, '').trim();
             if (cleaned === '-' || !cleaned || cleaned === '') return '';
             return cleaned;
@@ -1757,8 +1777,15 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
 
   const getValueColor = (value: string) => {
     if (!value || value === '' || value === '-') return '';
-    const num = parseFloat(value);
-    if (!isNaN(num) && num < 0 && !value.includes('△') && !value.includes('%')) {
+    
+    // %나 %p가 포함된 경우 처리
+    let checkValue = value;
+    if (value.includes('%')) {
+      checkValue = value.replace(/[%p]/g, '');
+    }
+    
+    const num = parseFloat(checkValue);
+    if (!isNaN(num) && num < 0 && !value.includes('△')) {
       return "text-red-600";
     }
     return "";
@@ -1873,10 +1900,10 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                     const isTotalColumn = header === '25년 합계';
                     const isSumYoY = header === '합계 YoY';
                     
-                    // 첫 번째 세트: Nov, 24-Nov, 당월 YoY (파란색 파스텔톤)
-                    const isSet1Start = header === 'Nov-25F' || header === 'Nov';
+                    // 첫 번째 세트: 24-Nov, Nov, 당월 YoY (순서 변경됨)
+                    const isSet1Start = header === '24-Nov' || header.startsWith('24-Nov');
                     const isSet1 = header === 'Nov-25F' || header === 'Nov' || 
-                                  header === '24-Nov' || header === '당월 YoY';
+                                  header === '24-Nov' || header.startsWith('24-Nov') || header === '당월 YoY';
                     const isSet1End = header === '당월 YoY';
                     
                     // 두 번째 세트: YTD, YTD YoY (초록색 파스텔톤)
@@ -1889,31 +1916,30 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                     const isSet3 = isTotalColumn || isSumYoY;
                     const isSet3End = isSumYoY;
                     
-                    // 세트 구분을 위한 스타일 - 파스텔톤 색상, 세트 사이에만 구분선
+                    // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                     let setStyle = "";
+                    const borderClass = "border-gray-500";
+                    
                     if (isSet1) {
-                      setStyle = "bg-blue-100/60";
                       if (isSet1Start) {
-                        setStyle += " border-l-2 border-l-blue-400";
+                        setStyle += ` border-l-2 ${borderClass}`;
                       }
                       if (isSet1End) {
-                        setStyle += " border-r-2 border-r-blue-400";
+                        setStyle += ` border-r-2 ${borderClass}`;
                       }
                     } else if (isSet2) {
-                      setStyle = "bg-emerald-100/60";
                       if (isSet2Start) {
-                        setStyle += " border-l-2 border-l-emerald-400";
+                        setStyle += ` border-l-2 ${borderClass}`;
                       }
                       if (isSet2End) {
-                        setStyle += " border-r-2 border-r-emerald-400";
+                        setStyle += ` border-r-2 ${borderClass}`;
                       }
                     } else if (isSet3) {
-                      setStyle = "bg-purple-100/60";
                       if (isSet3Start) {
-                        setStyle += " border-l-2 border-l-purple-400";
+                        setStyle += ` border-l-2 ${borderClass}`;
                       }
                       if (isSet3End) {
-                        setStyle += " border-r-2 border-r-purple-400";
+                        setStyle += ` border-r-2 ${borderClass}`;
                       }
                       if (isTotalColumn) {
                         setStyle += " font-bold";
@@ -1938,6 +1964,8 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                 {filteredData.map((row, idx) => {
                   const isExpanded = row.categoryKey ? expandedCategories.has(row.categoryKey) : false;
                   
+                  const isRatioRow = ['할인율', '생산원가율', '직접비용율', '영업이익율'].includes(row.label);
+
                   return (
                     <TableRow 
                       key={idx}
@@ -1949,19 +1977,19 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                       onClick={() => row.isMainCategory && row.categoryKey && toggleCategory(row.categoryKey)}
                     >
                       <TableCell className={cn(
+                        "flex items-center h-full", // flex 적용
                         row.isMainCategory ? "font-bold text-base" : "font-medium",
-                        row.isSubItem ? "pl-8 text-sm" : "",
-                        row.isCalculationResult && row.alignWithParent ? "pl-0" : "", // 계산 결과는 부모와 같은 들여쓰기
-                        row.isMainCategory && !row.isCalculationResult && "flex items-center gap-2"
+                        row.isSubItem ? "pl-12 text-sm" : "pl-2", // 서브 항목 들여쓰기 조정
+                        (row.isCalculationResult || isRatioRow) ? "font-bold text-base" : ""
                       )}>
                         {row.isMainCategory && row.categoryKey && !row.isCalculationResult && (
-                          <span className="text-xs">
+                          <span className="w-4 flex justify-center mr-1 text-xs">
                             {isExpanded ? '▼' : '▶'}
                           </span>
                         )}
-                        {/* 계산 결과 항목은 화살표 공간만큼 여백 추가 */}
-                        {row.isCalculationResult && (
-                          <span className="w-4 inline-block"></span>
+                        {/* 계산 결과 및 비율 항목은 화살표 공간만큼 여백 추가하여 정렬 맞춤 */}
+                        {(row.isCalculationResult || isRatioRow) && (
+                          <span className="w-4 mr-1 inline-block"></span>
                         )}
                         {row.label}
                       </TableCell>
@@ -1975,8 +2003,33 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                         });
                         
                         return filteredValues.map((value: string, colIdx: number) => {
+                          // "25년 합계" column 확인 - filteredHeaders에서 확인
+                          const filteredHeaders = headers.filter((_: any, idx: number) => {
+                            if (showAllMonths) return true;
+                            return idx === 0 || idx >= 11;
+                          });
+                          const currentHeader = filteredHeaders[colIdx + 1]; // +1은 구분 컬럼 제외
+                          const isTotalColumn = currentHeader === '25년 합계';
+                          const isSumYoY = currentHeader === '합계 YoY';
+                          
+                          const isYoYColumn = currentHeader === '당월 YoY' || currentHeader === 'YTD YoY' || currentHeader === '합계 YoY';
+
+                          // 세트별 배경색 및 구분선 설정 (헤더와 동일)
+                          const isSet1Start = currentHeader === '24-Nov' || currentHeader.startsWith('24-Nov');
+                          const isSet1 = currentHeader === 'Nov-25F' || currentHeader === 'Nov' || 
+                                        currentHeader === '24-Nov' || currentHeader.startsWith('24-Nov') || currentHeader === '당월 YoY';
+                          const isSet1End = currentHeader === '당월 YoY';
+                          
+                          const isSet2Start = currentHeader === 'YTD';
+                          const isSet2 = currentHeader === 'YTD' || currentHeader === 'YTD YoY';
+                          const isSet2End = currentHeader === 'YTD YoY';
+                          
+                          const isSet3Start = isTotalColumn;
+                          const isSet3 = isTotalColumn || isSumYoY;
+                          const isSet3End = isSumYoY;
+
                           // "24년 대비 영업이익 증감" 행에 대한 특별 처리
-                          let displayValue = formatValue(value);
+                          let displayValue = isYoYColumn ? value : formatValue(value);
                           let cellColorClass = getValueColor(value);
                           
                           if (row.label === '24년 대비 영업이익 증감') {
@@ -2003,69 +2056,30 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                             }
                           }
                           
-                          // "25년 합계" column 확인 - filteredHeaders에서 확인
-                          const filteredHeaders = headers.filter((_: any, idx: number) => {
-                            if (showAllMonths) return true;
-                            return idx === 0 || idx >= 11;
-                          });
-                          const currentHeader = filteredHeaders[colIdx + 1]; // +1은 구분 컬럼 제외
-                          const isTotalColumn = currentHeader === '25년 합계';
-                          const isSumYoY = currentHeader === '합계 YoY';
-                          
-                          // 세트별 배경색 및 구분선 설정 (헤더와 동일)
-                          const isSet1Start = currentHeader === 'Nov-25F' || currentHeader === 'Nov';
-                          const isSet1 = currentHeader === 'Nov-25F' || currentHeader === 'Nov' || 
-                                        currentHeader === '24-Nov' || currentHeader === '당월 YoY';
-                          const isSet1End = currentHeader === '당월 YoY';
-                          
-                          const isSet2Start = currentHeader === 'YTD';
-                          const isSet2 = currentHeader === 'YTD' || currentHeader === 'YTD YoY';
-                          const isSet2End = currentHeader === 'YTD YoY';
-                          
-                          const isSet3Start = isTotalColumn;
-                          const isSet3 = isTotalColumn || isSumYoY;
-                          const isSet3End = isSumYoY;
-                          
-                          // "당월 YoY", "YTD YoY", "합계 YoY" 컬럼의 숫자에 천 단위 콤마 추가
-                          if ((currentHeader === '당월 YoY' || currentHeader === 'YTD YoY' || currentHeader === '합계 YoY') && displayValue && displayValue !== '' && displayValue !== '-') {
-                            // + 또는 - 기호와 숫자 추출
-                            const match = displayValue.match(/^([+-]?)(\d+)(.*)$/);
-                            if (match) {
-                              const sign = match[1]; // + 또는 -
-                              const number = match[2]; // 숫자 부분
-                              const suffix = match[3]; // 나머지 (예: %)
-                              const num = parseInt(number);
-                              if (!isNaN(num)) {
-                                displayValue = sign + num.toLocaleString() + suffix;
-                              }
-                            }
-                          }
-                          
-                          // 세트 구분을 위한 스타일 - 파스텔톤 색상, 세트 사이에만 구분선
+                          // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                           let setStyle = "";
+                          const borderClass = "border-gray-500";
+                          
                           if (isSet1) {
-                            setStyle = "bg-blue-100/60";
                             if (isSet1Start) {
-                              setStyle += " border-l-2 border-l-blue-400";
+                              setStyle += ` border-l-2 ${borderClass}`;
                             }
                             if (isSet1End) {
-                              setStyle += " border-r-2 border-r-blue-400";
+                              setStyle += ` border-r-2 ${borderClass}`;
                             }
                           } else if (isSet2) {
-                            setStyle = "bg-emerald-100/60";
                             if (isSet2Start) {
-                              setStyle += " border-l-2 border-l-emerald-400";
+                              setStyle += ` border-l-2 ${borderClass}`;
                             }
                             if (isSet2End) {
-                              setStyle += " border-r-2 border-r-emerald-400";
+                              setStyle += ` border-r-2 ${borderClass}`;
                             }
                           } else if (isSet3) {
-                            setStyle = "bg-purple-100/60";
                             if (isSet3Start) {
-                              setStyle += " border-l-2 border-l-purple-400";
+                              setStyle += ` border-l-2 ${borderClass}`;
                             }
                             if (isSet3End) {
-                              setStyle += " border-r-2 border-r-purple-400";
+                              setStyle += ` border-r-2 ${borderClass}`;
                             }
                             if (isTotalColumn) {
                               setStyle += " font-bold";
@@ -2752,7 +2766,8 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [workingCapitalData, setWorkingCapitalData] = React.useState<any[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
+  // 초기 상태: 자산총계, 부채총계, 자본총계 펼침
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set(["자산총계", "부채총계", "자본총계"]));
   const [allExpanded, setAllExpanded] = React.useState(false);
   const [showAllMonths, setShowAllMonths] = React.useState(false);
 
@@ -2774,16 +2789,42 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
         // 첫 번째 열(구분) 제외하고 모든 열 추출
         let dataHeaders = parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
         
-        // Nov YoY 앞에 24-Nov 추가 (이미 있으면 추가하지 않음)
-        const novYoYIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov YoY');
-        if (novYoYIndex >= 0 && !dataHeaders.includes('24-Nov')) {
-          dataHeaders.splice(novYoYIndex, 0, '24-Nov');
+        // 24-Nov를 Nov-25F 앞으로 이동 (이미 존재하면 이동, 없으면 생성 후 이동)
+        const novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+        const existing24NovIndex = dataHeaders.findIndex(h => h && h.trim() === '24-Nov');
+        
+        if (novIndex >= 0) {
+          if (existing24NovIndex >= 0) {
+            // 이미 존재하면 제거하고 Nov-25F 앞에 삽입
+            if (existing24NovIndex !== novIndex - 1) {
+              const removed = dataHeaders.splice(existing24NovIndex, 1)[0];
+              const newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+              if (newNovIndex >= 0) {
+                dataHeaders.splice(newNovIndex, 0, removed);
+              }
+            }
+          } else {
+            // 없으면 새로 추가
+            dataHeaders.splice(novIndex, 0, '24-Nov');
+          }
         }
         
-        // Dec-25F 뒤에 24-Dec 추가 (이미 있으면 추가하지 않음)
+        // 24-Dec를 Dec-25F 앞으로 이동
         const decIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
-        if (decIndex >= 0 && !dataHeaders.includes('24-Dec')) {
-          dataHeaders.splice(decIndex + 1, 0, '24-Dec');
+        const existing24DecIndex = dataHeaders.findIndex(h => h && h.trim() === '24-Dec');
+        
+        if (decIndex >= 0) {
+          if (existing24DecIndex >= 0) {
+            if (existing24DecIndex !== decIndex - 1) {
+              const removed = dataHeaders.splice(existing24DecIndex, 1)[0];
+              const newDecIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
+              if (newDecIndex >= 0) {
+                dataHeaders.splice(newDecIndex, 0, removed);
+              }
+            }
+          } else {
+            dataHeaders.splice(decIndex, 0, '24-Dec');
+          }
         }
         
         // 24-Dec 뒤에 Dec YoY 추가 (이미 있으면 추가하지 않음)
@@ -2816,8 +2857,26 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           
           const label = values[0].trim();
           
-          // 모든 월 데이터 추출 (구분 열 제외)
-          const monthValues = values.slice(1, 1 + dataHeaders.length);
+          // 모든 월 데이터 추출 및 매핑 (구분 열 제외)
+          const csvValues = values.slice(1);
+          const csvHeaders = parsedHeaders.slice(1);
+          const monthValues: string[] = [];
+          
+          for (const header of dataHeaders) {
+            const dTrim = header.trim();
+            // CSV 헤더에서 해당 컬럼 찾기
+            const csvIndex = csvHeaders.findIndex(h => {
+               if (!h) return false;
+               const hTrim = h.trim();
+               return hTrim === dTrim;
+            });
+            
+            if (csvIndex >= 0 && csvIndex < csvValues.length) {
+              monthValues.push(csvValues[csvIndex]);
+            } else {
+              monthValues.push('');
+            }
+          }
           
           // 각 월별 값 정제
           const cleanedValues = monthValues.map((val: string) => {
@@ -2931,8 +2990,8 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       return "text-red-600";
     }
     
-    const num = parseFloat(value.replace(/,/g, ''));
-    if (!isNaN(num) && num < 0 && !value.includes('△') && !value.includes('%')) {
+    const num = parseFloat(value.replace(/,/g, '').replace(/[%p]/g, ''));
+    if (!isNaN(num) && num < 0 && !value.includes('△')) {
       return "text-red-600";
     }
     return "";
@@ -3061,35 +3120,35 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                     }
                     
                     // 세트별 배경색 및 구분선 설정
-                    // 첫 번째 세트: Nov, 24-Nov, Nov YoY (파란색 파스텔톤)
-                    const isSet1Start = header === 'Nov-25F' || header === 'Nov';
+                    // 첫 번째 세트: 24-Nov, Nov, Nov YoY
+                    const isSet1Start = header === '24-Nov';
                     const isSet1 = header === 'Nov-25F' || header === 'Nov' || 
                                   header === '24-Nov' || header === 'Nov YoY';
                     const isSet1End = header === 'Nov YoY';
                     
-                    // 두 번째 세트: Dec, 24-Dec, Dec YoY (초록색 파스텔톤)
-                    const isSet2Start = header === 'Dec-25F' || header === 'Dec';
+                    // 두 번째 세트: 24-Dec, Dec, Dec YoY
+                    const isSet2Start = header === '24-Dec';
                     const isSet2 = header === 'Dec-25F' || header === 'Dec' || 
                                   header === '24-Dec' || header === 'Dec YoY';
                     const isSet2End = header === 'Dec YoY';
                     
-                    // 세트 구분을 위한 스타일 - 파스텔톤 색상, 세트 사이에만 구분선
+                    // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                     let setStyle = "";
+                    const borderClass = "border-gray-500";
+                    
                     if (isSet1) {
-                      setStyle = "bg-blue-100/60";
                       if (isSet1Start) {
-                        setStyle += " border-l-2 border-l-blue-400";
+                        setStyle += ` border-l-2 ${borderClass}`;
                       }
                       if (isSet1End) {
-                        setStyle += " border-r-2 border-r-blue-400";
+                        setStyle += ` border-r-2 ${borderClass}`;
                       }
                     } else if (isSet2) {
-                      setStyle = "bg-emerald-100/60";
                       if (isSet2Start) {
-                        setStyle += " border-l-2 border-l-emerald-400";
+                        setStyle += ` border-l-2 ${borderClass}`;
                       }
                       if (isSet2End) {
-                        setStyle += " border-r-2 border-r-emerald-400";
+                        setStyle += ` border-r-2 ${borderClass}`;
                       }
                     }
                     
@@ -3156,32 +3215,49 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                           const currentHeader = filteredHeaders[headerIdx];
                           
                           // 세트별 배경색 설정 (헤더와 동일)
-                          const isSet1Start = currentHeader === 'Nov-25F' || currentHeader === 'Nov';
+                          const isSet1Start = currentHeader === '24-Nov';
                           const isSet1 = currentHeader === 'Nov-25F' || currentHeader === 'Nov' || 
                                         currentHeader === '24-Nov' || currentHeader === 'Nov YoY';
                           const isSet1End = currentHeader === 'Nov YoY';
                           
-                          const isSet2Start = currentHeader === 'Dec-25F' || currentHeader === 'Dec';
+                          const isSet2Start = currentHeader === '24-Dec';
                           const isSet2 = currentHeader === 'Dec-25F' || currentHeader === 'Dec' || 
                                         currentHeader === '24-Dec' || currentHeader === 'Dec YoY';
                           const isSet2End = currentHeader === 'Dec YoY';
                           
                           let setStyle = "";
+                          const borderClass = "border-gray-500";
+                          
                           if (isSet1) {
-                            setStyle = "bg-blue-100/60";
                             if (isSet1Start) {
-                              setStyle += " border-l-2 border-l-blue-400";
+                              setStyle += ` border-l-2 ${borderClass}`;
                             }
                             if (isSet1End) {
-                              setStyle += " border-r-2 border-r-blue-400";
+                              setStyle += ` border-r-2 ${borderClass}`;
                             }
                           } else if (isSet2) {
-                            setStyle = "bg-emerald-100/60";
                             if (isSet2Start) {
-                              setStyle += " border-l-2 border-l-emerald-400";
+                              setStyle += ` border-l-2 ${borderClass}`;
                             }
                             if (isSet2End) {
-                              setStyle += " border-r-2 border-r-emerald-400";
+                              setStyle += ` border-r-2 ${borderClass}`;
+                            }
+                          }
+                          
+                          let displayValue = formatValue(value);
+                          let highlightClass = "";
+                          
+                          // Nov YoY, Dec YoY 컬럼 처리
+                          if (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY') {
+                            // 1. 소수점 제거 (.0%)
+                            if (displayValue.endsWith('.0%')) {
+                              displayValue = displayValue.replace('.0%', '%');
+                            }
+                            
+                            // 2. 200% 초과 시 하이라이트 (노란색 음영)
+                            const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
+                            if (!isNaN(numValue) && numValue > 200) {
+                              highlightClass = "bg-yellow-100";
                             }
                           }
                           
@@ -3191,10 +3267,11 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                               className={cn(
                                 "text-right font-medium",
                                 getValueColor(value),
-                                setStyle
+                                setStyle,
+                                highlightClass
                               )}
                             >
-                              {formatValue(value)}
+                              {displayValue}
                             </TableCell>
                           );
                         });
@@ -3243,35 +3320,35 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       }
                       
                       // 세트별 배경색 및 구분선 설정
-                      // 첫 번째 세트: Nov, 24-Nov, Nov YoY (파란색 파스텔톤)
-                      const isSet1Start = header === 'Nov-25F' || header === 'Nov';
+                      // 첫 번째 세트: 24-Nov, Nov, Nov YoY
+                      const isSet1Start = header === '24-Nov';
                       const isSet1 = header === 'Nov-25F' || header === 'Nov' || 
                                     header === '24-Nov' || header === 'Nov YoY';
                       const isSet1End = header === 'Nov YoY';
                       
-                      // 두 번째 세트: Dec, 24-Dec, Dec YoY (초록색 파스텔톤)
-                      const isSet2Start = header === 'Dec-25F' || header === 'Dec';
+                      // 두 번째 세트: 24-Dec, Dec, Dec YoY
+                      const isSet2Start = header === '24-Dec';
                       const isSet2 = header === 'Dec-25F' || header === 'Dec' || 
                                     header === '24-Dec' || header === 'Dec YoY';
                       const isSet2End = header === 'Dec YoY';
                       
-                      // 세트 구분을 위한 스타일 - 파스텔톤 색상, 세트 사이에만 구분선
+                      // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                       let setStyle = "";
+                      const borderClass = "border-gray-500";
+                      
                       if (isSet1) {
-                        setStyle = "bg-blue-100/60";
                         if (isSet1Start) {
-                          setStyle += " border-l-2 border-l-blue-400";
+                          setStyle += ` border-l-2 ${borderClass}`;
                         }
                         if (isSet1End) {
-                          setStyle += " border-r-2 border-r-blue-400";
+                          setStyle += ` border-r-2 ${borderClass}`;
                         }
                       } else if (isSet2) {
-                        setStyle = "bg-emerald-100/60";
                         if (isSet2Start) {
-                          setStyle += " border-l-2 border-l-emerald-400";
+                          setStyle += ` border-l-2 ${borderClass}`;
                         }
                         if (isSet2End) {
-                          setStyle += " border-r-2 border-r-emerald-400";
+                          setStyle += ` border-r-2 ${borderClass}`;
                         }
                       }
                       
@@ -3327,32 +3404,32 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                             const currentHeader = filteredHeaders[headerIdx];
                             
                             // 세트별 배경색 설정 (헤더와 동일)
-                            const isSet1Start = currentHeader === 'Nov-25F' || currentHeader === 'Nov';
+                            const isSet1Start = currentHeader === '24-Nov';
                             const isSet1 = currentHeader === 'Nov-25F' || currentHeader === 'Nov' || 
                                           currentHeader === '24-Nov' || currentHeader === 'Nov YoY';
                             const isSet1End = currentHeader === 'Nov YoY';
                             
-                            const isSet2Start = currentHeader === 'Dec-25F' || currentHeader === 'Dec';
+                            const isSet2Start = currentHeader === '24-Dec';
                             const isSet2 = currentHeader === 'Dec-25F' || currentHeader === 'Dec' || 
                                           currentHeader === '24-Dec' || currentHeader === 'Dec YoY';
                             const isSet2End = currentHeader === 'Dec YoY';
                             
                             let setStyle = "";
+                            const borderClass = "border-gray-500";
+
                             if (isSet1) {
-                              setStyle = "bg-blue-100/60";
                               if (isSet1Start) {
-                                setStyle += " border-l-2 border-l-blue-400";
+                                setStyle += ` border-l-2 ${borderClass}`;
                               }
                               if (isSet1End) {
-                                setStyle += " border-r-2 border-r-blue-400";
+                                setStyle += ` border-r-2 ${borderClass}`;
                               }
                             } else if (isSet2) {
-                              setStyle = "bg-emerald-100/60";
                               if (isSet2Start) {
-                                setStyle += " border-l-2 border-l-emerald-400";
+                                setStyle += ` border-l-2 ${borderClass}`;
                               }
                               if (isSet2End) {
-                                setStyle += " border-r-2 border-r-emerald-400";
+                                setStyle += ` border-r-2 ${borderClass}`;
                               }
                             }
                             
@@ -3383,6 +3460,22 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                               }
                             }
                             
+                            let highlightClass = "";
+
+                            // Nov YoY, Dec YoY 컬럼 처리
+                            if (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY') {
+                              // 1. 소수점 제거
+                              if (displayValue && typeof displayValue === 'string' && displayValue.endsWith('.0%')) {
+                                displayValue = displayValue.replace('.0%', '%');
+                              }
+                              
+                              // 2. 200% 초과 시 하이라이트
+                              const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
+                              if (!isNaN(numValue) && numValue > 200) {
+                                highlightClass = "bg-yellow-100";
+                              }
+                            }
+                            
                             return (
                               <TableCell 
                                 key={colIdx}
@@ -3390,7 +3483,8 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                                   "text-right font-medium",
                                   cellColorClass,
                                   isWorkingCapitalRow ? "bg-gray-100 font-bold" : "",
-                                  setStyle
+                                  setStyle,
+                                  highlightClass
                                 )}
                               >
                                 {displayValue}
@@ -5546,7 +5640,7 @@ export default function DashboardPage() {
                      <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
                      <TableHead className="text-center font-bold text-purple-700 bg-purple-50" colSpan={6}>연간 누적 YTD</TableHead>
                    </TableRow>
-                   <TableRow className="text-xs text-muted-foreground bg-slate-50/30 hover:bg-slate-100/50">
+                   <TableRow className="text-xs text-muted-foreground hover:bg-slate-100/50">
                       <TableHead className="text-center border-r">구분</TableHead>
                       <React.Fragment>
                               <TableHead className="text-center min-w-[60px] bg-blue-50">전년</TableHead>
@@ -5591,7 +5685,7 @@ export default function DashboardPage() {
                      
                      return (
                        <TableRow key={index} className="hover:bg-slate-50/80">
-                         <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
+                         <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
                          <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
@@ -5599,7 +5693,7 @@ export default function DashboardPage() {
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
-                        <TableCell className="font-medium text-xs text-center border-r bg-slate-50/30">{row.label}</TableCell>
+                        <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
                         <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
