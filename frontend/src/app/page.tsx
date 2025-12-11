@@ -4407,14 +4407,14 @@ export default function DashboardPage() {
           description: `YoY ${getDataValue('카드_당시즌판매율_YOY', month, '-4.5%p')}`,
           itemDetails: [
             { 
-              name: "TJ", 
+              name: "Track Jacket", 
               value: getDataValue('카드_당시즌판매율_아이템_트랙자켓_값', month, '$8,404K'), 
               share: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_비중', month, '42.1%')),
               rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_비율', month, '4.0%')),
               prevRate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙자켓_전년', month, '0.0%')) 
             },
             { 
-              name: "TP", 
+              name: "Track Pant", 
               value: getDataValue('카드_당시즌판매율_아이템_트랙팬츠_값', month, '$6,407K'), 
               share: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비중', month, '32.1%')),
               rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비율', month, '4.4%')),

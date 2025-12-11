@@ -118,7 +118,7 @@ export function MetricCard({
             {isExpanded && (
               <div className="border-t pt-2 space-y-1 text-xs">
                 <div className="flex justify-between items-center text-[11px] text-gray-500 mb-1 pb-1 border-b border-dashed">
-                  <span className="w-[30px]">아이템</span>
+                  <span className="w-[70px] min-w-[70px] whitespace-nowrap">아이템</span>
                   <div className="flex items-center gap-0.5">
                     <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">발주</span>
                     <span className="w-[4px] text-center">|</span>
@@ -137,7 +137,7 @@ export function MetricCard({
                       item.isTotal ? "font-bold border-t border-gray-200 mt-1 pt-1" : ""
                     )}
                   >
-                    <span className="text-[11px] w-[30px]">{item.name}</span>
+                    <span className="text-[11px] w-[70px] min-w-[70px] whitespace-nowrap">{item.name}</span>
                     <div className="flex items-center gap-0.5 text-[11px]">
                       <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{item.value}</span>
                       <span className="w-[4px] text-center text-gray-300">|</span>
