@@ -5240,10 +5240,11 @@ export default function DashboardPage() {
         return numValue;
       });
       
-      // YOY 데이터 로딩
+      // YOY 데이터 로딩 (0%도 그대로 유지, 값이 없을 때만 100으로 대체)
       inventoryData[yoyKey] = months.map(month => {
         const val = getDataValue(yoyKey, month, '100%');
-        return parseFloat(val.replace(/[%]/g, '')) || 100;
+        const parsed = parseFloat(val.replace(/[%]/g, ''));
+        return isNaN(parsed) ? 100 : parsed;
       });
 
       // displayName을 키로도 저장 (컴포넌트에서 사용)
