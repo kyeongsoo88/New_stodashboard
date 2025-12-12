@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, ChevronUpIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -1950,7 +1950,9 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                       <TableHead 
                         key={idx} 
                         className={cn(
-                          header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]",
+                          header === '구분' ? "w-[250px] font-bold text-left" : 
+                          header.includes('비고') ? "text-center font-bold min-w-[100px]" :
+                          "text-right font-bold min-w-[100px]",
                           setStyle
                         )}
                       >
@@ -2760,16 +2762,40 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   );
 }
 
+const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전자본', '기타자산/부채', '자본', '자산-부채'];
+
 // 재무상태표 CSV 파싱 및 표시 컴포넌트
 function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<any[]>([]);
   const [workingCapitalData, setWorkingCapitalData] = React.useState<any[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
-  // 초기 상태: 자산총계, 부채총계, 자본총계 펼침
-  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set(["자산총계", "부채총계", "자본총계"]));
+  // 초기 상태: 모든 항목 닫힘
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [allExpanded, setAllExpanded] = React.useState(false);
   const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  // 운전자본 표 확장 상태 관리 (기본값: '운전자본', '현금/차입금' 펼침)
+  const [workingCapitalExpanded, setWorkingCapitalExpanded] = React.useState<Set<string>>(new Set(['운전자본', '현금/차입금']));
+
+  const toggleWorkingCapitalCategory = (category: string) => {
+    const newSet = new Set(workingCapitalExpanded);
+    if (newSet.has(category)) {
+      newSet.delete(category);
+    } else {
+      newSet.add(category);
+    }
+    setWorkingCapitalExpanded(newSet);
+  };
+
+  const toggleAllWorkingCapital = () => {
+    const allOpen = workingCapitalParents.every(p => workingCapitalExpanded.has(p));
+    if (allOpen) {
+      setWorkingCapitalExpanded(new Set());
+    } else {
+      setWorkingCapitalExpanded(new Set(workingCapitalParents));
+    }
+  };
 
   React.useEffect(() => {
     setLoading(true);
@@ -2833,6 +2859,17 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           dataHeaders.splice(dec24Index + 1, 0, 'Dec YoY');
         }
         
+        // Dec YoY 뒤에 비고 추가 (원본 CSV에 비고가 없을 경우만)
+        const hasNoteInOriginal = parsedHeaders.some(h => h && h.trim() === '비고');
+        if (!hasNoteInOriginal && !dataHeaders.includes('비고')) {
+             const decYoyIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec YoY');
+             if (decYoyIndex >= 0) {
+                  dataHeaders.splice(decYoyIndex + 1, 0, '비고');
+             } else if (dec24Index >= 0) {
+                  dataHeaders.splice(dec24Index + 1, 0, '비고');
+             }
+        }
+        
         setHeaders(['구분', ...dataHeaders]);
         
         // 데이터 파싱
@@ -2871,15 +2908,36 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                return hTrim === dTrim;
             });
             
-            if (csvIndex >= 0 && csvIndex < csvValues.length) {
-              monthValues.push(csvValues[csvIndex]);
+            if (csvIndex >= 0) {
+              // 비고 컬럼의 경우, 마지막 쉼표 뒤의 빈 값이 있을 수 있으므로 인덱스 범위 체크
+              if (csvIndex < csvValues.length) {
+                monthValues.push(csvValues[csvIndex]);
+              } else {
+                // 인덱스가 범위를 벗어나면 빈 문자열
+                monthValues.push('');
+              }
             } else {
               monthValues.push('');
             }
           }
           
           // 각 월별 값 정제
-          const cleanedValues = monthValues.map((val: string) => {
+          const cleanedValues = monthValues.map((val: string, idx: number) => {
+            // 비고 컬럼인지 확인
+            const currentHeader = dataHeaders[idx];
+            const isNoteColumn = currentHeader && currentHeader.trim() === '비고';
+            if (isNoteColumn) {
+              // 비고 컬럼은 따옴표만 제거하고 나머지는 그대로 유지
+              // 값이 없거나 빈 문자열이면 빈 문자열 반환
+              if (!val || val.trim() === '') return '';
+              // 따옴표 제거 (앞뒤 따옴표만)
+              let cleaned = val.trim();
+              if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+                cleaned = cleaned.slice(1, -1);
+              }
+              return cleaned;
+            }
+            // 일반 컬럼은 기존 로직대로 처리
             let cleaned = val.replace(/[$,"]/g, '').trim();
             if (cleaned === '-' || !cleaned || cleaned === '') return '';
             return cleaned;
@@ -2950,8 +3008,13 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       });
   }, []);
 
-  const formatValue = (value: string) => {
+  const formatValue = (value: string, isNoteColumn: boolean = false) => {
     if (!value || value === '' || value === '-') return '-';
+    
+    // 비고 컬럼은 원본 텍스트 그대로 반환
+    if (isNoteColumn) {
+      return value;
+    }
     
     // 퍼센트 값 처리
     if (value.includes('%')) {
@@ -3156,7 +3219,9 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       <TableHead 
                         key={idx} 
                         className={cn(
-                          header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]",
+                          header === '구분' ? "w-[250px] font-bold text-left" : 
+                          header.includes('비고') ? "text-center font-bold w-[300px]" :
+                          "text-center font-bold w-[110px]",
                           setStyle
                         )}
                       >
@@ -3244,20 +3309,16 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                             }
                           }
                           
-                          let displayValue = formatValue(value);
+                          const isNoteColumn = currentHeader === '비고';
+                          let displayValue = formatValue(value, isNoteColumn);
+                          let cellColorClass = isNoteColumn ? "" : getValueColor(value);
                           let highlightClass = "";
                           
-                          // Nov YoY, Dec YoY 컬럼 처리
-                          if (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY') {
+                          // Nov YoY, Dec YoY 컬럼 처리 (비고 컬럼 제외)
+                          if (!isNoteColumn && (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY')) {
                             // 1. 소수점 제거 (.0%)
                             if (displayValue.endsWith('.0%')) {
                               displayValue = displayValue.replace('.0%', '%');
-                            }
-                            
-                            // 2. 200% 초과 시 하이라이트 (노란색 음영)
-                            const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
-                            if (!isNaN(numValue) && numValue > 200) {
-                              highlightClass = "bg-yellow-100";
                             }
                           }
                           
@@ -3265,8 +3326,8 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                             <TableCell 
                               key={colIdx}
                               className={cn(
-                                "text-right font-medium",
-                                getValueColor(value),
+                                isNoteColumn ? "text-left font-bold w-[300px] whitespace-nowrap" : "text-right font-medium w-[110px]",
+                                cellColorClass,
                                 setStyle,
                                 highlightClass
                               )}
@@ -3284,12 +3345,20 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           </div>
         </CardContent>
       </Card>
-
+      
       {/* 운전자본 섹션 */}
       {workingCapitalData.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">운전자본</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-bold">운전자본 (단위 : K $)</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleAllWorkingCapital}
+              className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+              {workingCapitalParents.every(p => workingCapitalExpanded.has(p)) ? "접기" : "열기"}
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -3356,7 +3425,9 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         <TableHead 
                           key={idx} 
                           className={cn(
-                            header === '구분' ? "w-[250px] font-bold text-left" : "text-right font-bold min-w-[100px]",
+                            header === '구분' ? "w-[250px] font-bold text-left" : 
+                            header.includes('비고') ? "text-center font-bold w-[300px]" :
+                            "text-center font-bold w-[110px]",
                             setStyle
                           )}
                         >
@@ -3367,23 +3438,39 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {workingCapitalData.map((row, idx) => {
-                    const isWorkingCapitalRow = row.label === '운전자본';
-                    const isWorkingCapitalChangeRow = row.label === '운전자본증감';
+                  {(() => {
+                    let currentParent: string | null = null;
+                    return workingCapitalData.map((row, idx) => {
+                      const isParent = workingCapitalParents.includes(row.label);
+                      
+                      if (isParent) {
+                        currentParent = row.label;
+                      }
+                      
+                      if (!isParent && currentParent && !workingCapitalExpanded.has(currentParent)) {
+                        return null;
+                      }
                     
-                    return (
-                      <TableRow 
-                        key={idx}
-                        className="hover:bg-gray-50"
-                      >
-                        <TableCell className={cn(
-                          "font-medium",
-                          isWorkingCapitalRow ? "font-bold text-base bg-gray-100" : 
-                          isWorkingCapitalChangeRow ? "pl-4 text-sm font-medium text-blue-600" : 
-                          "pl-4 text-sm"
-                        )}>
-                          {row.label}
-                        </TableCell>
+                      return (
+                        <TableRow 
+                          key={idx}
+                          className={cn(
+                            "hover:bg-gray-50",
+                            isParent ? "cursor-pointer" : ""
+                          )}
+                          onClick={() => isParent && toggleWorkingCapitalCategory(row.label)}
+                        >
+                          <TableCell className={cn(
+                            "font-medium",
+                            isParent ? "font-bold text-base bg-gray-100 flex items-center gap-1" : "pl-8 text-sm"
+                          )}>
+                            {isParent && (
+                              workingCapitalExpanded.has(row.label)
+                                ? <ChevronDownIcon className="h-4 w-4 shrink-0" />
+                                : <ChevronRightIcon className="h-4 w-4 shrink-0" />
+                            )}
+                            {row.label}
+                          </TableCell>
                         {(() => {
                           const filteredValues = row.values.filter((_: any, colIdx: number) => {
                             if (showAllMonths) return true;
@@ -3433,56 +3520,26 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                               }
                             }
                             
-                            // 운전자본증감 행에 대한 특별 처리
-                            let displayValue = formatValue(value);
-                            let cellColorClass = getValueColor(value);
-                            
-                            if (isWorkingCapitalChangeRow && value && value !== '' && value !== '-') {
-                              // 숫자 추출 (괄호, $, 콤마 등 제거)
-                              const cleanedValue = value.replace(/[$,"()]/g, '').replace(/△/g, '-').trim();
-                              const num = parseFloat(cleanedValue);
-                              
-                              if (!isNaN(num)) {
-                                if (num < 0 || value.includes('△') || value.includes('(')) {
-                                  // 음수인 경우: △ 기호와 붉은색
-                                  cellColorClass = "text-red-600";
-                                  displayValue = `△${Math.abs(num).toLocaleString()}`;
-                                } else if (num > 0) {
-                                  // 양수인 경우: + 기호 추가
-                                  displayValue = `+${num.toLocaleString()}`;
-                                } else {
-                                  // 0인 경우
-                                  displayValue = num.toLocaleString();
-                                }
-                              } else {
-                                // 숫자로 파싱되지 않는 경우 원래 값 유지
-                                displayValue = value;
-                              }
-                            }
-                            
+                            const isNoteColumn = currentHeader === '비고';
+                            let displayValue = formatValue(value, isNoteColumn);
+                            let cellColorClass = isNoteColumn ? "" : getValueColor(value);
                             let highlightClass = "";
 
-                            // Nov YoY, Dec YoY 컬럼 처리
-                            if (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY') {
-                              // 1. 소수점 제거
-                              if (displayValue && typeof displayValue === 'string' && displayValue.endsWith('.0%')) {
-                                displayValue = displayValue.replace('.0%', '%');
-                              }
-                              
-                              // 2. 200% 초과 시 하이라이트
-                              const numValue = parseFloat(value.replace(/[^0-9.-]/g, ''));
-                              if (!isNaN(numValue) && numValue > 200) {
-                                highlightClass = "bg-yellow-100";
-                              }
+                            // Nov YoY, Dec YoY 컬럼 처리 (비고 컬럼 제외)
+                            if (!isNoteColumn && (currentHeader === 'Nov YoY' || currentHeader === 'Dec YoY')) {
+                                // CSV 값 그대로 표시하되, 천단위 콤마 적용
+                                displayValue = value.replace(/\d+/g, (match) => {
+                                  return Number(match).toLocaleString();
+                                });
                             }
                             
                             return (
                               <TableCell 
                                 key={colIdx}
                                 className={cn(
-                                  "text-right font-medium",
+                                  isNoteColumn ? "text-left font-bold w-[300px] whitespace-nowrap" : "text-right font-medium w-[110px]",
                                   cellColorClass,
-                                  isWorkingCapitalRow ? "bg-gray-100 font-bold" : "",
+                                  isParent ? "bg-gray-100 font-bold" : "",
                                   setStyle,
                                   highlightClass
                                 )}
@@ -3494,7 +3551,8 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         })()}
                       </TableRow>
                     );
-                  })}
+                  })
+                  })()}
                 </TableBody>
               </Table>
             </div>
