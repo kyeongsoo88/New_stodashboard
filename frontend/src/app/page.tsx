@@ -5807,7 +5807,7 @@ export default function DashboardPage() {
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "조기경보", content: "• 총재고 $30,457K, YOY 195% 여전히 높은 수준\n• 25FW: $17,107K (비중 56%), YOY 154%\n• 25SS: $9,616K (비중 32%), YOY 409%"},
+                    {color: "purple", title: "조기경보", content: "• 총재고 $31,076K, YOY 199% 여전히 높은 수준\n• 25FW: $17,107K (비중 55%), YOY 154%\n• 25SS: $9,610K (비중 31%), YOY 409%"},
                     {color: "blue", title: "긍정신호", content: "• 10월 대비 재고 대폭 감소: $38,777K → $31,076K\n• FW과시즌 소진 가속: $2,197K → $1,831K\n• 전월 대비 20% 감소로 재고 부담 완화"},
                     {color: "green", title: "인사이트", content: "• 11월 연말 세일로 재고 감소 추세\n• 25FW 재고 비중 56%, 25년 판매 집중\n• 25SS 연말까지 추가 소진 필요"}
                 ]}
