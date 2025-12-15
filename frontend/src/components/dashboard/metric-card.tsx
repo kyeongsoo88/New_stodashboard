@@ -197,15 +197,24 @@ export function MetricCard({
                 {topStoresDetails.map((item, idx) => {
                   // 기말재고, 인원수 카드에서는 "전년"을 "YoY"로 변경, 그 외(M/U 등)는 그대로 "전년" 유지
                   const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
-                  const yoyDisplay = shouldConvertToYoY && item.yoy && item.yoy.includes("전년")
-                    ? item.yoy.replace(/전년/g, 'YoY')
-                    : item.yoy;
+                  let yoyDisplay = item.yoy || '';
+                  
+                  // yoy 값이 있을 때만 변환 처리
+                  if (yoyDisplay && shouldConvertToYoY) {
+                    if (yoyDisplay.includes("전년")) {
+                      yoyDisplay = yoyDisplay.replace(/전년/g, 'YoY');
+                    }
+                  }
 
                   return (
                     <div key={idx} className="grid grid-cols-[70px_85px_1fr] items-center py-0.5 gap-2">
                       <span className="text-[11px]">{item.name}</span>
                       <span className="font-bold text-[11px] text-right tabular-nums">{item.value}</span>
-                      <span className="text-[11px] text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
+                      {yoyDisplay ? (
+                        <span className="text-[11px] text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
+                      ) : (
+                        <span className="text-[11px] text-gray-400 text-right whitespace-nowrap">-</span>
+                      )}
                     </div>
                   );
                 })}
