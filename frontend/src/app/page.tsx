@@ -114,8 +114,8 @@ function InsightBox({ title, children, color }: { title: string, children: React
         green: "text-green-700",
     };
   return (
-        <div className={cn("p-3 rounded-md text-xs space-y-2", colorStyles[color])}>
-            <h4 className={cn("font-bold", titleColorStyles[color])}>{title}</h4>
+        <div className={cn("p-3 rounded-md text-sm space-y-2", colorStyles[color])}>
+            <h4 className={cn("font-bold text-base", titleColorStyles[color])}>{title}</h4>
             <div className="leading-relaxed text-gray-700">
                 {children}
             </div>
@@ -969,13 +969,13 @@ function DetailedExpenseCard({
     return (
         <Card className={cn("overflow-hidden shadow-sm gap-2", className)}>
             <CardHeader className="px-6 pt-2 pb-0 min-h-[36px] gap-1">
-                <CardTitle className="text-xs font-medium text-muted-foreground flex items-center justify-between">
+                <CardTitle className="text-base font-medium text-muted-foreground flex items-center justify-between">
                     <span>{title}</span>
                     <div className="flex items-center gap-2">
                         {showDetailButton && (
                             <Dialog>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
+                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
                                         상세
                                     </Button>
                                 </DialogTrigger>
@@ -992,7 +992,7 @@ function DetailedExpenseCard({
                                 <Button 
                                     variant={period === "누적" ? "default" : "outline"} 
                                     size="sm" 
-                                    className={cn("h-6 text-[10px] px-2", period === "누적" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                                    className={cn("h-6 text-xs px-2", period === "누적" ? "bg-slate-800 hover:bg-slate-900" : "")}
                                     onClick={() => onPeriodChange("누적")}
                                 >
                                     누적
@@ -1000,32 +1000,32 @@ function DetailedExpenseCard({
                                 <Button 
                                     variant={period === "당월" ? "default" : "outline"} 
                                     size="sm" 
-                                    className={cn("h-6 text-[10px] px-2", period === "당월" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                                    className={cn("h-6 text-xs px-2", period === "당월" ? "bg-slate-800 hover:bg-slate-900" : "")}
                                     onClick={() => onPeriodChange("당월")}
                                 >
                                     당월
                                 </Button>
-        </div>
+                            </div>
                         ) : period && (
-                            <span className="text-[10px] text-gray-500 font-medium">{period}</span>
+                            <span className="text-xs text-gray-500 font-medium">{period}</span>
                         )}
                     </div>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-1">
-                <div className="text-xl font-bold tabular-nums w-full">{value}</div>
-                <div className="flex items-center gap-2 text-xs">
+                <div className="text-2xl font-bold tabular-nums w-full">{value}</div>
+                <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
-                    <span className={cn("text-xs", diffColor)}>({yoyDiff})</span>
+                    <span className={cn("text-sm", diffColor)}>({yoyDiff})</span>
                 </div>
-                <div className="text-xs space-y-1 text-gray-600">
+                <div className="text-sm space-y-1 text-gray-600">
                     {details}
                 </div>
                 {showShippingButton && (
                     <div className="pt-2 border-t">
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
+                                <Button variant="outline" size="sm" className="h-6 text-xs px-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
                                     US/EU건당 운반비 단가
                                 </Button>
                             </DialogTrigger>
@@ -1071,7 +1071,7 @@ function ExpenseSummarySection({
         <div className="space-y-4">
             <div className="flex items-center gap-2">
                 <div className={cn("w-2 h-2 rounded-full", iconColor)}></div>
-                <h3 className="font-bold text-lg">{title}</h3>
+                <h3 className="font-bold text-2xl">{title}</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {cards.map((card, index) => (
@@ -1379,15 +1379,15 @@ function InteractiveChartSection({
     <div className="space-y-4 h-full flex flex-col">
       <Card className="flex-1 flex flex-col">
         <CardHeader className="pb-2 flex-none">
-            <CardTitle className="text-sm flex items-center justify-between">
+            <CardTitle className="text-xl flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", iconColor)}></div>
-                    {title} <span className="text-gray-500 font-normal">({unit})</span>
+                    {title} <span className="text-gray-500 text-base font-normal">({unit})</span>
                 </div>
                 {showPlanButton && (
                     <Dialog>
                         <DialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-7 text-xs px-3 bg-green-100 hover:bg-green-200 text-green-700 border-green-300">
+                            <Button variant="outline" size="sm" className="h-7 text-sm px-3 bg-green-100 hover:bg-green-200 text-green-700 border-green-300">
                                 25SS 재고소진 계획
                             </Button>
                         </DialogTrigger>
@@ -1409,7 +1409,7 @@ function InteractiveChartSection({
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis 
                             dataKey="name" 
-                            tick={{fontSize: 11}} 
+                            tick={{fontSize: 12}} 
                             axisLine={false} 
                             tickLine={false} 
                             interval={0}
@@ -1418,7 +1418,7 @@ function InteractiveChartSection({
                         <YAxis 
                             yAxisId="left" 
                             orientation="left" 
-                            tick={{fontSize: 11}} 
+                            tick={{fontSize: 12}} 
                             axisLine={false} 
                             tickLine={false}
                             tickFormatter={(value) => {
@@ -1432,7 +1432,7 @@ function InteractiveChartSection({
                         <YAxis
                             yAxisId="right"
                             orientation="right"
-                            tick={{ fontSize: 11 }}
+                            tick={{ fontSize: 12 }}
                             axisLine={false}
                             tickLine={false}
                             domain={[0, 280]}
@@ -1499,7 +1499,7 @@ function InteractiveChartSection({
                     variant={selectedFilter === "전체" ? "default" : "outline"}
                     size="sm"
                     onClick={() => handleFilterClick("전체")}
-                    className={cn("h-7 text-xs px-3", selectedFilter === "전체" ? "bg-slate-800 hover:bg-slate-900" : "")}
+                    className={cn("h-7 text-sm px-3", selectedFilter === "전체" ? "bg-slate-800 hover:bg-slate-900" : "")}
                 >
                     전체
                 </Button>
@@ -1599,9 +1599,9 @@ function InteractiveChartSection({
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-slate-50 hover:bg-slate-50 h-8">
-                                    <TableHead className="w-[80px] font-bold text-[11px] p-1 h-8">항목</TableHead>
+                                    <TableHead className="w-[80px] font-bold text-xs p-1 h-8">항목</TableHead>
                                     {["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월"].map(m => (
-                                        <TableHead key={m} className="text-center font-bold text-[11px] min-w-[40px] p-1 h-8">{m}</TableHead>
+                                        <TableHead key={m} className="text-center font-bold text-xs min-w-[40px] p-1 h-8">{m}</TableHead>
                                     ))}
                                 </TableRow>
                             </TableHeader>
@@ -1614,12 +1614,12 @@ function InteractiveChartSection({
                                             if (!series) return null;
                                             return (
                                                 <TableRow key={opt} className="h-8 hover:bg-slate-50">
-                                                    <TableCell className="font-medium text-[11px] p-1 h-8 flex items-center gap-1">
+                                                    <TableCell className="font-medium text-xs p-1 h-8 flex items-center gap-1">
                                                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors[idx % colors.length] }}></div>
                                                         {opt}
                                                     </TableCell>
                                                     {series.yoyValues.map((val, j) => (
-                                                        <TableCell key={j} className={cn("text-center text-[11px] p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
+                                                        <TableCell key={j} className={cn("text-center text-xs p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
                                                             {val}%
                                                         </TableCell>
                                                     ))}
@@ -1631,9 +1631,9 @@ function InteractiveChartSection({
                                     const series = allSeriesData.find(s => s.name === selectedFilter);
                                     return series ? (
                                         <TableRow className="h-8 hover:bg-slate-50 bg-purple-50/50">
-                                            <TableCell className="font-medium text-[11px] p-1 h-8">{selectedFilter}</TableCell>
+                                            <TableCell className="font-medium text-xs p-1 h-8">{selectedFilter}</TableCell>
                                             {series.yoyValues.map((val, j) => (
-                                                <TableCell key={j} className={cn("text-center text-[11px] p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
+                                                <TableCell key={j} className={cn("text-center text-xs p-1 h-8", val >= 100 ? "text-green-600 font-bold" : "text-red-500")}>
                                                     {val}%
                                                 </TableCell>
                                             ))}
@@ -5690,7 +5690,7 @@ export default function DashboardPage() {
 
         {/* Main Metrics Row 1 */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
             🏢 STO 미국 법인 경영실적
           </h2>
           <Button 
@@ -5947,7 +5947,7 @@ export default function DashboardPage() {
             {/* 1. Channel Sales Trend */}
             <InteractiveChartSection 
                 title="2025년 월별 채널별 매출 추세"
-                unit="$"
+                unit="K $"
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
                 insights={[
@@ -5962,7 +5962,7 @@ export default function DashboardPage() {
             {/* 2. Item Sales Trend */}
             <InteractiveChartSection 
                 title="2025년 월별 아이템별 매출 추세"
-                unit="$"
+                unit="K $"
                 iconColor="bg-orange-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
@@ -5977,7 +5977,7 @@ export default function DashboardPage() {
             {/* 3. Inventory Trend */}
             <InteractiveChartSection 
                 title="2025년 월별 아이템별 재고 추세"
-                unit="$"
+                unit="K $"
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
