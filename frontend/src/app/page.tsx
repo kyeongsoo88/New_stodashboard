@@ -922,8 +922,8 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
                 <Card className="bg-gradient-to-br from-pink-100 to-pink-200 border-pink-300 shadow-md">
                     <CardContent className="p-4">
                         <div className="text-xs text-pink-800 mb-1 font-medium">평균 광고비율</div>
-                        <div className="text-lg font-bold text-pink-900">18.6%</div>
-                        <div className="text-xs text-pink-700 mt-1">(전년대비 : -0.1%p)</div>
+                        <div className="text-lg font-bold text-pink-900">16.0%</div>
+                        <div className="text-xs text-pink-700 mt-1">(전년대비 : +1.0%p)</div>
                     </CardContent>
                 </Card>
             </div>
