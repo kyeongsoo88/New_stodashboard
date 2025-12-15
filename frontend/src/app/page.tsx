@@ -4368,7 +4368,7 @@ export default function DashboardPage() {
     setLoadingDashboard(true);
     Promise.all([
       fetch('/data/dashboard-data.csv').then(res => res.text()),
-      fetch('/data/dashboard-summary-data.csv').then(res => res.text())
+      fetch('/data/dashboard-summary.csv').then(res => res.text())
     ])
     .then(([dashboardCsv, summaryCsv]) => {
       setDashboardData(parseDashboardCSV(dashboardCsv));
