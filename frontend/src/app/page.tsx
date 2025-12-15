@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -101,6 +101,127 @@ function InsightBox({ title, children, color }: { title: string, children: React
             </div>
         </div>
     )
+}
+
+// Editable CEO Insight Card
+function EditableInsightCard({
+    title,
+    icon: Icon,
+    defaultItems,
+    storageKey,
+    cardClassName,
+    titleClassName
+}: {
+    title: string,
+    icon: React.ElementType,
+    defaultItems: string[],
+    storageKey: string,
+    cardClassName: string,
+    titleClassName: string
+}) {
+    const [items, setItems] = React.useState<string[]>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch {
+                    return defaultItems;
+                }
+            }
+        }
+        return defaultItems;
+    });
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [editText, setEditText] = React.useState('');
+
+    const startEdit = () => {
+        setEditText(items.join('\n'));
+        setIsEditing(true);
+    };
+
+    const saveEdit = () => {
+        const newItems = editText.split('\n').filter(line => line.trim() !== '');
+        setItems(newItems);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem(storageKey, JSON.stringify(newItems));
+        }
+        setIsEditing(false);
+    };
+
+    const cancelEdit = () => {
+        setEditText(items.join('\n'));
+        setIsEditing(false);
+    };
+
+    React.useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
+                    setItems(JSON.parse(saved));
+                } catch {
+                    // Ignore parse errors
+                }
+            }
+        }
+    }, [storageKey]);
+
+    return (
+        <Card className={cardClassName}>
+            <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className={cn("font-bold text-base flex items-center gap-2", titleClassName)}>
+                        <Icon className="h-5 w-5" />
+                        {title}
+                    </h3>
+                    {!isEditing ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={startEdit}
+                        >
+                            <PencilIcon className="h-3 w-3" />
+                        </Button>
+                    ) : (
+                        <div className="flex gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
+                                onClick={saveEdit}
+                            >
+                                <SaveIcon className="h-3 w-3" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                onClick={cancelEdit}
+                            >
+                                <XIcon className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+                {!isEditing ? (
+                    <ul className="text-base space-y-1 text-gray-700 list-none pl-0">
+                        {items.map((item, index) => (
+                            <li key={index}>{item}</li>
+                        ))}
+                    </ul>
+                ) : (
+                    <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full text-base text-gray-700 p-2 border rounded resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="각 항목을 새 줄에 입력하세요..."
+                    />
+                )}
+            </CardContent>
+        </Card>
+    );
 }
 
 // Detailed Metric Card with Expandable Sections
@@ -5507,45 +5628,43 @@ export default function DashboardPage() {
             실적 요약 및 CEO 인사이트
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none">
-            <CardContent className="pt-4">
-              <h3 className="font-bold text-purple-700 mb-2 flex items-center gap-2">
-                <LightbulbIcon className="h-4 w-4" />
-                핵심 성과
-              </h3>
-              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 역대 최고 실적: $3,003K 매출, YOY 159% 달성</li>
-                <li>✓ US EC 압도적 성장: $2,839K(전체 95%), YOY 174% 달성</li>
-                <li>✓ 25FW 본격화: $1,305K 매출로 전체 비중 45% 차지</li>
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none">
-            <CardContent className="pt-4">
-              <h3 className="font-bold text-blue-700 mb-2 flex items-center gap-2">
-                <AlertTriangleIcon className="h-4 w-4" />
-                주요 리스크
-              </h3>
-              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 할인율 급등: 61.2%로 전년 대비 +19.5%p, US EC 61.1%(+18.7%p)</li>
-                <li>✓ 낮은 직접이익률: 19.5% 기록, 과도한 할인으로 수익성 악화</li>
-                <li>✓ 재고 부담: $31,076K로 YOY 199%, 25SS $9,610K 추가 소진 필요</li>
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none">
-            <CardContent className="pt-4">
-              <h3 className="font-bold text-green-700 mb-2 flex items-center gap-2">
-                <TargetIcon className="h-4 w-4" />
-                CEO 전략 방향
-              </h3>
-              <ul className="text-xs space-y-1 text-gray-700 list-none pl-0">
-                <li>✓ 할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리</li>
-                <li>✓ 수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영</li>
-                <li>✓ 균형 성장: US EC 의존도(95%) 완화, US홀세일/EU 채널 확대</li>
-              </ul>
-            </CardContent>
-          </Card>
+            <EditableInsightCard
+              title="핵심 성과"
+              icon={LightbulbIcon}
+              defaultItems={[
+                "✓ 역대 최고 실적: $3,003K 매출, YOY 159% 달성",
+                "✓ US EC 압도적 성장: $2,839K(전체 95%), YOY 174% 달성",
+                "✓ 25FW 본격화: $1,305K 매출로 전체 비중 45% 차지"
+              ]}
+              storageKey="ceo-insights-key-performance"
+              cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
+              titleClassName="text-purple-700"
+            />
+            <EditableInsightCard
+              title="주요 리스크"
+              icon={AlertTriangleIcon}
+              defaultItems={[
+                "✓ 할인율 급등: 61.2%로 전년 대비 +19.5%p, US EC 61.1%(+18.7%p)",
+                "✓ 낮은 직접이익률: 19.5% 기록, 과도한 할인으로 수익성 악화",
+                "✓ 재고 부담: $31,076K로 YOY 199%, 25SS $9,610K 추가 소진 필요",
+                "✓ (트럼프 대중 관세 7% → 27%)"
+              ]}
+              storageKey="ceo-insights-major-risks"
+              cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
+              titleClassName="text-blue-700"
+            />
+            <EditableInsightCard
+              title="CEO 전략 방향"
+              icon={TargetIcon}
+              defaultItems={[
+                "✓ 할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리",
+                "✓ 수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영",
+                "✓ 균형 성장: US EC 의존도(95%) 완화, US홀세일/EU 채널 확대"
+              ]}
+              storageKey="ceo-insights-strategy"
+              cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
+              titleClassName="text-green-700"
+            />
           </div>
         </div>
 
