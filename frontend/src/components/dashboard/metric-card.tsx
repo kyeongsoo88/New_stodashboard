@@ -54,7 +54,7 @@ export function MetricCard({
   return (
     <Card className={cn("overflow-hidden shadow-sm", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
-        <CardTitle className="text-base font-bold text-black mb-0 leading-tight">
+        <CardTitle className="text-lg font-bold text-black mb-0 leading-tight">
           {title}
         </CardTitle>
         {trend === "up" && <ArrowUpIcon className="h-4 w-4 text-red-500" />}
@@ -62,7 +62,7 @@ export function MetricCard({
         {trend === "neutral" && <MinusIcon className="h-4 w-4 text-gray-500" />}
       </CardHeader>
       <CardContent className="pt-0 -mt-1">
-        <div className="text-2xl font-bold -mt-1 leading-tight flex items-baseline gap-1.5">
+        <div className="text-3xl font-bold -mt-1 leading-tight flex items-baseline gap-1.5">
           <span>{
             value && value.includes('%') 
               ? (() => {
@@ -72,11 +72,11 @@ export function MetricCard({
               : value
           }</span>
           {valueSubText && (
-            <span className="text-xs font-normal text-gray-600">{valueSubText}</span>
+            <span className="text-sm font-normal text-gray-600">{valueSubText}</span>
           )}
         </div>
         {(subValue || description) && (
-          <div className="flex items-center space-x-2 text-xs">
+          <div className="flex items-center space-x-2 text-sm">
             {subValue && (
               <span className={cn("font-bold", subValueColor)}>
                 {subValue && subValue.includes('%') 
@@ -108,7 +108,7 @@ export function MetricCard({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-[11px] px-0 w-full justify-between hover:bg-transparent"
+              className="h-6 text-xs px-0 w-full justify-between hover:bg-transparent"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <span className="font-bold text-blue-700">아이템별 상세보기</span>
@@ -117,7 +117,7 @@ export function MetricCard({
             
             {isExpanded && (
               <div className="border-t pt-2 space-y-1 text-xs">
-                <div className="flex justify-between items-center text-[11px] text-gray-500 mb-1 pb-1 border-b border-dashed">
+                <div className="flex justify-between items-center text-xs text-gray-500 mb-1 pb-1 border-b border-dashed">
                   <span className="w-[70px] min-w-[70px] whitespace-nowrap">아이템</span>
                   <div className="flex items-center gap-0.5">
                     <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">발주</span>
@@ -137,8 +137,8 @@ export function MetricCard({
                       item.isTotal ? "font-bold border-t border-gray-200 mt-1 pt-1" : ""
                     )}
                   >
-                    <span className="text-[11px] w-[70px] min-w-[70px] whitespace-nowrap">{item.name}</span>
-                    <div className="flex items-center gap-0.5 text-[11px]">
+                    <span className="text-xs w-[70px] min-w-[70px] whitespace-nowrap">{item.name}</span>
+                    <div className="flex items-center gap-0.5 text-xs">
                       <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{item.value}</span>
                       <span className="w-[4px] text-center text-gray-300">|</span>
                       <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{
@@ -185,7 +185,7 @@ export function MetricCard({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 text-[11px] px-0 w-full justify-between hover:bg-transparent"
+              className="h-6 text-xs px-0 w-full justify-between hover:bg-transparent"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <span className="font-bold text-blue-700">{detailsTitle || "아이템별 TOP 5(TAG 발주액 기준)"}</span>
@@ -211,13 +211,13 @@ export function MetricCard({
                   }
 
                   return (
-                    <div key={idx} className="grid grid-cols-[70px_85px_1fr] items-center py-0.5 gap-2">
-                      <span className="text-[11px]">{item.name}</span>
-                      <span className="font-bold text-[11px] text-right tabular-nums">{item.value}</span>
+                    <div key={idx} className="grid grid-cols-[80px_90px_1fr] items-center py-0.5 gap-2">
+                      <span className="text-xs">{item.name}</span>
+                      <span className="font-bold text-xs text-right tabular-nums">{item.value}</span>
                       {yoyDisplay ? (
-                        <span className="text-[11px] text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
+                        <span className="text-xs text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
                       ) : (
-                        <span className="text-[11px] text-gray-400 text-right whitespace-nowrap">-</span>
+                        <span className="text-xs text-gray-400 text-right whitespace-nowrap">-</span>
                       )}
                     </div>
                   );
@@ -237,10 +237,10 @@ export function MetricCard({
               
               return (
                 <div key={idx} className="flex items-center justify-between">
-                  <span className="text-[11px] text-gray-600">{item.name}</span>
+                  <span className="text-xs text-gray-600">{item.name}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[11px] text-gray-900 tabular-nums">{item.value}</span>
-                    <span className="text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold min-w-[45px] text-center">{yoyDisplay}</span>
+                    <span className="font-semibold text-xs text-gray-900 tabular-nums">{item.value}</span>
+                    <span className="text-xs px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold min-w-[45px] text-center">{yoyDisplay}</span>
                   </div>
                 </div>
               );

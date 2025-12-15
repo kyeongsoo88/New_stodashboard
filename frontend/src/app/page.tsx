@@ -339,14 +339,14 @@ function DetailedMetricCard({
         <Card className={cn("overflow-hidden shadow-sm", className)}>
             <CardHeader className="pb-0">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-base font-bold text-black mb-0 leading-tight">{title}</CardTitle>
+                    <CardTitle className="text-lg font-bold text-black mb-0 leading-tight">{title}</CardTitle>
                     {trend === "up" && <ChevronUpIcon className="h-4 w-4 text-red-500" />}
                     {trend === "down" && <ChevronDownIcon className="h-4 w-4 text-blue-500" />}
                 </div>
             </CardHeader>
             <CardContent className="space-y-3 pt-0 -mt-1">
-                <div className="text-2xl font-bold -mt-1 leading-tight">{title.includes("할인율") ? formatPercent(value) : value}</div>
-                <div className="flex items-center gap-1.5 text-xs flex-wrap">
+                <div className="text-3xl font-bold -mt-1 leading-tight">{title.includes("할인율") ? formatPercent(value) : value}</div>
+                <div className="flex items-center gap-1.5 text-sm flex-wrap">
                     <span className={cn("font-bold px-2 py-0.5 rounded bg-emerald-100", (() => {
                         const yoyText = removeYoYParentheses(yoy);
                         const isExpenseCard = expenseBreakdown !== undefined || title.includes("영업비");
@@ -463,11 +463,11 @@ function DetailedMetricCard({
                                                     
                                                     return (
                                                         <div key={idx} className="flex justify-between items-center py-0.5">
-                                                            <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                                <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
-                                                                <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
+                                                            <span className="text-xs min-w-[70px]">{item.name}</span>
+                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '160px' }}>
+                                                                <span className="font-medium text-xs w-[100px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
+                                                                <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                                {item.percent && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[50px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                             </div>
                                                         </div>
                                                     );
@@ -502,11 +502,11 @@ function DetailedMetricCard({
                                                     
                                                     return (
                                                         <div key={idx} className="flex justify-between items-center py-0.5">
-                                                            <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                                <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
-                                                                <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                                {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
+                                                            <span className="text-xs min-w-[70px]">{item.name}</span>
+                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '160px' }}>
+                                                                <span className="font-medium text-xs w-[100px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
+                                                                <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                                {item.percent && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[50px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                             </div>
                                                         </div>
                                                     );
@@ -521,11 +521,11 @@ function DetailedMetricCard({
                                                 const isNegative = yoyText.startsWith('-');
                                                 return (
                                                     <div key={idx} className="flex justify-between items-center py-0.5">
-                                                        <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                            <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>
-                                                            <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", isNegative ? "text-red-600" : "text-emerald-700")}>{yoyText}</span>
-                                                            {item.margin && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercent(item.margin)}</span>}
+                                                        <span className="text-xs min-w-[70px]">{item.name}</span>
+                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '160px' }}>
+                                                            <span className="font-medium text-xs w-[100px] text-right tabular-nums">{item.value}</span>
+                                                            <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", isNegative ? "text-red-600" : "text-emerald-700")}>{yoyText}</span>
+                                                            {item.margin && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[50px] text-center flex-shrink-0">{formatPercent(item.margin)}</span>}
                                                         </div>
                                                     </div>
                                                 );
@@ -554,20 +554,20 @@ function DetailedMetricCard({
                                                 return (
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
-                                                            <span className="text-[11px] min-w-[80px]">{item.name}</span>
-                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
-                                                                {item.value && <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{item.value}</span>}
-                                                                {item.yoy && <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
+                                                            <span className="text-xs min-w-[80px]">{item.name}</span>
+                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                                {item.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{item.value}</span>}
+                                                                {item.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
                                                             </div>
                                                         </div>
                                                         {item.subItems && (
                                                             <div className="space-y-1 pl-4">
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
                                                                     <div key={subIdx} className="flex justify-between items-center py-1">
-                                                                        <span className="text-[11px] min-w-[80px]">ㄴ {subItem.name}</span>
-                                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
-                                                                            {subItem.value && <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{subItem.value}</span>}
-                                                                            {subItem.yoy && <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", getExpenseYoyColor(subItem.yoy))}>{removeYoYParentheses(subItem.yoy)}</span>}
+                                                                        <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
+                                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                                            {subItem.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{subItem.value}</span>}
+                                                                            {subItem.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(subItem.yoy))}>{removeYoYParentheses(subItem.yoy)}</span>}
                                                                         </div>
                                                                     </div>
                                                                 ))}
@@ -695,11 +695,11 @@ function DetailedMetricCard({
                                             
                                             return (
                                                 <div key={idx} className="flex justify-between items-center py-0.5">
-                                                    <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                                                    <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                        <span className="font-medium text-[11px] w-[90px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
-                                                        <span className={cn("text-[11px] px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[60px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
-                                                        {item.percent && <span className="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
+                                                    <span className="text-xs min-w-[70px]">{item.name}</span>
+                                                    <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '160px' }}>
+                                                        <span className="font-medium text-xs w-[100px] text-right tabular-nums">{title.includes("할인율") ? formatPercent(item.value) : item.value}</span>
+                                                        <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", textColor)}>{yoyText}</span>
+                                                        {item.percent && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[50px] text-center flex-shrink-0">{formatPercentBadge(item.percent)}</span>}
                                                     </div>
                                                 </div>
                                             );
