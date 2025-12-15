@@ -192,40 +192,57 @@ export function MetricCard({
               {isExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
             </Button>
             
-            {isExpanded && (
-              <div className="border-t pt-2 space-y-1 text-xs">
-                {topStoresDetails.map((item, idx) => {
-                  // 기말재고, 인원수 카드에서는 "전년"을 "YoY"로 변경, 그 외(M/U 등)는 그대로 "전년" 유지
-                  const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
-                  let yoyDisplay = item.yoy || '';
-                  
-                  // yoy 값이 있을 때만 변환 처리
-                  if (yoyDisplay && shouldConvertToYoY) {
-                    if (yoyDisplay.includes("전년")) {
-                      yoyDisplay = yoyDisplay.replace(/전년/g, 'YoY');
-                    }
-                    // 대괄호 안의 숫자에 콤마 포맷팅 적용 (데이터 파일에서 콤마가 제거되었을 경우 대비)
-                    yoyDisplay = yoyDisplay.replace(/\[([+-]?)(\d+)\]/g, (match, sign, num) => {
-                      return `[${sign}${parseInt(num, 10).toLocaleString()}]`;
-                    });
+            {isExpanded && (() => {
+              // 미리 데이터 가공 및 최대 길이 계산하여 동적 너비 결정
+              const processedItems = topStoresDetails.map(item => {
+                const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
+                let yoyDisplay = item.yoy || '';
+                if (yoyDisplay && shouldConvertToYoY) {
+                  if (yoyDisplay.includes("전년")) {
+                    yoyDisplay = yoyDisplay.replace(/전년/g, 'YoY');
                   }
+                  yoyDisplay = yoyDisplay.replace(/\[([+-]?)(\d+)\]/g, (match, sign, num) => {
+                    return `[${sign}${parseInt(num, 10).toLocaleString()}]`;
+                  });
+                }
+                return { ...item, yoyDisplay };
+              });
 
-                  return (
-                    <div key={idx} className="flex justify-between items-center py-0.5 gap-2">
-                      <span className="text-xs truncate">{item.name}</span>
-                      <div className="flex items-center gap-1 min-w-[170px] justify-end">
+              const maxLen = Math.max(...processedItems.map(i => i.yoyDisplay.length), 0);
+              // 너비 결정 로직
+              // 긴 데이터 (>15자): 기말재고 등 (YoY154%[+5,999]) -> 약 18자
+              // 중간 데이터 (>10자): (전년12.3%) -> 약 9~10자
+              // 짧은 데이터: (전년5.2) -> 약 7자
+              
+              let yoyWidthClass = "w-[55px]"; // 기본 (짧은 것)
+              let groupMinWidthClass = "min-w-[135px]";
+
+              if (maxLen > 15) {
+                 yoyWidthClass = "w-[110px]";
+                 groupMinWidthClass = "min-w-[190px]";
+              } else if (maxLen > 8) { // 8자 초과 (전년5.2는 7자)
+                 yoyWidthClass = "w-[90px]";
+                 groupMinWidthClass = "min-w-[170px]";
+              }
+
+              return (
+                <div className="border-t pt-2 space-y-1 text-xs">
+                  {processedItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center py-0.5 gap-2 w-full">
+                      <span className="text-xs truncate flex-1 text-left">{item.name}</span>
+                      <div className={cn("flex items-center gap-0.5 justify-end flex-none", groupMinWidthClass)}>
                         <span className="font-bold text-xs tabular-nums text-right w-[75px]">{item.value}</span>
-                        {yoyDisplay ? (
-                          <span className="text-[11px] text-gray-500 text-left whitespace-nowrap w-[90px]">{yoyDisplay}</span>
+                        {item.yoyDisplay ? (
+                          <span className={cn("text-[11px] text-gray-500 text-left whitespace-nowrap", yoyWidthClass)}>{item.yoyDisplay}</span>
                         ) : (
-                          <span className="text-[11px] text-gray-400 text-left whitespace-nowrap w-[90px]">-</span>
+                          <span className={cn("text-[11px] text-gray-400 text-left whitespace-nowrap", yoyWidthClass)}>-</span>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
