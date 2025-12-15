@@ -211,14 +211,16 @@ export function MetricCard({
                   }
 
                   return (
-                    <div key={idx} className="grid grid-cols-[80px_90px_1fr] items-center py-0.5 gap-2">
+                    <div key={idx} className="grid grid-cols-[80px_1fr] items-center py-0.5 gap-1">
                       <span className="text-xs">{item.name}</span>
-                      <span className="font-bold text-xs text-right tabular-nums">{item.value}</span>
-                      {yoyDisplay ? (
-                        <span className="text-xs text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
-                      ) : (
-                        <span className="text-xs text-gray-400 text-right whitespace-nowrap">-</span>
-                      )}
+                      <div className="text-right whitespace-nowrap">
+                        <span className="font-bold text-xs tabular-nums">{item.value}</span>
+                        {yoyDisplay ? (
+                          <span className="text-xs text-gray-500"> {yoyDisplay}</span>
+                        ) : (
+                          <span className="text-xs text-gray-400"> -</span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

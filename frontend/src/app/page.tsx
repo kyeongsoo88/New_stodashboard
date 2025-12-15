@@ -1649,11 +1649,42 @@ function InteractiveChartSection({
             
             {/* Insight Cards */}
             <div className="grid grid-cols-1 gap-2 flex-none">
-                 {insights.map((insight, idx) => (
-                     <InsightBox key={idx} color={insight.color} title={insight.title}>
-                         {insight.content}
-                     </InsightBox>
-                 ))}
+                 {insights.map((insight, idx) => {
+                     // 아이콘 매핑
+                     let Icon = LightbulbIcon;
+                     if (insight.title.includes("조기경보") || insight.title.includes("리스크")) Icon = AlertTriangleIcon;
+                     else if (insight.title.includes("긍정신호") || insight.title.includes("핵심") || insight.title.includes("전략")) Icon = TargetIcon;
+                     else if (insight.title.includes("트렌드")) Icon = TrendingUpIcon;
+                     else if (insight.title.includes("카테고리")) Icon = BriefcaseIcon;
+
+                     // 색상 스타일 매핑
+                     const colorStyles = {
+                        purple: "bg-purple-50 text-purple-900",
+                        blue: "bg-blue-50 text-blue-900",
+                        green: "bg-green-50 text-green-900",
+                     };
+                     const titleColorStyles = {
+                        purple: "text-purple-700",
+                        blue: "text-blue-700",
+                        green: "text-green-700",
+                     };
+                     
+                     // 스토리지 키 생성 (안전한 문자열로 변환)
+                     const safeTitle = insight.title.replace(/\s+/g, '-');
+                     const storageKey = `insight-card-${safeTitle}`;
+
+                     return (
+                         <EditableInsightCard 
+                            key={idx}
+                            title={insight.title}
+                            icon={Icon}
+                            defaultItems={insight.content.split('\n').filter(Boolean)}
+                            storageKey={storageKey}
+                            cardClassName={cn("p-3 rounded-md text-sm space-y-2", colorStyles[insight.color])}
+                            titleClassName={cn("font-bold text-base", titleColorStyles[insight.color])}
+                         />
+                     );
+                 })}
             </div>
         </CardContent>
       </Card>
