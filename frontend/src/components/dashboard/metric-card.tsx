@@ -213,12 +213,12 @@ export function MetricCard({
                   return (
                     <div key={idx} className="flex justify-between items-center py-0.5 gap-2">
                       <span className="text-xs truncate">{item.name}</span>
-                      <div className="flex items-center gap-1 min-w-[140px] justify-end">
+                      <div className="flex items-center gap-1 min-w-[170px] justify-end">
                         <span className="font-bold text-xs tabular-nums text-right w-[75px]">{item.value}</span>
                         {yoyDisplay ? (
-                          <span className="text-xs text-gray-500 text-left whitespace-nowrap w-[70px]">{yoyDisplay}</span>
+                          <span className="text-[11px] text-gray-500 text-left whitespace-nowrap w-[90px]">{yoyDisplay}</span>
                         ) : (
-                          <span className="text-xs text-gray-400 text-left whitespace-nowrap w-[70px]">-</span>
+                          <span className="text-[11px] text-gray-400 text-left whitespace-nowrap w-[90px]">-</span>
                         )}
                       </div>
                     </div>
