@@ -587,7 +587,7 @@ function DetailedMetricCard({
                                                     {item.percent && <span className="text-[11px] px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold w-[45px] text-center tabular-nums flex-shrink-0">{formatPercentBadge(item.percent.replace(/[\[\]]/g, ''))}</span>}
                                                     {item.margin && <span className="text-[11px] px-1 py-0.5 rounded bg-blue-100 text-blue-700 font-medium w-[45px] text-center tabular-nums flex-shrink-0">{item.margin}</span>}
                                                     {item.change && <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0 w-[60px] text-center tabular-nums">{item.change.replace(/\+\+/g, '+')}</span>}
-                                                </div>
+        </div>
                                             </div>
                                         ))}
                                     </div>
@@ -1182,8 +1182,8 @@ function InventoryPlanDialog({ data }: { data: any }) {
                     </Table>
                 </div>
             </div>
-        </div>
-    );
+    </div>
+  );
 }
 
 // Reusable Interactive Chart Component
@@ -4704,7 +4704,7 @@ export default function DashboardPage() {
         },
         mu: {
           value: getDataValue('카드_당시즌MU_값', month, '5.22'),
-          subValue: `전년 ${getDataValue('카드_당시즌MU_전년비교', month, '5.0')}`,
+          subValue: `전년대비 ${getDataValue('카드_당시즌MU_전년비교', month, '5.0')}`,
           subValueColor: "text-red-500" as const,
           description: `YoY ${getDataValue('카드_당시즌MU_YOY', month, '-0.26')}`,
           topStoresDetails: [
@@ -5733,7 +5733,7 @@ export default function DashboardPage() {
            {loadingDashboard || !cardData ? (
              <>
                <MetricCard title="📈 당시즌 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
-               <MetricCard title="🎯 US EC 25FW M/U" value="5.22" subValue="전년 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+               <MetricCard title="🎯 US EC 25FW M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
                <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
                <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
              </>
@@ -5861,13 +5861,20 @@ export default function DashboardPage() {
                        return `${num.toFixed(1)}%`;
                      };
                      
+                     const isDiscountRate = row.label === "할인율";
+                     const tooltipProps = isDiscountRate ? { title: "라이선스 채널 제외 실 할인율" } : {};
                      return (
                        <TableRow key={index} className="hover:bg-slate-50/80">
                          <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
                          <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_curr_p)}</TableCell>
+                         <TableCell 
+                           className="text-center text-xs text-gray-500 bg-blue-50"
+                           {...tooltipProps}
+                         >
+                           {formatPercentToOneDecimal(row.m_curr_p)}
+                         </TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
@@ -5875,7 +5882,12 @@ export default function DashboardPage() {
                         <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_curr_p)}</TableCell>
+                         <TableCell 
+                           className="text-center text-xs text-gray-500 bg-purple-50"
+                           {...tooltipProps}
+                         >
+                           {formatPercentToOneDecimal(row.y_curr_p)}
+                         </TableCell>
                          <TableCellStyled type="diff" className="text-center text-xs bg-purple-50">{row.y_diff}</TableCellStyled>
                          <TableCellStyled type="yoy" className="text-center text-xs bg-purple-50">{row.y_yoy}</TableCellStyled>
                        </TableRow>

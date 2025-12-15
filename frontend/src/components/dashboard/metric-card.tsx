@@ -202,11 +202,11 @@ export function MetricCard({
                     : item.yoy;
 
                   return (
-                    <div key={idx} className="flex justify-between items-center py-0.5">
-                      <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                      <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
-                        <span className="font-bold text-[11px] w-[60px] text-right tabular-nums">{item.value}</span>
-                        <span className="text-[11px] text-gray-500 min-w-[60px] text-right">{yoyDisplay}</span>
+                    <div key={idx} className="flex items-center py-0.5">
+                      <span className="text-[11px] flex-shrink-0" style={{ width: '65px' }}>{item.name}</span>
+                      <div className="flex-1 flex justify-end items-center gap-2">
+                        <span className="font-bold text-[11px] text-right tabular-nums flex-shrink-0" style={{ width: '75px' }}>{item.value}</span>
+                        <span className="text-[11px] text-gray-500 text-right whitespace-nowrap flex-shrink-0">{yoyDisplay}</span>
                       </div>
                     </div>
                   );
