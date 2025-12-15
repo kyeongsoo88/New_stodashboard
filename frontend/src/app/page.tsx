@@ -5818,7 +5818,7 @@ export default function DashboardPage() {
          <div className="space-y-4">
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <h3 className="font-bold text-lg">손익요약</h3>
+              <h3 className="font-bold text-2xl">손익요약</h3>
            </div>
            <Card className="overflow-hidden border-t-4 border-t-green-500">
              <CardHeader className="bg-slate-50/50 py-4 border-b">
@@ -5831,14 +5831,14 @@ export default function DashboardPage() {
              <CardContent className="p-0 overflow-x-auto">
                <Table>
                  <TableHeader>
-                   <TableRow className="bg-slate-100/50 text-xs hover:bg-slate-100/50">
+                   <TableRow className="bg-slate-100/50 text-sm hover:bg-slate-100/50">
                      <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
                      <TableHead className="text-center font-bold text-blue-700 bg-blue-50" colSpan={6}>당월 실적</TableHead>
                      <TableHead className="text-center font-bold w-2 bg-white"></TableHead>
                      <TableHead className="w-[150px] text-center font-bold border-r">지표명</TableHead>
                      <TableHead className="text-center font-bold text-purple-700 bg-purple-50" colSpan={6}>연간 누적 YTD</TableHead>
                    </TableRow>
-                   <TableRow className="text-xs text-muted-foreground hover:bg-slate-100/50">
+                   <TableRow className="text-sm text-muted-foreground hover:bg-slate-100/50">
                       <TableHead className="text-center border-r">구분</TableHead>
                       <React.Fragment>
                               <TableHead className="text-center min-w-[60px] bg-blue-50">전년</TableHead>
@@ -5894,12 +5894,12 @@ export default function DashboardPage() {
                      
                      return (
                        <TableRow key={index} className="hover:bg-slate-50/80">
-                         <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
-                         <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
-                         <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
+                         <TableCell className="font-medium text-sm text-center border-r">{row.label}</TableCell>
+                         <TableCell className="text-center text-sm bg-blue-50">{formatValue(row.m_prev)}</TableCell>
+                         <TableCell className="text-center text-sm text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
+                         <TableCell className="text-center text-sm font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
                          {tooltipText ? (
-                           <TableCell className="text-center text-xs text-gray-500 bg-blue-50 overflow-visible">
+                           <TableCell className="text-center text-sm text-gray-500 bg-blue-50 overflow-visible">
                              <SimpleTooltip text={tooltipText}>
                                <span className="cursor-help underline decoration-dotted underline-offset-2">
                                  {formatPercentToOneDecimal(row.m_curr_p)}
@@ -5907,19 +5907,19 @@ export default function DashboardPage() {
                              </SimpleTooltip>
                            </TableCell>
                          ) : (
-                           <TableCell className="text-center text-xs text-gray-500 bg-blue-50">
+                           <TableCell className="text-center text-sm text-gray-500 bg-blue-50">
                              {formatPercentToOneDecimal(row.m_curr_p)}
                            </TableCell>
                          )}
-                         <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
-                        <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
-                        <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
-                        <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
-                        <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
-                         <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
-                         <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
+                         <TableCellStyled type="diff" className="text-center text-sm bg-blue-50">{row.m_diff}</TableCellStyled>
+                        <TableCellStyled type="yoy" className="text-center text-sm bg-blue-50">{row.m_yoy}</TableCellStyled>
+                        <TableCell className="text-center text-sm w-2 bg-white"></TableCell>
+                        <TableCell className="font-medium text-sm text-center border-r">{row.label}</TableCell>
+                        <TableCell className="text-center text-sm bg-purple-50">{formatValue(row.y_prev)}</TableCell>
+                         <TableCell className="text-center text-sm text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
+                         <TableCell className="text-center text-sm font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
                          {tooltipText ? (
-                           <TableCell className="text-center text-xs text-gray-500 bg-purple-50 overflow-visible">
+                           <TableCell className="text-center text-sm text-gray-500 bg-purple-50 overflow-visible">
                              <SimpleTooltip text={tooltipText}>
                                <span className="cursor-help underline decoration-dotted underline-offset-2">
                                  {formatPercentToOneDecimal(row.y_curr_p)}
@@ -5927,12 +5927,12 @@ export default function DashboardPage() {
                              </SimpleTooltip>
                            </TableCell>
                          ) : (
-                           <TableCell className="text-center text-xs text-gray-500 bg-purple-50">
+                           <TableCell className="text-center text-sm text-gray-500 bg-purple-50">
                              {formatPercentToOneDecimal(row.y_curr_p)}
                            </TableCell>
                          )}
-                         <TableCellStyled type="diff" className="text-center text-xs bg-purple-50">{row.y_diff}</TableCellStyled>
-                         <TableCellStyled type="yoy" className="text-center text-xs bg-purple-50">{row.y_yoy}</TableCellStyled>
+                         <TableCellStyled type="diff" className="text-center text-sm bg-purple-50">{row.y_diff}</TableCellStyled>
+                         <TableCellStyled type="yoy" className="text-center text-sm bg-purple-50">{row.y_yoy}</TableCellStyled>
                        </TableRow>
                      );
                    })}
