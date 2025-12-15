@@ -17,6 +17,26 @@ import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertT
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
+// Simple Tooltip Component
+const SimpleTooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
+  const [show, setShow] = React.useState(false);
+  return (
+    <div 
+      className="relative inline-block"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      {show && (
+        <div className="absolute z-50 px-2 py-1 text-xs text-white bg-black rounded shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-1 whitespace-nowrap pointer-events-none">
+          {text}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- Mock Data Generator ---
 // Helper to generate consistent random data for demo
 const generateConsistentData = (seed: string, length: number, min: number, max: number) => {
@@ -5862,19 +5882,35 @@ export default function DashboardPage() {
                      };
                      
                      const isDiscountRate = row.label === "할인율";
-                     const tooltipProps = isDiscountRate ? { title: "라이선스 채널 제외 실 할인율" } : {};
+                     const isSalesRevenue = row.label === "실판매출";
+                     
+                     // 툴팁 텍스트 결정
+                     let tooltipText: string | undefined = undefined;
+                     if (isDiscountRate) {
+                       tooltipText = "라이선스 제외 매출채널의 실 할인율";
+                     } else if (isSalesRevenue) {
+                       tooltipText = "라이선스 제외 매출채널의 실판매출";
+                     }
+                     
                      return (
                        <TableRow key={index} className="hover:bg-slate-50/80">
                          <TableCell className="font-medium text-xs text-center border-r">{row.label}</TableCell>
                          <TableCell className="text-center text-xs bg-blue-50">{formatValue(row.m_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-blue-50">{formatPercentToOneDecimal(row.m_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-blue-50">{formatValue(row.m_curr)}</TableCell>
-                         <TableCell 
-                           className="text-center text-xs text-gray-500 bg-blue-50"
-                           {...tooltipProps}
-                         >
-                           {formatPercentToOneDecimal(row.m_curr_p)}
-                         </TableCell>
+                         {tooltipText ? (
+                           <TableCell className="text-center text-xs text-gray-500 bg-blue-50 overflow-visible">
+                             <SimpleTooltip text={tooltipText}>
+                               <span className="cursor-help underline decoration-dotted underline-offset-2">
+                                 {formatPercentToOneDecimal(row.m_curr_p)}
+                               </span>
+                             </SimpleTooltip>
+                           </TableCell>
+                         ) : (
+                           <TableCell className="text-center text-xs text-gray-500 bg-blue-50">
+                             {formatPercentToOneDecimal(row.m_curr_p)}
+                           </TableCell>
+                         )}
                          <TableCellStyled type="diff" className="text-center text-xs bg-blue-50">{row.m_diff}</TableCellStyled>
                         <TableCellStyled type="yoy" className="text-center text-xs bg-blue-50">{row.m_yoy}</TableCellStyled>
                         <TableCell className="text-center text-xs w-2 bg-white"></TableCell>
@@ -5882,12 +5918,19 @@ export default function DashboardPage() {
                         <TableCell className="text-center text-xs bg-purple-50">{formatValue(row.y_prev)}</TableCell>
                          <TableCell className="text-center text-xs text-gray-500 bg-purple-50">{formatPercentToOneDecimal(row.y_prev_p)}</TableCell>
                          <TableCell className="text-center text-xs font-bold bg-purple-50">{formatValue(row.y_curr)}</TableCell>
-                         <TableCell 
-                           className="text-center text-xs text-gray-500 bg-purple-50"
-                           {...tooltipProps}
-                         >
-                           {formatPercentToOneDecimal(row.y_curr_p)}
-                         </TableCell>
+                         {tooltipText ? (
+                           <TableCell className="text-center text-xs text-gray-500 bg-purple-50 overflow-visible">
+                             <SimpleTooltip text={tooltipText}>
+                               <span className="cursor-help underline decoration-dotted underline-offset-2">
+                                 {formatPercentToOneDecimal(row.y_curr_p)}
+                               </span>
+                             </SimpleTooltip>
+                           </TableCell>
+                         ) : (
+                           <TableCell className="text-center text-xs text-gray-500 bg-purple-50">
+                             {formatPercentToOneDecimal(row.y_curr_p)}
+                           </TableCell>
+                         )}
                          <TableCellStyled type="diff" className="text-center text-xs bg-purple-50">{row.y_diff}</TableCellStyled>
                          <TableCellStyled type="yoy" className="text-center text-xs bg-purple-50">{row.y_yoy}</TableCellStyled>
                        </TableRow>

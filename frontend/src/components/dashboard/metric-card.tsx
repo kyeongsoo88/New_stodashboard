@@ -202,12 +202,10 @@ export function MetricCard({
                     : item.yoy;
 
                   return (
-                    <div key={idx} className="flex items-center py-0.5">
-                      <span className="text-[11px] flex-shrink-0" style={{ width: '65px' }}>{item.name}</span>
-                      <div className="flex-1 flex justify-end items-center gap-2">
-                        <span className="font-bold text-[11px] text-right tabular-nums flex-shrink-0" style={{ width: '75px' }}>{item.value}</span>
-                        <span className="text-[11px] text-gray-500 text-right whitespace-nowrap flex-shrink-0">{yoyDisplay}</span>
-                      </div>
+                    <div key={idx} className="grid grid-cols-[70px_85px_1fr] items-center py-0.5 gap-2">
+                      <span className="text-[11px]">{item.name}</span>
+                      <span className="font-bold text-[11px] text-right tabular-nums">{item.value}</span>
+                      <span className="text-[11px] text-gray-500 text-right whitespace-nowrap">{yoyDisplay}</span>
                     </div>
                   );
                 })}
