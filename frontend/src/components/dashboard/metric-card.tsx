@@ -204,6 +204,10 @@ export function MetricCard({
                     if (yoyDisplay.includes("전년")) {
                       yoyDisplay = yoyDisplay.replace(/전년/g, 'YoY');
                     }
+                    // 대괄호 안의 숫자에 콤마 포맷팅 적용 (데이터 파일에서 콤마가 제거되었을 경우 대비)
+                    yoyDisplay = yoyDisplay.replace(/\[([+-]?)(\d+)\]/g, (match, sign, num) => {
+                      return `[${sign}${parseInt(num, 10).toLocaleString()}]`;
+                    });
                   }
 
                   return (
