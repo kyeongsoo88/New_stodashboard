@@ -5644,7 +5644,7 @@ export default function DashboardPage() {
           <>
             {/* 실적 요약 및 CEO 인사이트 */}
             <div className="space-y-4">
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
             실적 요약 및 CEO 인사이트
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
