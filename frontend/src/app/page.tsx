@@ -5486,7 +5486,7 @@ export default function DashboardPage() {
       const latestMonthForSem = months[months.length - 1];
       const latestMonthNumber = latestMonthForSem.split('-')[1];
       const semTextData = {
-        yoyText: getValue('팝업_SEM광고비_YOY_텍스트', latestMonthForSem, "25.11월 전년대비 +1.8%p 증가 (당년 11월 16.1% vs 전년 14.3%)"),
+        yoyText: getValue('팝업_SEM광고비_YOY_텍스트', latestMonthForSem, "25.11월 전년대비 +1.0%p 증가 (당년 11월 15.0% vs 전년 14.0%)"),
         desc1: getValue('팝업_SEM광고비_설명1', latestMonthForSem, "9월, 10월 SEM채널 Test 완료 후, 11월 효율 높은 채널에 집중하여, 비용율 16.1% 평균 이하로 관리"),
         desc2: getValue('팝업_SEM광고비_설명2', latestMonthForSem, "")
       };
