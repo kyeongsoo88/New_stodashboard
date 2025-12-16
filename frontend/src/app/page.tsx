@@ -5710,7 +5710,7 @@ export default function DashboardPage() {
               defaultItems={[
                 "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대 로 60% 이하 관리",
                 "수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영",
-                "균형 성장: US EC 매출 아이템별 비중 Track Jacket 42%, Track Pant 30% (전년 TJ 32%, TP 26%)"
+                "균형 성장: US EC 매출 Track Jacket 43%(전년 32%), Track Pant 30%(전년 26%)"
               ]}
               storageKey="ceo-insights-strategy-v2"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
