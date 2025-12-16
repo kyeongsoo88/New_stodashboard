@@ -5708,9 +5708,9 @@ export default function DashboardPage() {
               title="CEO 전략 방향"
               icon={TargetIcon}
               defaultItems={[
-                "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대 로 60% 이하 관리",
+                "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리",
                 "수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영",
-                "균형 성장: US EC 매출 Track Jacket 43%(전년 32%), Track Pant 30%(전년 26%)"
+                "균형 성장: US EC Track Jacket/Pant 매출 비중 당년 73% vs 전년 58% (매출 YoY 197%)"
               ]}
               storageKey="ceo-insights-strategy-v2"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
