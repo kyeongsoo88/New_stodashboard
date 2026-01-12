@@ -829,6 +829,7 @@ function ShippingCostDialog({ data }: { data: any }) {
                             <TableHead className="text-center">9월</TableHead>
                             <TableHead className="text-center">10월</TableHead>
                             <TableHead className="text-center">11월</TableHead>
+                            <TableHead className="text-center">12월</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1282,18 +1283,18 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(11).fill(0);
+              const values = csvChartData[dataKey] || Array(12).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(11).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(12).fill(100);
               
               return { name: opt, values, yoyValues };
           });
       } else {
           // Fallback to generated data
           return filterOptions.map(opt => {
-              const values = generateConsistentData(opt + "sales", 11, 2000, 8000);
-              const yoyValues = generateConsistentData(opt + "yoy", 11, 80, 180);
+              const values = generateConsistentData(opt + "sales", 12, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 12, 80, 180);
               return { name: opt, values, yoyValues };
           });
       }
@@ -1310,7 +1311,7 @@ function InteractiveChartSection({
           return csvChartData[key];
       }
       // Fallback: average of available series YOY values
-      return Array(11).fill(0).map((_, i) => {
+      return Array(12).fill(0).map((_, i) => {
           const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
           if (seriesYoys.length === 0) return 0;
           return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
@@ -1319,7 +1320,7 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(11).fill(0).map((_, i) => {
+      return Array(12).fill(0).map((_, i) => {
           const monthItem: any = { name: `${i+1}월` };
           let totalTarget = 0;
           
@@ -1354,7 +1355,7 @@ function InteractiveChartSection({
 
   // YOY Line Chart Data
   const yoyChartData = React.useMemo(() => {
-      return Array(11).fill(0).map((_, i) => {
+      return Array(12).fill(0).map((_, i) => {
           const item: any = { name: `${i+1}월` };
           allSeriesData.forEach(series => {
               item[series.name] = series.yoyValues[i];
@@ -1600,7 +1601,7 @@ function InteractiveChartSection({
                             <TableHeader>
                                 <TableRow className="bg-slate-50 hover:bg-slate-50 h-8">
                                     <TableHead className="w-[80px] font-bold text-xs p-1 h-8">항목</TableHead>
-                                    {["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월"].map(m => (
+                                    {["01월", "02월", "03월", "04월", "05월", "06월", "07월", "08월", "09월", "10월", "11월", "12월"].map(m => (
                                         <TableHead key={m} className="text-center font-bold text-xs min-w-[40px] p-1 h-8">{m}</TableHead>
                                     ))}
                                 </TableRow>
@@ -1741,11 +1742,11 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
         // 첫 번째 열(구분) 제외하고 모든 열 추출
         let dataHeaders = parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
         
-        // Dec-25F, 24-Dec 제거
-        dataHeaders = dataHeaders.filter(h => {
-          const trimmed = h && h.trim();
-          return trimmed !== 'Dec-25F' && trimmed !== '24-Dec';
-        });
+        // Dec-25F, 24-Dec 제거 - 제거하지 않음 (12월 추가)
+        // dataHeaders = dataHeaders.filter(h => {
+        //   const trimmed = h && h.trim();
+        //   return trimmed !== 'Dec-25F' && trimmed !== '24-Dec';
+        // });
         
         // Total을 "25년 합계"로 변경 (CSV에 이미 "25년 합계"가 있으면 변경하지 않음)
         const totalIndex = dataHeaders.findIndex(h => h && h.trim() === 'Total');
@@ -1772,27 +1773,33 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           }
         }
         
-        // 24-Nov를 Nov-25F 앞으로 이동 (이미 존재하면 이동, 없으면 생성 후 이동)
-        const novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
-        const existing24NovIndex = dataHeaders.findIndex(h => h && (h.trim() === '24-Nov' || h.trim().startsWith('24-Nov')));
+        // 비교 컬럼(24-Nov 등)을 기준 컬럼(Nov-25F 등) 앞으로 이동하는 함수
+        const moveYoYColumn = (targetCol: string, yoyCol: string) => {
+             const targetIndex = dataHeaders.findIndex(h => h && h.trim() === targetCol);
+             const yoyIndex = dataHeaders.findIndex(h => h && (h.trim() === yoyCol || h.trim().startsWith(yoyCol)));
+             
+             if (targetIndex >= 0) {
+                 if (yoyIndex >= 0) {
+                     if (yoyIndex !== targetIndex - 1) {
+                         const removed = dataHeaders.splice(yoyIndex, 1)[0];
+                         const newTargetIndex = dataHeaders.findIndex(h => h && h.trim() === targetCol);
+                         if (newTargetIndex >= 0) {
+                             dataHeaders.splice(newTargetIndex, 0, removed);
+                         }
+                     }
+                 } else {
+                     dataHeaders.splice(targetIndex, 0, yoyCol);
+                 }
+             }
+        };
+
+        // 24-Nov -> Nov-25A/F
+        moveYoYColumn('Nov-25A', '24-Nov');
+        moveYoYColumn('Nov-25F', '24-Nov');
         
-        if (novIndex >= 0) {
-          if (existing24NovIndex >= 0) {
-            // 이미 존재하면 제거하고 Nov-25F 앞에 삽입
-            // 단, 이미 앞에 있는지 확인
-            if (existing24NovIndex !== novIndex - 1) {
-              const removed = dataHeaders.splice(existing24NovIndex, 1)[0];
-              // 제거 후 novIndex 다시 찾기
-              const newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
-              if (newNovIndex >= 0) {
-                dataHeaders.splice(newNovIndex, 0, removed);
-              }
-            }
-          } else {
-             // 없으면 새로 추가
-             dataHeaders.splice(novIndex, 0, '24-Nov');
-          }
-        }
+        // 24-Dec -> Dec-25F/A
+        moveYoYColumn('Dec-25F', '24-Dec');
+        moveYoYColumn('Dec-25A', '24-Dec');
         
         setHeaders(['구분', ...dataHeaders]);
         
@@ -2290,13 +2297,13 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
 function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2025-10");
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2025-12");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
 
-  // 월 옵션 (1월부터 11월까지)
-  const monthOptions = Array.from({ length: 11 }, (_, i) => {
+  // 월 옵션 (1월부터 12월까지)
+  const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const month = i + 1;
     return {
       value: `2025-${String(month).padStart(2, '0')}`,
@@ -2987,16 +2994,22 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
         // 첫 번째 열(구분) 제외하고 모든 열 추출
         let dataHeaders = parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
         
-        // 24-Nov를 Nov-25F 앞으로 이동 (이미 존재하면 이동, 없으면 생성 후 이동)
-        const novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+        // 24-Nov를 Nov-25F/A 앞으로 이동 (이미 존재하면 이동, 없으면 생성 후 이동)
+        let novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+        if (novIndex === -1) {
+            novIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25A');
+        }
         const existing24NovIndex = dataHeaders.findIndex(h => h && h.trim() === '24-Nov');
         
         if (novIndex >= 0) {
           if (existing24NovIndex >= 0) {
-            // 이미 존재하면 제거하고 Nov-25F 앞에 삽입
+            // 이미 존재하면 제거하고 Nov-25F/A 앞으로 삽입
             if (existing24NovIndex !== novIndex - 1) {
               const removed = dataHeaders.splice(existing24NovIndex, 1)[0];
-              const newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+              // 제거 후 novIndex 다시 찾기
+              let newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25F');
+              if (newNovIndex === -1) newNovIndex = dataHeaders.findIndex(h => h && h.trim() === 'Nov-25A');
+              
               if (newNovIndex >= 0) {
                 dataHeaders.splice(newNovIndex, 0, removed);
               }
@@ -3007,15 +3020,18 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           }
         }
         
-        // 24-Dec를 Dec-25F 앞으로 이동
-        const decIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
+        // 24-Dec를 Dec-25F/A 앞으로 이동
+        let decIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
+        if (decIndex === -1) decIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25A');
         const existing24DecIndex = dataHeaders.findIndex(h => h && h.trim() === '24-Dec');
         
         if (decIndex >= 0) {
           if (existing24DecIndex >= 0) {
             if (existing24DecIndex !== decIndex - 1) {
               const removed = dataHeaders.splice(existing24DecIndex, 1)[0];
-              const newDecIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
+              let newDecIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25F');
+              if (newDecIndex === -1) newDecIndex = dataHeaders.findIndex(h => h && h.trim() === 'Dec-25A');
+              
               if (newDecIndex >= 0) {
                 dataHeaders.splice(newDecIndex, 0, removed);
               }
@@ -4349,11 +4365,11 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2025-11",
-    "손익계산서": "2025-11",
-    "재무상태표": "2025-11",
-    "현금흐름표": "2025-11",
-    "영업비 분석": "2025-11",
+    "대시보드": "2025-12",
+    "손익계산서": "2025-12",
+    "재무상태표": "2025-12",
+    "현금흐름표": "2025-12",
+    "영업비 분석": "2025-12",
   });
   
   // CSV 데이터 로딩 상태
@@ -4382,11 +4398,11 @@ export default function DashboardPage() {
   }, [activeTab]);
   
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
-  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2025-11";
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2025-12";
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec)과 코드 형식(2025-01, 2025-02, ...) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -4398,7 +4414,8 @@ export default function DashboardPage() {
       '2025-08': '25-Aug',
       '2025-09': '25-Sep',
       '2025-10': '25-Oct',
-      '2025-11': '25-Nov'
+      '2025-11': '25-Nov',
+      '2025-12': '25-Dec'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -4413,7 +4430,7 @@ export default function DashboardPage() {
   };
   
   const getSummaryValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ...)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec)과 코드 형식(2025-01, 2025-02, ...) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -4425,7 +4442,8 @@ export default function DashboardPage() {
       '2025-08': '25-Aug',
       '2025-09': '25-Sep',
       '2025-10': '25-Oct',
-      '2025-11': '25-Nov'
+      '2025-11': '25-Nov',
+      '2025-12': '25-Dec'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -5341,7 +5359,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
     
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -5443,8 +5461,8 @@ export default function DashboardPage() {
       return null;
     }
     
-      const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
-      const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월'];
+      const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
+      const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
       
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
@@ -5457,7 +5475,8 @@ export default function DashboardPage() {
         '2025-08': '25-Aug',
         '2025-09': '25-Sep',
         '2025-10': '25-Oct',
-        '2025-11': '25-Nov'
+        '2025-11': '25-Nov',
+        '2025-12': '25-Dec'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
@@ -5535,7 +5554,7 @@ export default function DashboardPage() {
       if (monthLabel === '11월') {
         period = '25.11실적';
       } else if (monthLabel === '12월') {
-        period = '25.12예상 재고';
+        period = '25.12실적';
       } else {
         const periodLabel = monthLabel.replace('월', '');
         period = `25.${periodLabel}실적`;
@@ -5556,8 +5575,8 @@ export default function DashboardPage() {
       return summaryData[key][csvMonthKey];
     };
     
-    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월'];
+    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
@@ -5631,6 +5650,7 @@ export default function DashboardPage() {
               <SelectItem value="2025-09">2025년 09월</SelectItem>
               <SelectItem value="2025-10">2025년 10월</SelectItem>
               <SelectItem value="2025-11">2025년 11월</SelectItem>
+              <SelectItem value="2025-12">2025년 12월</SelectItem>
             </SelectContent>
           </Select>
         </div>
