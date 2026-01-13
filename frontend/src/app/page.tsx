@@ -1722,7 +1722,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [allExpanded, setAllExpanded] = React.useState(false);
-  const [showAllMonths, setShowAllMonths] = React.useState(false);
+  const [showAllMonths, setShowAllMonths] = React.useState(true);
 
   React.useEffect(() => {
     setLoading(true);
@@ -2866,7 +2866,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   // 초기 상태: 모든 항목 닫힘
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [allExpanded, setAllExpanded] = React.useState(false);
-  const [showAllMonths, setShowAllMonths] = React.useState(false);
+  const [showAllMonths, setShowAllMonths] = React.useState(true);
 
   // 운전자본 표 확장 상태 관리 (기본값: '운전자본', '현금/차입금' 펼침)
   const [workingCapitalExpanded, setWorkingCapitalExpanded] = React.useState<Set<string>>(new Set(['운전자본', '현금/차입금']));
@@ -4274,7 +4274,7 @@ function parseSummaryCSV(csvText: string): Record<string, Record<string, string>
 }
 
 export default function DashboardPage() {
-  const [expandAllDetails, setExpandAllDetails] = React.useState(false);
+  const [expandAllDetails, setExpandAllDetails] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState("대시보드");
   
   // 각 탭별로 독립적인 조회 기준 월 관리
