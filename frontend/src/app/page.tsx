@@ -3484,7 +3484,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         } else if (header.startsWith('24-Nov') || header === '24-Nov') {
                           displayHeader = '24-Nov';
                         } else if (header.startsWith('24-Dec') || header === '24-Dec') {
-                          displayHeader = '전년 Dec';
+                          displayHeader = '24-Dec';
                         } else {
                           displayHeader = header.replace('-25A', '').replace('-25F', '(예상)');
                         }
