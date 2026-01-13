@@ -6002,9 +6002,9 @@ export default function DashboardPage() {
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
                 insights={[
-                    {color: "purple", title: "주요 인사이트", content: "• US EC 월평균 $1,471K, 11월 $2,839K로 급성장\n• US EC가 전체 매출의 95% 차지, US홀세일 $34K 최저"},
-                    {color: "blue", title: "채널 트렌드", content: "• US EC 폭발적 성장 (YOY 174%)\n• EU EC($54K), US홀세일($34K) 미미한 수준\n• 라이선스($77K) 안정적 성장세 (YOY 125%)"},
-                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 95% 리스크 관리 시급\n• US홀세일/EU 채널 회복 전략 수립\n• 라이선스 채널 성장 기회 확대"}
+                    {color: "purple", title: "주요 인사이트", content: "• 12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성\n• US EC $3,327K (94%), 11월 대비 17% 추가 성장\n• 연평균 US EC $1,625K, 하반기 급성장세"},
+                    {color: "blue", title: "채널 트렌드", content: "• US EC: 연말 특수로 폭발적 성장 (YOY 170%)\n• 라이선스: 하반기 회복세 지속 ($121K, YOY 107%)\n• EU EC: 반등 신호 ($70K, YOY 40%)\n• US홀세일: 연중 최저 수준 ($17K, 비중 0.5%)"},
+                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 94% → 채널 다변화 시급\n• EU EC 반등 모멘텀 활용, 26년 확대 전략 수립\n• US홀세일 재편 또는 단계적 철수 검토\n• 라이선스 파트너십 강화로 안정적 수익원 확보"}
                 ]}
                 csvChartData={chartDataForComponents?.channelSales}
                 chartType="channel"
@@ -6017,9 +6017,9 @@ export default function DashboardPage() {
                 iconColor="bg-orange-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 11월 $1,305K로 전체 45% 차지\n• 25SS: $1,054K, 시즌 재고 소진 가속화\n• CORE: $364K, YOY 155% 안정적 성장"},
-                    {color: "blue", title: "카테고리", content: "• 25FW 본격 시즌 진입 (비중 45%)\n• 25SS 소진 완료 단계 (비중 36%)\n• 과시즌 합계: $203K (비중 7%)"},
-                    {color: "green", title: "핵심액션", content: "• 25FW 정상가 판매 확대\n• 25SS 연말 소진 완료\n• CORE 상시 판매 강화"}
+                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 12월 $1,690K로 전체 50% 차지, 시즌 피크 도달\n• 25SS: $800K로 시즌 마무리 단계 (YOY 869%)\n• CORE: $711K로 급성장 (YOY 266%), 연말 수요 폭발"},
+                    {color: "blue", title: "카테고리", content: "• 25FW 시즌 정점 (비중 50%)\n• CORE 연말 특수 (비중 21%)\n• 25SS 시즌 종료 (비중 23%)\n• 과시즌 소진 완료 단계 (비중 6%)"},
+                    {color: "green", title: "핵심액션", content: "• 26SS 신상품 준비 및 출시 타이밍 최적화\n• 25FW 재고 소진 전략 수립 (할인율 관리)\n• CORE 라인업 강화로 안정적 매출 기반 확보"}
                 ]}
                 csvChartData={chartDataForComponents?.itemSales}
                 chartType="item"
@@ -6032,9 +6032,9 @@ export default function DashboardPage() {
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "조기경보", content: "• 총재고 $31,076K, YOY 199% 여전히 높은 수준\n• 25FW: $17,107K (비중 55%), YOY 154%\n• 25SS: $9,610K (비중 31%), YOY 409%"},
-                    {color: "blue", title: "긍정신호", content: "• 10월 대비 재고 대폭 감소: $38,777K → $31,076K\n• FW과시즌 소진 가속: $2,197K → $1,831K\n• 전월 대비 20% 감소로 재고 부담 완화"},
-                    {color: "green", title: "인사이트", content: "• 11월 연말 세일로 재고 감소 추세\n• 25FW 재고 비중 56%, 25년 판매 집중\n• 25SS 연말까지 추가 소진 필요"}
+                    {color: "purple", title: "조기경보", content: "• 총재고 $23,133K로 대폭 감소 (YOY 183%)\n• 25FW: $13,830K (비중 60%), 26년 초 소진 집중 필요\n• 25SS: $6,770K (비중 29%), 시즌 종료 임박"},
+                    {color: "blue", title: "긍정신호", content: "• 11월 대비 재고 25% 감소: $31,076K → $23,133K\n• 25SS 소진 가속: $9,610K → $6,770K (30% 감소)\n• FW과시즌 지속 감소: $1,831K → $1,221K\n• CORE 재고 정상화: $2,113K → $1,033K (51% 감소)"},
+                    {color: "green", title: "인사이트", content: "• 연말 세일 효과로 재고 건전성 개선\n• 25FW 재고 비중 60%, 26년 1Q 소진 전략 필요\n• 과시즌 재고 거의 정리 완료 ($1,498K)\n• 26SS 신규 입고 준비 단계 진입"}
                 ]}
                 csvChartData={chartDataForComponents?.inventory}
                 chartType="inventory"
