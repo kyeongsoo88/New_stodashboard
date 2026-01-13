@@ -909,22 +909,22 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
                 <Card className="bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 shadow-md">
                     <CardContent className="p-4">
                         <div className="text-xs text-blue-800 mb-1 font-medium">누적 US EC 매출</div>
-                        <div className="text-lg font-bold text-blue-900">$16,924K</div>
-                        <div className="text-xs text-blue-700 mt-1">누적 기준 YoY 113%</div>
+                        <div className="text-lg font-bold text-blue-900">$19,502K</div>
+                        <div className="text-xs text-blue-700 mt-1">누적 기준 YoY 128%</div>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 shadow-md">
                     <CardContent className="p-4">
                         <div className="text-xs text-orange-800 mb-1 font-medium">누적 SEM비용</div>
                         <div className="text-lg font-bold text-orange-900">${cumulative.adSpend.toLocaleString()}K</div>
-                        <div className="text-xs text-orange-700 mt-1">누적 기준 SEM YoY 113%</div>
+                        <div className="text-xs text-orange-700 mt-1">누적 기준 SEM YoY 127%</div>
                     </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br from-pink-100 to-pink-200 border-pink-300 shadow-md">
                     <CardContent className="p-4">
                         <div className="text-xs text-pink-800 mb-1 font-medium">평균 광고비율</div>
-                        <div className="text-lg font-bold text-pink-900">16.0%</div>
-                        <div className="text-xs text-pink-700 mt-1">(전년대비 : +1.0%p)</div>
+                        <div className="text-lg font-bold text-pink-900">20.5%</div>
+                        <div className="text-xs text-pink-700 mt-1">(전년대비 : -0.1%p)</div>
                     </CardContent>
                 </Card>
             </div>
@@ -1742,36 +1742,11 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
         // 첫 번째 열(구분) 제외하고 모든 열 추출
         let dataHeaders = parsedHeaders.slice(1).filter(h => h && h.trim() !== '');
         
-        // Dec-25F, 24-Dec 제거 - 제거하지 않음 (12월 추가)
-        // dataHeaders = dataHeaders.filter(h => {
-        //   const trimmed = h && h.trim();
-        //   return trimmed !== 'Dec-25F' && trimmed !== '24-Dec';
-        // });
-        
-        // Total을 "25년 합계"로 변경 (CSV에 이미 "25년 합계"가 있으면 변경하지 않음)
-        const totalIndex = dataHeaders.findIndex(h => h && h.trim() === 'Total');
-        const has25Sum = dataHeaders.some(h => h && h.trim() === '25년 합계');
-        const hasSumYoY = dataHeaders.some(h => h && h.trim() === '합계 YoY');
-        
-        if (totalIndex >= 0 && !has25Sum) {
-          dataHeaders[totalIndex] = '25년 합계';
-          // "합계 YoY"가 없으면 추가
-          if (!hasSumYoY) {
-            dataHeaders.splice(totalIndex + 1, 0, '합계 YoY');
-          }
-        } else if (!has25Sum) {
-          // Total도 없고 "25년 합계"도 없으면 마지막에 추가
-          dataHeaders.push('25년 합계');
-          if (!hasSumYoY) {
-            dataHeaders.push('합계 YoY');
-          }
-        } else if (has25Sum && !hasSumYoY) {
-          // "25년 합계"는 있지만 "합계 YoY"가 없으면 추가
-          const sumIndex = dataHeaders.findIndex(h => h && h.trim() === '25년 합계');
-          if (sumIndex >= 0) {
-            dataHeaders.splice(sumIndex + 1, 0, '합계 YoY');
-          }
-        }
+        // "25년 합계"와 "합계 YoY" 컬럼 제거
+        dataHeaders = dataHeaders.filter(h => {
+          const trimmed = h && h.trim();
+          return trimmed !== '25년 합계' && trimmed !== '합계 YoY' && trimmed !== 'Total';
+        });
         
         // 비교 컬럼(24-Nov 등)을 기준 컬럼(Nov-25F 등) 앞으로 이동하는 함수
         const moveYoYColumn = (targetCol: string, yoyCol: string) => {
@@ -1822,7 +1797,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           
           // 하위 항목인지 확인
           const isSubItem = !isMainCategory && 
-                           !['매출총이익', '직접이익', '영업이익', '24년 대비 영업이익 증감', '할인율', '생산원가율', '직접비용율', '영업이익율'].includes(label) &&
+                           !['매출총이익', '직접이익', '영업이익', '할인율', '생산원가율', '직접비용율', '영업이익율'].includes(label) &&
                            (label.includes('Ecommerce') || label.includes('Wholesale') || 
                             label.includes('Other Income') || label.includes('License') ||
                             ['SEM광고비', '운반비', '보관료', '지급수수료', '기타비용', 
@@ -1854,16 +1829,12 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
           for (const dataHeader of dataHeaders) {
             const dTrim = dataHeader && dataHeader.trim();
             
-            // CSV 헤더에서 직접 찾기 (Total 또는 실제 컬럼명)
+            // CSV 헤더에서 직접 찾기
             const csvHeaderIndex = csvHeaders.findIndex(h => {
               const hTrim = h && h.trim();
-              // "25년 합계"는 CSV의 "25년 합계" 또는 "Total"과 매칭
-              if (dTrim === '25년 합계') {
-                return hTrim === '25년 합계' || hTrim === 'Total';
-              }
-              // "합계 YoY"는 CSV의 "합계 YoY"와 매칭
-              if (dTrim === '합계 YoY') {
-                return hTrim === '합계 YoY';
+              // "25년 합계"와 "합계 YoY"는 제외
+              if (hTrim === '25년 합계' || hTrim === '합계 YoY' || hTrim === 'Total') {
+                return false;
               }
               // 나머지는 정확히 매칭
               return hTrim === dTrim || 
@@ -2065,20 +2036,19 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                   }).map((header, idx, arr) => {
                     let displayHeader = header;
                     if (header !== '구분') {
-                      // Nov-25F → Nov로 변경
+                      // Nov-25F → 25-Nov로 변경
                       if (header === 'Nov-25F' || header === 'Nov') {
-                        displayHeader = 'Nov';
+                        displayHeader = '25-Nov';
+                      } else if (header === 'Dec-25F' || header === 'Dec') {
+                        displayHeader = '25-Dec';
                       } else if (header.startsWith('24-Nov') || header === '24-Nov') {
-                        displayHeader = '전년 Nov';
+                        displayHeader = '24-Nov';
                       } else {
                         displayHeader = header.replace('-25A', '').replace('-25F', '(예상)');
                       }
                     }
                     
                     // 세트별 배경색 및 구분선 설정
-                    const isTotalColumn = header === '25년 합계';
-                    const isSumYoY = header === '합계 YoY';
-                    
                     // 첫 번째 세트: 24-Nov, Nov, 당월 YoY (순서 변경됨)
                     const isSet1Start = header === '24-Nov' || header.startsWith('24-Nov');
                     const isSet1 = header === 'Nov-25F' || header === 'Nov' || 
@@ -2089,11 +2059,6 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                     const isSet2Start = header === 'YTD';
                     const isSet2 = header === 'YTD' || header === 'YTD YoY';
                     const isSet2End = header === 'YTD YoY';
-                    
-                    // 세 번째 세트: 25년 합계, 합계 YoY (보라색 파스텔톤)
-                    const isSet3Start = isTotalColumn;
-                    const isSet3 = isTotalColumn || isSumYoY;
-                    const isSet3End = isSumYoY;
                     
                     // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                     let setStyle = "";
@@ -2112,16 +2077,6 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                       }
                       if (isSet2End) {
                         setStyle += ` border-r-2 ${borderClass}`;
-                      }
-                    } else if (isSet3) {
-                      if (isSet3Start) {
-                        setStyle += ` border-l-2 ${borderClass}`;
-                      }
-                      if (isSet3End) {
-                        setStyle += ` border-r-2 ${borderClass}`;
-                      }
-                      if (isTotalColumn) {
-                        setStyle += " font-bold";
                       }
                     }
                     
@@ -2177,7 +2132,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                       {(() => {
                         const filteredValues = row.values.filter((_: any, colIdx: number) => {
                           if (showAllMonths) return true;
-                          // Values array structure: 0=Jan, ..., 9=Oct, 10=Nov-25F, 11=24-Nov, 12=당월 YoY, 13=YTD, 14=YTD YoY, 15=25년 합계, 16=합계 YoY
+                          // Values array structure: 0=Jan, ..., 9=Oct, 10=Nov-25F, 11=24-Nov, 12=당월 YoY, 13=YTD, 14=YTD YoY
                           // Dec-25F와 24-Dec는 제거됨
                           // We want to hide indices 0 to 9 (Jan to Oct), keep everything from Nov onwards (colIdx >= 10)
                           return colIdx >= 10;
@@ -2190,10 +2145,8 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                             return idx === 0 || idx >= 11;
                           });
                           const currentHeader = filteredHeaders[colIdx + 1]; // +1은 구분 컬럼 제외
-                          const isTotalColumn = currentHeader === '25년 합계';
-                          const isSumYoY = currentHeader === '합계 YoY';
                           
-                          const isYoYColumn = currentHeader === '당월 YoY' || currentHeader === 'YTD YoY' || currentHeader === '합계 YoY';
+                          const isYoYColumn = currentHeader === '당월 YoY' || currentHeader === 'YTD YoY';
 
                           // 세트별 배경색 및 구분선 설정 (헤더와 동일)
                           const isSet1Start = currentHeader === '24-Nov' || currentHeader.startsWith('24-Nov');
@@ -2204,38 +2157,9 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                           const isSet2Start = currentHeader === 'YTD';
                           const isSet2 = currentHeader === 'YTD' || currentHeader === 'YTD YoY';
                           const isSet2End = currentHeader === 'YTD YoY';
-                          
-                          const isSet3Start = isTotalColumn;
-                          const isSet3 = isTotalColumn || isSumYoY;
-                          const isSet3End = isSumYoY;
 
-                          // "24년 대비 영업이익 증감" 행에 대한 특별 처리
                           let displayValue = isYoYColumn ? value : formatValue(value);
                           let cellColorClass = getValueColor(value);
-                          
-                          if (row.label === '24년 대비 영업이익 증감') {
-                            if (value && value !== '' && value !== '-') {
-                              // △로 시작하는 경우 붉은색
-                              if (value.includes('△')) {
-                                cellColorClass = "text-red-600";
-                                displayValue = value;
-                              } else {
-                                // △가 아닌 경우 숫자를 추출하여 +로 시작하도록
-                                const cleanedValue = value.replace(/[^0-9.-]/g, '');
-                                const num = parseFloat(cleanedValue);
-                                if (!isNaN(num)) {
-                                  if (num >= 0) {
-                                    displayValue = `+${num.toLocaleString()}`;
-                                  } else {
-                                    displayValue = `△${Math.abs(num).toLocaleString()}`;
-                                    cellColorClass = "text-red-600";
-                                  }
-                                } else {
-                                  displayValue = value;
-                                }
-                              }
-                            }
-                          }
                           
                           // 세트 구분을 위한 스타일 - 세트 사이에만 구분선 (회색으로 통일)
                           let setStyle = "";
@@ -2254,16 +2178,6 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                             }
                             if (isSet2End) {
                               setStyle += ` border-r-2 ${borderClass}`;
-                            }
-                          } else if (isSet3) {
-                            if (isSet3Start) {
-                              setStyle += ` border-l-2 ${borderClass}`;
-                            }
-                            if (isSet3End) {
-                              setStyle += ` border-r-2 ${borderClass}`;
-                            }
-                            if (isTotalColumn) {
-                              setStyle += " font-bold";
                             }
                           }
 
@@ -3354,15 +3268,15 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                   }).map((header, idx) => {
                     let displayHeader = header;
                     if (header !== '구분') {
-                      // Nov-25F → Nov, Dec-25F → Dec로 변경
+                      // Nov-25F → 25-Nov, Dec-25F → 25-Dec로 변경
                       if (header === 'Nov-25F' || header === 'Nov') {
-                        displayHeader = 'Nov';
+                        displayHeader = '25-Nov';
                       } else if (header === 'Dec-25F' || header === 'Dec') {
-                        displayHeader = 'Dec 예상';
+                        displayHeader = '25-Dec';
                       } else if (header.startsWith('24-Nov') || header === '24-Nov') {
-                        displayHeader = '전년 Nov';
+                        displayHeader = '24-Nov';
                       } else if (header.startsWith('24-Dec') || header === '24-Dec') {
-                        displayHeader = '전년 Dec';
+                        displayHeader = '24-Dec';
                       } else if (header === 'Dec YoY') {
                         displayHeader = 'Dec YoY';
                       } else {
@@ -3562,13 +3476,13 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                     }).map((header, idx) => {
                       let displayHeader = header;
                       if (header !== '구분') {
-                        // Nov-25F → Nov, Dec-25F → Dec 예상으로 변경
+                        // Nov-25F → 25-Nov, Dec-25F → 25-Dec로 변경
                         if (header === 'Nov-25F' || header === 'Nov') {
-                          displayHeader = 'Nov';
+                          displayHeader = '25-Nov';
                         } else if (header === 'Dec-25F' || header === 'Dec') {
-                          displayHeader = 'Dec 예상';
+                          displayHeader = '25-Dec';
                         } else if (header.startsWith('24-Nov') || header === '24-Nov') {
-                          displayHeader = '전년 Nov';
+                          displayHeader = '24-Nov';
                         } else if (header.startsWith('24-Dec') || header === '24-Dec') {
                           displayHeader = '전년 Dec';
                         } else {
@@ -4110,11 +4024,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                   {headers.map((header, idx) => {
                     let displayHeader = header;
                     if (header !== '구분') {
-                      // Nov-25F → Nov, Dec-25F → Dec로 변경
+                      // Nov-25F → 25-Nov, Dec-25F → 25-Dec로 변경
                       if (header === 'Nov-25F' || header === 'Nov') {
-                        displayHeader = 'Nov';
+                        displayHeader = '25-Nov';
                       } else if (header === 'Dec-25F' || header === 'Dec') {
-                        displayHeader = 'Dec';
+                        displayHeader = '25-Dec';
                       } else {
                         displayHeader = header.replace('-25A', '').replace('-25F', '(예상)');
                       }
