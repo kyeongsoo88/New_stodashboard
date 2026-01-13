@@ -5617,9 +5617,9 @@ export default function DashboardPage() {
               title="핵심 성과"
               icon={LightbulbIcon}
               defaultItems={[
-                "✓ 역대 최고 실적: $3,003K 매출, YOY 159% 달성",
-                "✓ US EC 압도적 성장: $2,839K(전체 95%), YOY 174% 달성",
-                "✓ 25FW 본격화: $1,305K 매출로 전체 비중 45% 차지"
+                "역대 최고 실적: $3,535K 매출, YOY 155% 달성",
+                "US EC 압도적 성장: $3,327K(비중 94%), YOY 170% 달성",
+                "25FW 본격화: $1,690K 매출 전체 비중 50% 차지"
               ]}
               storageKey="ceo-insights-key-performance"
               cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
@@ -5629,10 +5629,10 @@ export default function DashboardPage() {
               title="주요 리스크"
               icon={AlertTriangleIcon}
               defaultItems={[
-                "✓ 할인율 급등: 61.2%로 전년 대비 +19.5%p, US EC 61.1%(+18.7%p)",
-                "✓ 낮은 직접이익률: 19.5% 기록, 과도한 할인으로 수익성 악화",
-                "✓ 재고 부담: $31,076K로 YOY 199%, 25SS $9,610K 추가 소진 필요",
-                "✓ (트럼프 대중 관세 7% → 27%)"
+                "할인율 급등: 57.1%로 전년 대비 +17.6%p, US EC 56.8%(전년대비 +18.7%p)",
+                "낮은 직접이익률: 2.7% 기록, 높은 할인율 및 US EC SEM비용 $840K (25.3%)로 관리 필요",
+                "재고 부담: $23,133K YoY 183% (전월대비 $7,943K 소진) 여전히 25SS 재고 $6,766K 소진 필요",
+                "트럼프 대중 관세 7% → 27%"
               ]}
               storageKey="ceo-insights-major-risks"
               cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
@@ -5642,9 +5642,9 @@ export default function DashboardPage() {
               title="CEO 전략 방향"
               icon={TargetIcon}
               defaultItems={[
-                "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리",
-                "수익성 집중: 직접이익률 25% 이상 회복 목표, 선별적 프로모션 운영",
-                "단일 아이템 집중 : US EC Track Jacket/Pant 매출 비중 당년 73% vs 전년 58% (매출 YoY 197%)"
+                "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리 (12월 당시즌 할인율 : 49.3%로 관리중)",
+                "수익성 집중: 직접이익률 25% 이상 회복 목표, 특히 SEM 광고비 효율적 선별적 투자 필요",
+                "단일 아이템 집중 : US EC Track Jacket/Pant 매출 비중 당년 71% vs 전년 57% (매출 YoY 170%)"
               ]}
               storageKey="ceo-insights-strategy-v2"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
