@@ -5646,7 +5646,7 @@ export default function DashboardPage() {
                 "수익성 집중: 직접이익률 25% 이상 회복 목표, 특히 SEM 광고비 효율적 선별적 투자 필요",
                 "단일 아이템 집중 : US EC Track Jacket/Pant 매출 비중 당년 70% vs 전년 73% (매출 YoY 170%)"
               ]}
-              storageKey="ceo-insights-strategy-v2"
+              storageKey="ceo-insights-strategy-v3"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
               titleClassName="text-green-700"
             />
