@@ -2207,6 +2207,163 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
   );
 }
 
+// STE 손익계산서 컴포넌트
+function STEIncomeStatementSection() {
+  const [csvData, setCsvData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetch('/data/ste-income-statement.csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 1) {
+          setLoading(false);
+          return;
+        }
+        
+        // 헤더 파싱
+        const headerLine = lines[0];
+        const parsedHeaders = parseCSVLine(headerLine);
+        setHeaders(parsedHeaders);
+        
+        // 데이터 파싱
+        const parsed: any[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2) continue;
+          
+          const label = values[0].trim();
+          
+          // 하위 항목 확인 (-로 시작)
+          const isSubItem = label.startsWith('-');
+          const cleanLabel = label.replace(/^-/, '').trim();
+          
+          // 메인 항목 (강조 표시할 항목들)
+          const isMainCategory = !isSubItem && 
+            ['매출', '영업비', '고정비 계', '영업이익', '감가비 조정 후 영업이익'].includes(cleanLabel);
+          
+          // 계산 결과 행 (배경색 등 강조)
+          const isCalculationResult = ['고정비 계', '영업이익', '감가비 조정 후 영업이익'].includes(cleanLabel);
+
+          parsed.push({
+            label: cleanLabel,
+            values: values.slice(1),
+            isSubItem,
+            isMainCategory,
+            isCalculationResult
+          });
+        }
+        
+        setCsvData(parsed);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('STE CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatValue = (value: string) => {
+    if (!value || value === '' || value === '-') return '-';
+    
+    // 퍼센트 값 처리
+    if (value.includes('%')) {
+      return value;
+    }
+    
+    // 쉼표 제거 및 숫자 변환
+    const cleanValue = value.replace(/,/g, '');
+    const num = parseFloat(cleanValue);
+    
+    if (isNaN(num)) return value;
+    if (num < 0) return `(${Math.abs(num).toLocaleString()})`;
+    return num.toLocaleString();
+  };
+
+  const getValueColor = (value: string) => {
+    if (!value || value === '' || value === '-') return '';
+    
+    const cleanValue = value.replace(/,/g, '');
+    const num = parseFloat(cleanValue);
+    
+    if (!isNaN(num) && num < 0) {
+      return "text-red-600";
+    }
+    return "";
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mt-8">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-bold">STE 손익계산서 (단위 : K $)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border overflow-hidden">
+          <div className="relative w-full overflow-auto">
+            <table className="w-full caption-bottom text-sm">
+              <thead className="[&_tr]:border-b">
+                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted bg-gray-50/50">
+                  {headers.map((header, index) => (
+                    <th 
+                      key={index} 
+                      className={`h-12 px-4 align-middle font-bold text-muted-foreground [&:has([role=checkbox])]:pr-0 ${
+                        index === 0 
+                          ? "text-left sticky left-0 z-20 bg-gray-50 w-[200px]" 
+                          : "text-right min-w-[100px]"
+                      }`}
+                    >
+                      {header === '구분' ? '중분류' : header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="[&_tr:last-child]:border-0">
+                {csvData.map((row, rowIndex) => (
+                  <tr 
+                    key={rowIndex} 
+                    className={`
+                      border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted
+                      ${row.isCalculationResult ? "bg-gray-100/80 font-bold" : ""}
+                      ${row.isMainCategory && !row.isCalculationResult ? "font-semibold bg-gray-50/30" : ""}
+                    `}
+                  >
+                    <td className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 sticky left-0 z-10 
+                      ${row.isCalculationResult ? "bg-gray-100/90" : "bg-white"}
+                      ${row.isSubItem ? "pl-8 text-gray-600" : "font-medium"}
+                    `}>
+                      {row.label}
+                    </td>
+                    {row.values.map((val: string, colIndex: number) => (
+                      <td key={colIndex} className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right ${getValueColor(val)}`}>
+                        {formatValue(val)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // 영업비 분석 CSV 파싱 및 표시 컴포넌트
 function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
@@ -5593,7 +5750,12 @@ export default function DashboardPage() {
         </div>
 
         {/* 손익계산서 탭 콘텐츠 */}
-        {activeTab === "손익계산서" && <IncomeStatementSection selectedMonth={currentSelectedMonth} />}
+        {activeTab === "손익계산서" && (
+          <>
+            <IncomeStatementSection selectedMonth={currentSelectedMonth} />
+            <STEIncomeStatementSection />
+          </>
+        )}
         
         {/* 재무상태표 탭 콘텐츠 */}
         {activeTab === "재무상태표" && <BalanceSheetSection selectedMonth={currentSelectedMonth} />}
