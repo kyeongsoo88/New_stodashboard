@@ -2252,7 +2252,18 @@ function STEIncomeStatementSection() {
         return decodedText;
       })
       .then(text => {
-        const lines = text.split('\n').filter(line => line.trim());
+        const lines = text
+          .split(/\r?\n/)
+          .map(l => l.trim())
+          .filter(Boolean)
+          // Excel에서 "구분,Jan-25,..." 처럼 라인 전체를 큰따옴표로 감싸 저장하는 경우가 있어 방어 처리
+          .map((line) => {
+            const t = line.trim();
+            if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
+              return t.slice(1, -1).replace(/""/g, '"');
+            }
+            return t;
+          });
         if (lines.length < 1) {
           setLoading(false);
           return;
@@ -4015,7 +4026,333 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           </CardContent>
         </Card>
       )}
+
+      {/* STE 재무상태표 섹션 */}
+      <STEBalanceSheetSection />
     </div>
+  );
+}
+
+// STE 재무상태표 컴포넌트
+function STEBalanceSheetSection() {
+  const [csvData, setCsvData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  // 기본: 자산총계만 펼침
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산총계']));
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  const toggleRow = (label: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleAll = () => {
+    const allCategories = ['자산총계', '부채총계', '자본총계', '무형자산'];
+    const allOpen = allCategories.every(cat => expandedRows.has(cat));
+    if (allOpen) {
+      setExpandedRows(new Set());
+    } else {
+      setExpandedRows(new Set(allCategories));
+    }
+  };
+
+  React.useEffect(() => {
+    setLoading(true);
+    fetch('/data/ste-balance-sheet.csv')
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+
+        let decodedText = '';
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          decodedText = new TextDecoder('utf-16le').decode(bytes);
+        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          decodedText = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          decodedText = new TextDecoder('utf-8').decode(bytes);
+        }
+
+        return decodedText;
+      })
+      .then(text => {
+        const lines = text
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean)
+          // CSV가 라인 전체를 "..." 로 감싼 형태로 저장되는 경우(Excel 저장/편집 등) 방어
+          .map((line) => {
+            const t = line.trim();
+            if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
+              // 양끝 큰따옴표 제거 + "" 이스케이프 복구
+              return t.slice(1, -1).replace(/""/g, '"');
+            }
+            return t;
+          });
+        if (lines.length < 1) {
+          setLoading(false);
+          return;
+        }
+        
+        const headerLine = lines[0];
+        const parsedHeaders = parseCSVLine(headerLine);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
+        setHeaders(parsedHeaders);
+        
+        const parsed: any[] = [];
+        let currentParent: string | null = null;
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2) continue;
+          
+          const labelRaw = (values[0] || '').trim().replace(/^\uFEFF/, '');
+          
+          const isSubItem = labelRaw.startsWith("'-") || labelRaw.startsWith('-');
+          const cleanLabel = labelRaw.replace(/^'-/, '').replace(/^-/, '').trim();
+          
+          const isMainCategory = !isSubItem;
+          
+          if (isMainCategory) {
+            currentParent = cleanLabel;
+          }
+          
+          const isCalculationResult = ['자산총계', '부채총계', '자본총계'].includes(cleanLabel);
+
+          parsed.push({
+            label: cleanLabel,
+            values: values.slice(1),
+            isSubItem,
+            isMainCategory,
+            isCalculationResult,
+            parent: isSubItem ? currentParent : null
+          });
+        }
+        
+        const dataWithChildrenInfo = parsed.map(row => {
+           const hasChildren = parsed.some(r => r.parent === row.label);
+           return { ...row, hasChildren };
+        });
+        
+        setCsvData(dataWithChildrenInfo);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('STE Balance Sheet CSV 로드 오류:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatValue = (value: string) => {
+    if (!value || value === '' || value === '-') return '-';
+    
+    if (value.includes('%')) {
+      return value;
+    }
+    
+    const cleanValue = value.replace(/,/g, '');
+    const num = parseFloat(cleanValue);
+    
+    if (isNaN(num)) return value;
+    if (num < 0) return `(${Math.abs(num).toLocaleString()})`;
+    return num.toLocaleString();
+  };
+
+  const getValueColor = (value: string) => {
+    if (!value || value === '' || value === '-') return '';
+    
+    const cleanValue = value.replace(/,/g, '');
+    const num = parseFloat(cleanValue);
+    
+    if (!isNaN(num) && num < 0) {
+      return "text-red-600";
+    }
+    return "";
+  };
+
+  if (loading) {
+    return (
+      <Card className="mt-8">
+        <div className="text-center text-gray-500 p-8">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  const foldMonthHeaders = new Set([
+    'Jan-25',
+    'Feb-25',
+    'Mar-25',
+    'Apr-25',
+    'May-25',
+    'Jun-25',
+    'Jul-25',
+    'Aug-25',
+    'Sep-25',
+    'Oct-25',
+    'Nov-25',
+  ]);
+  const visibleHeaderIndices = headers
+    .map((h, idx) => ({ h: (h || '').trim(), idx }))
+    .filter(({ h, idx }) => {
+      if (idx === 0) return true;
+      if (showAllMonths) return true;
+      return !foldMonthHeaders.has(h);
+    })
+    .map(({ idx }) => idx);
+
+  return (
+    <Card className="mt-8">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-bold">STE 재무상태표 (단위 : K £)</CardTitle>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAll}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+          >
+            {['자산총계', '부채총계', '자본총계', '무형자산'].every(cat => expandedRows.has(cat)) ? "접기" : "열기"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAllMonths(prev => !prev)}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+          >
+            {showAllMonths ? "월 접기" : "월 펼치기"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border overflow-hidden">
+          <div className="relative w-full overflow-auto">
+            <table className="w-full caption-bottom text-sm">
+              <thead className="[&_tr]:border-b">
+                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted bg-gray-50/50">
+                  {visibleHeaderIndices.map((headerIndex) => {
+                    const header = headers[headerIndex];
+                    const index = headerIndex;
+                    const prevHeader = index > 0 ? headers[visibleHeaderIndices[index - 1]] : null;
+                    const isAfterGubun = prevHeader === '구분';
+                    const isAfterYeonbi = prevHeader === '전년대비';
+                    
+                    return (
+                    <th 
+                      key={index} 
+                      className={`h-12 px-4 align-middle font-bold text-black [&:has([role=checkbox])]:pr-0 ${
+                        index === 0
+                          ? "w-[250px] font-bold text-left sticky left-0 z-20 bg-gray-50"
+                          : header === '비고'
+                          ? "text-left font-bold min-w-[300px]"
+                          : "text-right font-bold min-w-[80px]"
+                      } ${
+                        isAfterGubun || isAfterYeonbi ? "border-l-2 border-gray-500" : ""
+                      }`}
+                    >
+                      {header === '구분' ? '구분' : header}
+                    </th>
+                  )})}
+                </tr>
+              </thead>
+              <tbody className="[&_tr:last-child]:border-0">
+                {csvData.map((row, rowIndex) => {
+                  if (row.isSubItem && row.parent && !expandedRows.has(row.parent)) {
+                    return null;
+                  }
+
+                  return (
+                    <tr 
+                      key={rowIndex} 
+                      className={cn(
+                        row.isMainCategory ? "bg-gray-100" :
+                        row.isSubItem ? "bg-gray-50" : "",
+                        "hover:bg-gray-50",
+                        row.hasChildren && row.label !== '무형자산' ? "cursor-pointer" : ""
+                      )}
+                    >
+                      <td
+                        className={cn(
+                          "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 sticky left-0 z-10 flex items-center h-full",
+                          row.isMainCategory ? "font-bold text-base" : "font-bold",
+                          row.isSubItem ? "pl-12 text-sm text-gray-600 font-bold" : "pl-2",
+                          row.isCalculationResult ? "font-bold text-base" : "",
+                          row.isMainCategory ? "bg-gray-100" : "bg-white",
+                          row.hasChildren && row.label !== '무형자산' ? "cursor-pointer" : ""
+                        )}
+                        onClick={() => {
+                          if (row.hasChildren && row.label !== '무형자산') toggleRow(row.label);
+                        }}
+                      >
+                        {row.hasChildren && row.label !== '무형자산' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(row.label);
+                            }}
+                            className="w-4 flex justify-center mr-1 text-xs text-gray-500"
+                            aria-label={`${row.label} ${expandedRows.has(row.label) ? "접기" : "펼치기"}`}
+                          >
+                            {expandedRows.has(row.label) ? (
+                              <ChevronDownIcon className="h-4 w-4" />
+                            ) : (
+                              <ChevronRightIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                        {(row.hasChildren && row.label === '무형자산') || (!row.hasChildren && !row.isSubItem) ? (
+                          <span className="w-4 mr-1 inline-block" />
+                        ) : null}
+                        {row.label}
+                      </td>
+                      {visibleHeaderIndices
+                        .filter((idx) => idx !== 0)
+                        .map((headerIdx, colIndex) => {
+                          const valIndex = headerIdx - 1;
+                          const val = row.values?.[valIndex] ?? '';
+                          const currentHeader = headers[headerIdx];
+                          const isNoteColumn = currentHeader === '비고';
+                          const filteredIndices = visibleHeaderIndices.filter((idx) => idx !== 0);
+                          const prevHeaderIdx = colIndex > 0 ? filteredIndices[colIndex - 1] : null;
+                          const prevHeader = prevHeaderIdx !== null ? headers[prevHeaderIdx] : null;
+                          const isAfterGubun = prevHeader === '구분' || (colIndex === 0 && headers[visibleHeaderIndices[0]] === '구분');
+                          const isAfterYeonbi = prevHeader === '전년대비';
+                          
+                          return (
+                            <td
+                              key={headerIdx}
+                              className={cn(
+                                "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 font-bold",
+                                isNoteColumn ? "text-left" : "text-right",
+                                !isNoteColumn && getValueColor(val),
+                                (isAfterGubun || isAfterYeonbi) ? "border-l-2 border-gray-500" : ""
+                              )}
+                            >
+                              {isNoteColumn ? val : formatValue(val)}
+                            </td>
+                          );
+                        })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
