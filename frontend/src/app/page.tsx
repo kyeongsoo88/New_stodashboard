@@ -3234,7 +3234,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       {/* 재무상태표 본문 */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-bold">재무상태표 (단위 : K $)</CardTitle>
+          <CardTitle className="text-lg font-bold">STO 재무상태표 (단위 : K $)</CardTitle>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -3452,7 +3452,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       {workingCapitalData.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-bold">운전자본 (단위 : K $)</CardTitle>
+            <CardTitle className="text-lg font-bold">STO 운전자본 (단위 : K $)</CardTitle>
             <Button 
               variant="outline" 
               size="sm" 
