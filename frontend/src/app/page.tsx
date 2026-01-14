@@ -2001,7 +2001,7 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-bold">손익계산서(단위: K $)</CardTitle>
+          <CardTitle className="text-lg font-bold">STO 손익계산서(단위 : K $)</CardTitle>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -2212,11 +2212,45 @@ function STEIncomeStatementSection() {
   const [csvData, setCsvData] = React.useState<any[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
+  // STE 표에서만: Jan~Nov 컬럼은 기본 접힘
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  const toggleRow = (label: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
 
   React.useEffect(() => {
     setLoading(true);
     fetch('/data/ste-income-statement.csv')
-      .then(res => res.text())
+      .then(async (res) => {
+        // Excel 호환을 위해 UTF-16LE(Unicode)로 저장될 수 있어 arrayBuffer로 받아서 디코딩 처리
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+
+        // BOM 기반 인코딩 감지
+        // UTF-16LE: FF FE
+        // UTF-8 BOM: EF BB BF
+        let decodedText = '';
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          decodedText = new TextDecoder('utf-16le').decode(bytes);
+        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          decodedText = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          // fallback
+          decodedText = new TextDecoder('utf-8').decode(bytes);
+        }
+
+        return decodedText;
+      })
       .then(text => {
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length < 1) {
@@ -2227,10 +2261,32 @@ function STEIncomeStatementSection() {
         // 헤더 파싱
         const headerLine = lines[0];
         const parsedHeaders = parseCSVLine(headerLine);
+        // Excel용 UTF-8 BOM 제거
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
         setHeaders(parsedHeaders);
         
         // 데이터 파싱
         const parsed: any[] = [];
+        let currentParent: string | null = null;
+
+        // STE 표 전용: 영업비(상위) + 4개 항목(하위) 묶기/합계 계산
+        const operatingExpenseChildren = new Set<string>([
+          '광고선전비',
+          '기타판관비',
+          '감가상각비',
+          '모빈 법률비용 영업비용',
+        ]);
+        const operatingExpenseParentLabel = '영업비';
+        let operatingExpenseSum: number[] | null = null; // headers[1..]에 대응 (values.slice(1))
+
+        const parseNumber = (raw: string) => {
+          const s = (raw || '').toString().replace(/["$,]/g, '').trim();
+          if (!s || s === '-') return 0;
+          const n = Number(s);
+          return Number.isFinite(n) ? n : 0;
+        };
         
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];
@@ -2239,29 +2295,85 @@ function STEIncomeStatementSection() {
           const values = parseCSVLine(line);
           if (values.length < 2) continue;
           
-          const label = values[0].trim();
+          // Excel에서 '-Movin' 같은 값이 수식으로 해석되지 않도록 CSV에서 "'-Movin" 형태로 저장할 수 있음
+          // 앱에서는 둘 다 처리
+          const labelRaw = (values[0] || '').trim().replace(/^\uFEFF/, '');
           
-          // 하위 항목 확인 (-로 시작)
-          const isSubItem = label.startsWith('-');
-          const cleanLabel = label.replace(/^-/, '').trim();
+          // 하위 항목 확인 (- 또는 '- 로 시작)
+          const isSubItem = labelRaw.startsWith("'-") || labelRaw.startsWith('-');
+          const cleanLabel = labelRaw.replace(/^'-/, '').replace(/^-/, '').trim();
           
-          // 메인 항목 (강조 표시할 항목들)
-          const isMainCategory = !isSubItem && 
-            ['매출', '영업비', '고정비 계', '영업이익', '감가비 조정 후 영업이익'].includes(cleanLabel);
+          // STE 표에서만: 고정비 계 행은 아예 제외
+          if (cleanLabel === '고정비 계') {
+            continue;
+          }
+
+          // STE 표 전용: 4개 항목은 "영업비" 하위로 강제 묶기
+          const isOperatingExpenseChild = operatingExpenseChildren.has(cleanLabel);
+          const finalIsSubItem = isSubItem || isOperatingExpenseChild;
+          const finalParent = finalIsSubItem
+            ? (isOperatingExpenseChild ? operatingExpenseParentLabel : currentParent)
+            : null;
+
+          // 메인 항목
+          const isMainCategory = !finalIsSubItem;
+          
+          // 부모 카테고리 추적
+          if (isMainCategory) {
+            currentParent = cleanLabel;
+          }
           
           // 계산 결과 행 (배경색 등 강조)
           const isCalculationResult = ['고정비 계', '영업이익', '감가비 조정 후 영업이익'].includes(cleanLabel);
 
+          // 하위 항목이 있는 메인 카테고리인지 확인 (다음 줄이 하위 항목인지 미리 확인하거나, 파싱 후 처리)
+          // 여기서는 '라이선스 매출'만 하위 항목이 있다는 것을 알고 있으므로 간단히 처리 가능하지만,
+          // 범용성을 위해 hasChildren 속성을 나중에 계산하거나 여기서 처리.
+          // 일단 parsed에 parent 정보를 넣고 나중에 hasChildren을 계산하는 게 나음.
+
           parsed.push({
             label: cleanLabel,
             values: values.slice(1),
-            isSubItem,
+            isSubItem: finalIsSubItem,
             isMainCategory,
-            isCalculationResult
+            isCalculationResult,
+            parent: finalParent
           });
+
+          // "영업비" 합계 계산 (4개 하위 항목 합산)
+          if (isOperatingExpenseChild) {
+            const rowVals = values.slice(1);
+            if (!operatingExpenseSum) {
+              operatingExpenseSum = new Array(rowVals.length).fill(0);
+            }
+            for (let j = 0; j < rowVals.length; j++) {
+              operatingExpenseSum[j] += parseNumber(rowVals[j]);
+            }
+          }
+        }
+
+        // "영업비" 상위 행 삽입 (4개 항목 위, 기본 접힘)
+        if (operatingExpenseSum) {
+          const firstChildIdx = parsed.findIndex(r => r.parent === operatingExpenseParentLabel);
+          if (firstChildIdx >= 0) {
+            parsed.splice(firstChildIdx, 0, {
+              label: operatingExpenseParentLabel,
+              values: operatingExpenseSum.map(n => String(n)),
+              isSubItem: false,
+              isMainCategory: true,
+              isCalculationResult: false,
+              parent: null
+            });
+          }
         }
         
-        setCsvData(parsed);
+        // hasChildren 속성 추가
+        const dataWithChildrenInfo = parsed.map(row => {
+           const hasChildren = parsed.some(r => r.parent === row.label);
+           return { ...row, hasChildren };
+        });
+        
+        setCsvData(dataWithChildrenInfo);
         setLoading(false);
       })
       .catch(err => {
@@ -2307,10 +2419,42 @@ function STEIncomeStatementSection() {
     );
   }
 
+  // STE 표에서만: Jan-25A ~ Nov-25A 숨김/표시 제어
+  const foldMonthHeaders = new Set([
+    'Jan-25A',
+    'Feb-25A',
+    'Mar-25A',
+    'Apr-25A',
+    'May-25A',
+    'Jun-25A',
+    'Jul-25A',
+    'Aug-25A',
+    'Sep-25A',
+    'Oct-25A',
+    'Nov-25A',
+  ]);
+  const visibleHeaderIndices = headers
+    .map((h, idx) => ({ h: (h || '').trim(), idx }))
+    .filter(({ h, idx }) => {
+      if (idx === 0) return true; // 첫 컬럼(중분류)은 항상 표시
+      if (showAllMonths) return true;
+      // 기본(접힘) 상태에서는 Jan~Nov만 숨김
+      return !foldMonthHeaders.has(h);
+    })
+    .map(({ idx }) => idx);
+
   return (
     <Card className="mt-8">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STE 손익계산서 (단위 : K $)</CardTitle>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAllMonths(prev => !prev)}
+          className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+        >
+          {showAllMonths ? "월 접기" : "월 펼치기"}
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border overflow-hidden">
@@ -2318,43 +2462,96 @@ function STEIncomeStatementSection() {
             <table className="w-full caption-bottom text-sm">
               <thead className="[&_tr]:border-b">
                 <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted bg-gray-50/50">
-                  {headers.map((header, index) => (
+                  {visibleHeaderIndices.map((headerIndex) => {
+                    const header = headers[headerIndex];
+                    const index = headerIndex;
+                    return (
                     <th 
                       key={index} 
                       className={`h-12 px-4 align-middle font-bold text-muted-foreground [&:has([role=checkbox])]:pr-0 ${
-                        index === 0 
-                          ? "text-left sticky left-0 z-20 bg-gray-50 w-[200px]" 
-                          : "text-right min-w-[100px]"
+                        index === 0
+                          ? "w-[250px] font-bold text-left sticky left-0 z-20 bg-gray-50"
+                          : "text-right font-bold min-w-[100px]"
                       }`}
                     >
                       {header === '구분' ? '중분류' : header}
                     </th>
-                  ))}
+                  )})}
                 </tr>
               </thead>
               <tbody className="[&_tr:last-child]:border-0">
-                {csvData.map((row, rowIndex) => (
-                  <tr 
-                    key={rowIndex} 
-                    className={`
-                      border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted
-                      ${row.isCalculationResult ? "bg-gray-100/80 font-bold" : ""}
-                      ${row.isMainCategory && !row.isCalculationResult ? "font-semibold bg-gray-50/30" : ""}
-                    `}
-                  >
-                    <td className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 sticky left-0 z-10 
-                      ${row.isCalculationResult ? "bg-gray-100/90" : "bg-white"}
-                      ${row.isSubItem ? "pl-8 text-gray-600" : "font-medium"}
-                    `}>
-                      {row.label}
-                    </td>
-                    {row.values.map((val: string, colIndex: number) => (
-                      <td key={colIndex} className={`p-4 align-middle [&:has([role=checkbox])]:pr-0 text-right ${getValueColor(val)}`}>
-                        {formatValue(val)}
+                {csvData.map((row, rowIndex) => {
+                  // 하위 항목인 경우 부모가 펼쳐져 있는지 확인
+                  if (row.isSubItem && row.parent && !expandedRows.has(row.parent)) {
+                    return null; // 숨김
+                  }
+
+                  return (
+                    <tr 
+                      key={rowIndex} 
+                      className={cn(
+                        row.isMainCategory ? "bg-gray-100" :
+                        row.isSubItem ? "bg-gray-50" : "",
+                        "hover:bg-gray-50",
+                        row.hasChildren ? "cursor-pointer" : ""
+                      )}
+                    >
+                      <td
+                        className={cn(
+                          "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 sticky left-0 z-10 flex items-center h-full",
+                          row.isMainCategory ? "font-bold text-base" : "font-medium",
+                          row.isSubItem ? "pl-12 text-sm text-gray-600" : "pl-2",
+                          row.isCalculationResult ? "font-bold text-base" : "",
+                          row.isMainCategory ? "bg-gray-100" : "bg-white",
+                          row.hasChildren ? "cursor-pointer" : ""
+                        )}
+                        onClick={() => {
+                          if (row.hasChildren) toggleRow(row.label);
+                        }}
+                      >
+                        {row.hasChildren && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(row.label);
+                            }}
+                            className="w-4 flex justify-center mr-1 text-xs text-gray-500"
+                            aria-label={`${row.label} ${expandedRows.has(row.label) ? "접기" : "펼치기"}`}
+                          >
+                            {expandedRows.has(row.label) ? (
+                              <ChevronDownIcon className="h-4 w-4" />
+                            ) : (
+                              <ChevronRightIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                        {/* 아이콘 자리 고정: 하위행이 아닌 경우(메인/계산행 포함) 항상 w-4 공간 확보 */}
+                        {!row.hasChildren && !row.isSubItem ? (
+                          <span className="w-4 mr-1 inline-block" />
+                        ) : null}
+                        {row.label}
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      {visibleHeaderIndices
+                        .filter((idx) => idx !== 0)
+                        .map((headerIdx) => {
+                          const valIndex = headerIdx - 1; // headers[0]은 label, values[0]은 headers[1]에 대응
+                          const val = row.values?.[valIndex] ?? '';
+                          return (
+                            <td
+                              key={headerIdx}
+                              className={cn(
+                                "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 text-right font-bold",
+                                getValueColor(val)
+                              )}
+                            >
+                              {formatValue(val)}
+                            </td>
+                          );
+                        })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
