@@ -6576,7 +6576,7 @@ export default function DashboardPage() {
                 "US EC 압도적 성장: $3,327K(비중 94%), YOY 170% 달성",
                 "25FW 본격화: $1,690K 매출 전체 비중 50% 차지"
               ]}
-              storageKey="ceo-insights-key-performance"
+              storageKey="ceo-insights-key-performance-v2"
               cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
               titleClassName="text-purple-700"
             />
@@ -6589,7 +6589,7 @@ export default function DashboardPage() {
                 "재고 부담: $23,133K YoY 183% (전월대비 $7,943K 소진) 여전히 25SS 재고 $6,766K 소진 필요",
                 "트럼프 대중 관세 7% → 27%"
               ]}
-              storageKey="ceo-insights-major-risks"
+              storageKey="ceo-insights-major-risks-v2"
               cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
               titleClassName="text-blue-700"
             />
@@ -6601,7 +6601,7 @@ export default function DashboardPage() {
                 "수익성 집중: 직접이익률 25% 이상 회복 목표, 특히 SEM 광고비 효율적 선별적 투자 필요",
                 "단일 아이템 집중 : US EC Track Jacket/Pant 매출 비중 당년 70% vs 전년 73% (매출 YoY 170%)"
               ]}
-              storageKey="ceo-insights-strategy-v3"
+              storageKey="ceo-insights-strategy-v4"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
               titleClassName="text-green-700"
             />
