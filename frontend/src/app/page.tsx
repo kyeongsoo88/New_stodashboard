@@ -6573,10 +6573,10 @@ export default function DashboardPage() {
               icon={LightbulbIcon}
               defaultItems={[
                 "역대 최고 실적: $3,535K 매출, YOY 155% 달성",
-                "US EC 압도적 성장: $3,327K(비중 94%), YOY 170% 달성",
-                "25FW 본격화: $1,690K 매출 전체 비중 50% 차지"
+                "US EC 압도적 성장: $3,327K (비중 94%), YOY 170% 달성",
+                "25FW 본격화: $1,690K 매출, 전체 비중 50% 차지"
               ]}
-              storageKey="ceo-insights-key-performance-v3"
+              storageKey="ceo-insights-key-performance-v4"
               cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
               titleClassName="text-purple-700"
             />
@@ -6584,12 +6584,12 @@ export default function DashboardPage() {
               title="주요 리스크"
               icon={AlertTriangleIcon}
               defaultItems={[
-                "할인율 급등: 57.1%로 전년 대비 +17.6%p, US EC 56.8%(전년대비 +18.7%p)",
-                "낮은 직접이익률: 2.7% 기록, 높은 할인율 및 US EC SEM비용 $840K (25.3%)로 관리 필요",
-                "재고 부담: $23,133K YoY 183% (전월대비 $7,943K 소진) 여전히 25SS 재고 $6,766K 소진 필요",
-                "트럼프 대중 관세 7% → 27%"
+                "할인율 급등: 57.1%로 전년 대비 +17.6%p, US EC 56.8% (전년 대비 +18.7%p)",
+                "US EC $3.3M 매출에도 불구, 직접이익 적자 56.8%의 할인율 및 SEM 비용: $840K (25.3%)",
+                "재고 부담: $23,133K YOY 183% (전월대비 $7,943K 소진) 25SS 잔여 재고 $6,766K",
+                "SEM CPM 단가: 12월 최대 $34, 평균 $24 (vs 평월 $10)"
               ]}
-              storageKey="ceo-insights-major-risks-v3"
+              storageKey="ceo-insights-major-risks-v4"
               cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
               titleClassName="text-blue-700"
             />
@@ -6597,11 +6597,12 @@ export default function DashboardPage() {
               title="CEO 전략 방향"
               icon={TargetIcon}
               defaultItems={[
-                "할인율 통제: 12월 할인 최소화, 25FW 정상가 비중 확대로 60% 이하 관리 (12월 당시즌 할인율 : 49.3%로 관리중)",
-                "수익성 집중: 직접이익률 25% 이상 회복 목표, 특히 SEM 광고비 효율적 선별적 투자 필요",
-                "단일 아이템 집중 : US EC Track Jacket/Pant 매출 비중 당년 70% vs 전년 73% (매출 YoY 170%)"
+                "할인율 관리: 재고소진 목적의 할인정책과 당신즌 구분하여 할인정책 적용 (25SS 70%, 25FW 50% 할인중)",
+                "EC 온라인 수익성 회복: 직접이익률 25% 이상 회복 위해, SEM 광고비 효율성 관점 투자",
+                "단일 아이템 집중: US EC Track Jacket/Pant 매출 비중 당년 70% (매출 YoY 170%)",
+                "CORE 할인 관리: CORE 단종 예정 SKU 소진 위한 12월~1월초 할인효과 반영. 1월 8일 부 CORE 할인율 정책 0%~3%로 관리"
               ]}
-              storageKey="ceo-insights-strategy-v5"
+              storageKey="ceo-insights-strategy-v6"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
               titleClassName="text-green-700"
             />
