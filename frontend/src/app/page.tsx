@@ -804,10 +804,25 @@ type DirectProfitPopupData = {
 };
 
 function parseDirectProfitPopupCSV(csvText: string): DirectProfitPopupData | null {
-  const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+  const lines = csvText
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    // Excel에서 탭 구분/라인 전체 따옴표 저장 케이스 방어
+    .map((line) => {
+      let t = line.trim();
+      if (t.includes('\t')) {
+        t = t.replace(/\t/g, ',');
+      }
+      if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
+        t = t.slice(1, -1).replace(/""/g, '"');
+      }
+      return t;
+    })
+    .filter(Boolean);
   if (lines.length < 2) return null;
 
-  const headers = parseCSVLine(lines[0]).map(h => (h || '').trim());
+  const headers = parseCSVLine(lines[0]).map(h => (h || '').replace(/^\uFEFF/, '').trim());
   const typeIdx = headers.findIndex(h => h === 'type');
   const columnIdx = headers.findIndex(h => h === 'column');
   const labelIdx = headers.findIndex(h => h === 'label');
@@ -5160,7 +5175,17 @@ export default function DashboardPage() {
     Promise.all([
       fetch('/data/dashboard-data.csv').then(res => res.text()),
       fetch('/data/dashboard-summary.csv').then(res => res.text()),
-      fetch('/data/direct-profit-popup.csv').then(res => res.text())
+      fetch('/data/direct-profit-popup.csv').then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          return new TextDecoder('utf-16le').decode(bytes);
+        }
+        if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+        return new TextDecoder('utf-8').decode(bytes);
+      })
     ])
     .then(([dashboardCsv, summaryCsv, directProfitPopupCsv]) => {
       setDashboardData(parseDashboardCSV(dashboardCsv));
