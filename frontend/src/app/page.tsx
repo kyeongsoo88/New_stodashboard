@@ -262,6 +262,7 @@ function DetailedMetricCard({
     expenseBreakdown,
     commonExpenses,
     directProfitYtdDetails,
+    directProfitPopupData,
     className,
     expandAll
 }: {
@@ -281,6 +282,7 @@ function DetailedMetricCard({
     expenseBreakdown?: { name: string, value?: string, yoy?: string, subItems?: { name: string, value?: string, yoy?: string }[] }[],
     commonExpenses?: { name: string, value: string, yoy: string }[],
     directProfitYtdDetails?: { name: string, value: string, percent: string, margin: string, change: string }[],
+    directProfitPopupData?: DirectProfitPopupData | null,
     className?: string,
     expandAll?: boolean
 }) {
@@ -394,9 +396,29 @@ function DetailedMetricCard({
                                 {profitMargin}
                             </span>
                             {title.includes("직접이익") && (
-                                <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0">
-                                    이익율 전년대비
-                                </span>
+                                <>
+                                    <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0">
+                                        이익율 전년대비
+                                    </span>
+                                    {directProfitPopupData && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button
+                                                    type="button"
+                                                    className="px-2 py-0.5 rounded font-bold text-purple-700 bg-purple-100 hover:bg-purple-200 flex-shrink-0"
+                                                >
+                                                    US EC 직접이익 분석
+                                                </button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-3xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>직접이익 상세</DialogTitle>
+                                                </DialogHeader>
+                                                <DirectProfitPopupDialog data={directProfitPopupData} />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </>
                             )}
                         </>
                     )}
@@ -769,6 +791,143 @@ function DetailedMetricCard({
             </CardContent>
         </Card>
     )
+}
+
+type DirectProfitPopupData = {
+  title: string;
+  columns: Array<{
+    key: string;
+    amount: string;
+    percent: string;
+    segments: Array<{ label: string; percent: string }>;
+  }>;
+};
+
+function parseDirectProfitPopupCSV(csvText: string): DirectProfitPopupData | null {
+  const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+  if (lines.length < 2) return null;
+
+  const headers = parseCSVLine(lines[0]).map(h => (h || '').trim());
+  const typeIdx = headers.findIndex(h => h === 'type');
+  const columnIdx = headers.findIndex(h => h === 'column');
+  const labelIdx = headers.findIndex(h => h === 'label');
+  const valueIdx = headers.findIndex(h => h === 'value');
+
+  if (typeIdx < 0 || valueIdx < 0) return null;
+
+  let title = 'Tag매출대비 백분율 기준 PL';
+  const columnOrder: string[] = [];
+  const columns: Record<string, { key: string; amount: string; percent: string; segments: Array<{ label: string; percent: string }> }> = {};
+
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    const type = (values[typeIdx] || '').replace(/^\uFEFF/, '').trim();
+    const column = columnIdx >= 0 ? (values[columnIdx] || '').trim() : '';
+    const label = labelIdx >= 0 ? (values[labelIdx] || '').trim() : '';
+    const value = (values[valueIdx] || '').trim();
+
+    if (!type) continue;
+
+    if (type === 'title') {
+      if (value) title = value;
+      continue;
+    }
+
+    if (!column) continue;
+
+    if (!columns[column]) {
+      columns[column] = { key: column, amount: '', percent: '', segments: [] };
+      columnOrder.push(column);
+    }
+
+    if (type === 'column') {
+      if (label === 'amount') {
+        columns[column].amount = value;
+      } else if (label === 'percent') {
+        columns[column].percent = value;
+      }
+    }
+
+    if (type === 'segment' && label) {
+      columns[column].segments.push({ label, percent: value });
+    }
+  }
+
+  return {
+    title,
+    columns: columnOrder.map(key => columns[key]).filter(Boolean)
+  };
+}
+
+function DirectProfitPopupDialog({ data }: { data: DirectProfitPopupData | null }) {
+  if (!data) {
+    return <div>데이터를 불러오는 중...</div>;
+  }
+
+  const parsePercent = (val: string) => {
+    const num = parseFloat((val || '').replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const segmentClass = (label: string) => {
+    if (label === '할인') return "bg-gray-400 text-gray-900";
+    if (label === '원가') return "bg-gray-600 text-white";
+    if (label === '직접비') return "bg-slate-700 text-white";
+    return "bg-gray-300 text-gray-900";
+  };
+
+  const baseStyles = (key: string) => {
+    if (key === '택매출') return { bar: "bg-blue-600", text: "text-blue-700" };
+    if (key === '실판매출') return { bar: "bg-blue-500", text: "text-blue-700" };
+    if (key === '총이익') return { bar: "bg-emerald-600", text: "text-emerald-600" };
+    if (key === '직접이익') return { bar: "bg-emerald-500", text: "text-emerald-600" };
+    return { bar: "bg-blue-600", text: "text-blue-700" };
+  };
+
+  return (
+    <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+        <span className="text-base">🍊</span>
+        <span>{data.title}</span>
+      </div>
+      <div className="flex items-end justify-between gap-6">
+        {data.columns.map(col => {
+          const columnPercent = parsePercent(col.percent);
+          const { bar, text } = baseStyles(col.key);
+          const segments = col.segments;
+          return (
+            <div key={col.key} className="flex flex-col items-center gap-2">
+              <div className={cn("text-sm font-bold", text)}>{col.amount}</div>
+              <div className="h-[220px] w-[90px] rounded-t-2xl overflow-hidden shadow-sm flex flex-col">
+                {segments.map((seg, idx) => {
+                  const segPercent = parsePercent(seg.percent);
+                  return (
+                    <div
+                      key={`${seg.label}-${idx}`}
+                      className={cn("flex items-center justify-center text-xs font-bold px-1 text-center", segmentClass(seg.label))}
+                      style={{ flex: segPercent }}
+                    >
+                      <span>{seg.label} {seg.percent}</span>
+                    </div>
+                  );
+                })}
+                <div
+                  className={cn("flex items-center justify-center font-bold text-white text-lg", bar)}
+                  style={{ flex: columnPercent }}
+                >
+                  {col.percent}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-slate-800">{col.key}</div>
+                <div className={cn("text-sm font-bold", text)}>{col.percent}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // US/EU 건당 운반비 단가 팝업 컴포넌트
@@ -1723,6 +1882,21 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [allExpanded, setAllExpanded] = React.useState(false);
   const [showAllMonths, setShowAllMonths] = React.useState(false);
+  const shouldShowIncomeHeader = (header: string, idx: number) => {
+    if (showAllMonths) return true;
+    if (idx === 0) return true;
+    if (idx <= 10) return false; // Jan~Oct 숨김
+    const hTrim = (header || '').trim();
+    // 월 접기 상태에서 Nov, 24-Dec도 숨김
+    return !(
+      hTrim === 'Nov' ||
+      hTrim === 'Nov-25A' ||
+      hTrim === 'Nov-25F' ||
+      hTrim.startsWith('Nov-25') ||
+      hTrim === '24-Dec' ||
+      hTrim.startsWith('24-Dec')
+    );
+  };
 
   React.useEffect(() => {
     setLoading(true);
@@ -2026,13 +2200,12 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {headers.filter((_: any, idx: number) => {
-                    if (showAllMonths) return true;
+                  {headers.filter((header: any, idx: number) => {
                     // Keep first column (구분) and columns starting from Nov
                     // Header structure: 0=구분, 1=Jan, ..., 10=Oct, 11=Nov-25F, 12=24-Nov, 13=당월 YoY, 14=YTD, 15=YTD YoY, 16=25년 합계, 17=합계 YoY
                     // Dec-25F와 24-Dec는 제거됨
                     // We want to hide indices 1 to 10 (Jan to Oct), keep everything from Nov onwards (idx >= 11)
-                    return idx === 0 || idx >= 11;
+                    return shouldShowIncomeHeader(header, idx);
                   }).map((header, idx, arr) => {
                     let displayHeader = header;
                     if (header !== '구분') {
@@ -2131,19 +2304,16 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                       </TableCell>
                       {(() => {
                         const filteredValues = row.values.filter((_: any, colIdx: number) => {
-                          if (showAllMonths) return true;
-                          // Values array structure: 0=Jan, ..., 9=Oct, 10=Nov-25F, 11=24-Nov, 12=당월 YoY, 13=YTD, 14=YTD YoY
-                          // Dec-25F와 24-Dec는 제거됨
-                          // We want to hide indices 0 to 9 (Jan to Oct), keep everything from Nov onwards (colIdx >= 10)
-                          return colIdx >= 10;
+                          const headerIdx = colIdx + 1; // +1 is 구분
+                          const header = headers[headerIdx];
+                          return shouldShowIncomeHeader(header, headerIdx);
                         });
                         
                         return filteredValues.map((value: string, colIdx: number) => {
                           // "25년 합계" column 확인 - filteredHeaders에서 확인
-                          const filteredHeaders = headers.filter((_: any, idx: number) => {
-                            if (showAllMonths) return true;
-                            return idx === 0 || idx >= 11;
-                          });
+                          const filteredHeaders = headers.filter((header: any, idx: number) =>
+                            shouldShowIncomeHeader(header, idx)
+                          );
                           const currentHeader = filteredHeaders[colIdx + 1]; // +1은 구분 컬럼 제외
                           
                           const isYoYColumn = currentHeader === '당월 YoY' || currentHeader === 'YTD YoY';
@@ -4254,7 +4424,7 @@ function STEBalanceSheetSection() {
                         index === 0
                           ? "w-[250px] font-bold text-left sticky left-0 z-20 bg-gray-50"
                           : header === '비고'
-                          ? "text-left font-bold min-w-[300px]"
+                          ? "text-center font-bold min-w-[300px]"
                           : "text-right font-bold min-w-[80px]"
                       } ${
                         isAfterGubun || isAfterYeonbi ? "border-l-2 border-gray-500" : ""
@@ -4979,6 +5149,7 @@ export default function DashboardPage() {
   // CSV 데이터 로딩 상태
   const [dashboardData, setDashboardData] = React.useState<Record<string, Record<string, string>>>({});
   const [summaryData, setSummaryData] = React.useState<Record<string, Record<string, string>>>({});
+  const [directProfitPopupData, setDirectProfitPopupData] = React.useState<DirectProfitPopupData | null>(null);
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   
   // CSV 파일 로딩
@@ -4988,11 +5159,13 @@ export default function DashboardPage() {
     setLoadingDashboard(true);
     Promise.all([
       fetch('/data/dashboard-data.csv').then(res => res.text()),
-      fetch('/data/dashboard-summary.csv').then(res => res.text())
+      fetch('/data/dashboard-summary.csv').then(res => res.text()),
+      fetch('/data/direct-profit-popup.csv').then(res => res.text())
     ])
-    .then(([dashboardCsv, summaryCsv]) => {
+    .then(([dashboardCsv, summaryCsv, directProfitPopupCsv]) => {
       setDashboardData(parseDashboardCSV(dashboardCsv));
       setSummaryData(parseSummaryCSV(summaryCsv));
+      setDirectProfitPopupData(parseDirectProfitPopupCSV(directProfitPopupCsv));
       setLoadingDashboard(false);
     })
     .catch(err => {
@@ -6395,6 +6568,7 @@ export default function DashboardPage() {
                    expandAll={expandAllDetails}
                    channelProfitDetails={cardData.profitCard.channelProfitDetails}
                    directProfitYtdDetails={cardData.profitCard.directProfitYtdDetails}
+                  directProfitPopupData={directProfitPopupData}
                />
                <DetailedMetricCard
                    title="📈 영업비"

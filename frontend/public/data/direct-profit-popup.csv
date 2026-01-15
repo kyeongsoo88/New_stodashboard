@@ -1,0 +1,17 @@
+type,column,label,value
+title,,,Tag매출대비 백분율 기준 PL
+column,택매출,amount,"31,583K"
+column,택매출,percent,100%
+column,실판매출,amount,"25,597K"
+column,실판매출,percent,81.0%
+column,총이익,amount,"15,555K"
+column,총이익,percent,49.3%
+column,직접이익,amount,"2,675K"
+column,직접이익,percent,8.5%
+segment,실판매출,할인,19.0%
+segment,총이익,할인,19.0%
+segment,총이익,원가,31.8%
+segment,직접이익,할인,19.0%
+segment,직접이익,원가,31.8%
+segment,직접이익,직접비,40.8%
+
