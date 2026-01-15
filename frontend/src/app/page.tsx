@@ -2287,7 +2287,6 @@ function STEIncomeStatementSection() {
           '광고선전비',
           '기타판관비',
           '감가상각비',
-          '모빈 법률비용 영업비용',
         ]);
         const operatingExpenseParentLabel = '영업비';
         let operatingExpenseSum: number[] | null = null; // headers[1..]에 대응 (values.slice(1))
