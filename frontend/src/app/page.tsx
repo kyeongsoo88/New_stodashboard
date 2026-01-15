@@ -1908,8 +1908,8 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
       hTrim === 'Nov-25A' ||
       hTrim === 'Nov-25F' ||
       hTrim.startsWith('Nov-25') ||
-      hTrim === '24-Dec' ||
-      hTrim.startsWith('24-Dec')
+      hTrim === '24-Nov' ||
+      hTrim.startsWith('24-Nov')
     );
   };
 
@@ -2237,10 +2237,10 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                     }
                     
                     // 세트별 배경색 및 구분선 설정
-                    // 첫 번째 세트: 24-Nov, Nov, 당월 YoY (순서 변경됨)
-                    const isSet1Start = header === '24-Nov' || header.startsWith('24-Nov');
+                    // 첫 번째 세트: 24-Dec, Dec, 당월 YoY (순서 변경됨)
+                    const isSet1Start = header === '24-Dec' || header.startsWith('24-Dec');
                     const isSet1 = header === 'Nov-25F' || header === 'Nov' || 
-                                  header === '24-Nov' || header.startsWith('24-Nov') || header === '당월 YoY';
+                                  header === '24-Dec' || header.startsWith('24-Dec') || header === '당월 YoY';
                     const isSet1End = header === '당월 YoY';
                     
                     // 두 번째 세트: YTD, YTD YoY (초록색 파스텔톤)
@@ -2334,9 +2334,9 @@ function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
                           const isYoYColumn = currentHeader === '당월 YoY' || currentHeader === 'YTD YoY';
 
                           // 세트별 배경색 및 구분선 설정 (헤더와 동일)
-                          const isSet1Start = currentHeader === '24-Nov' || currentHeader.startsWith('24-Nov');
+                          const isSet1Start = currentHeader === '24-Dec' || currentHeader.startsWith('24-Dec');
                           const isSet1 = currentHeader === 'Nov-25F' || currentHeader === 'Nov' || 
-                                        currentHeader === '24-Nov' || currentHeader.startsWith('24-Nov') || currentHeader === '당월 YoY';
+                                        currentHeader === '24-Dec' || currentHeader.startsWith('24-Dec') || currentHeader === '당월 YoY';
                           const isSet1End = currentHeader === '당월 YoY';
                           
                           const isSet2Start = currentHeader === 'YTD';
@@ -2759,6 +2759,7 @@ function STEIncomeStatementSection() {
 // 영업비 분석 CSV 파싱 및 표시 컴포넌트
 function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
+  const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
   const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2025-12");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
@@ -2776,10 +2777,24 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   React.useEffect(() => {
     setLoading(true);
-    fetch('/data/operatingexpense.csv')
-      .then(res => res.text())
-      .then(text => {
-        const lines = text.split('\n').filter(line => line.trim());
+    const decodeWithBom = async (res: Response) => {
+      const buf = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+        return new TextDecoder('utf-16le').decode(bytes);
+      }
+      if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+        return new TextDecoder('utf-8').decode(bytes);
+      }
+      return new TextDecoder('utf-8').decode(bytes);
+    };
+
+    Promise.all([
+      fetch('/data/operatingexpense.csv').then(res => res.text()),
+      fetch('/data/operatingexpense-detail.csv').then(decodeWithBom)
+    ])
+      .then(([expenseCsv, detailCsv]) => {
+        const lines = expenseCsv.split('\n').filter(line => line.trim());
         if (lines.length < 2) {
           setLoading(false);
           return;
@@ -2810,8 +2825,45 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
           
           data[dataKey] = rowData;
         }
+
+        const detailLines = detailCsv
+          .split(/\r?\n/)
+          .map(line => line.trim())
+          .filter(Boolean)
+          .map((line) => {
+            let t = line.trim();
+            if (t.includes('\t')) {
+              t = t.replace(/\t/g, ',');
+            }
+            if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
+              t = t.slice(1, -1).replace(/""/g, '"');
+            }
+            return t;
+          })
+          .filter(Boolean);
+
+        const detailMap: Record<string, string> = {};
+        if (detailLines.length > 0) {
+          const detailHeaders = parseCSVLine(detailLines[0]).map(h => (h || '').replace(/^\uFEFF/, '').trim());
+          const catIdx = detailHeaders.findIndex(h => h === '대분류');
+          const subIdx = detailHeaders.findIndex(h => h === '중분류');
+          const detailIdx = detailHeaders.findIndex(h => h === '상세');
+
+          if (catIdx >= 0 && detailIdx >= 0) {
+            for (let i = 1; i < detailLines.length; i++) {
+              const values = parseCSVLine(detailLines[i]);
+              const cat = (values[catIdx] || '').trim();
+              const sub = subIdx >= 0 ? (values[subIdx] || '').trim() : '';
+              const detail = (values[detailIdx] || '').trim();
+              if (!cat) continue;
+              const key = sub ? `${cat}||${sub}` : cat;
+              detailMap[key] = detail;
+            }
+          }
+        }
         
         setCsvData(data);
+        setDetailNotes(detailMap);
         setLoading(false);
       })
       .catch(err => {
@@ -3038,6 +3090,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     const val24 = viewMode === "YTD" ? get24YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get24MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     const diff = val25 - val24;
     const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+    const detail = detailNotes[cat.name] || '';
     
     return {
       name: cat.name,
@@ -3045,6 +3098,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       ytd25: val25,
       diff: diff,
       diffRate: diffRate,
+      detail: detail,
     };
   });
 
@@ -3054,6 +3108,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     ytd25: totalOperatingExpense,
     diff: totalOperatingExpense - totalOperatingExpense24,
     diffRate: totalOperatingExpenseYOY - 100,
+    detail: '',
   };
 
   const toggleCategory = (name: string) => {
@@ -3083,6 +3138,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       const val24 = viewMode === "YTD" ? get24YTDValue(dataKey, selectedMonthLocal) : get24MonthValue(dataKey, selectedMonthLocal);
       const diff = val25 - val24;
       const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+      const detailKey = `${categoryName}||${sub.name}`;
+      const detail = detailNotes[detailKey] || '';
       
       return {
         name: sub.name,
@@ -3090,6 +3147,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         ytd25: val25,
         diff: diff,
         diffRate: diffRate,
+        detail: detail,
       };
     });
   };
@@ -3330,11 +3388,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">대분류</TableHead>
-                  <TableHead className="text-right">{year24Label}</TableHead>
-                  <TableHead className="text-right">{year25Label}</TableHead>
-                  <TableHead className="text-right">증감액</TableHead>
-                  <TableHead className="text-right">증감률</TableHead>
+                  <TableHead className="w-[140px]">대분류</TableHead>
+                  <TableHead className="text-right w-[90px]">{year24Label}</TableHead>
+                  <TableHead className="text-right w-[90px]">{year25Label}</TableHead>
+                  <TableHead className="text-right w-[90px]">증감액</TableHead>
+                  <TableHead className="text-right w-[90px]">증감률</TableHead>
+                  <TableHead className="text-center w-[280px]">상세</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -3344,7 +3403,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       className="cursor-pointer hover:bg-gray-50"
                       onClick={() => toggleCategory(row.name)}
                     >
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium w-[140px]">
                         <div className="flex items-center gap-2">
                           {expandedCategories.has(row.name) ? (
                             <ChevronUpIcon className="h-4 w-4" />
@@ -3354,46 +3413,49 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                           {row.name}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">${row.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className="text-right">${row.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className={cn("text-right font-medium", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                      <TableCell className="text-right w-[90px]">${row.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                      <TableCell className="text-right w-[90px]">${row.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                      <TableCell className={cn("text-right font-medium w-[90px]", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
                         {row.diff >= 0 ? '+' : ''}${row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                       </TableCell>
-                      <TableCell className={cn("text-right font-medium", row.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                      <TableCell className={cn("text-right font-medium w-[90px]", row.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                         {row.diffRate >= 0 ? '+' : ''}{row.diffRate.toFixed(1)}%
                       </TableCell>
+                      <TableCell className="text-left w-[280px]">{row.detail}</TableCell>
                     </TableRow>
                     {/* 확장된 세부 항목 표시 */}
                     {expandedCategories.has(row.name) && getSubCategoryData(row.name).map((subRow) => (
                       <TableRow key={`${row.name}-${subRow.name}`} className="bg-gray-50">
-                        <TableCell className="font-medium pl-8">
+                        <TableCell className="font-medium pl-8 w-[140px]">
                           <div className="flex items-center gap-2">
                             <span className="text-xs">└</span>
                             {subRow.name}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">${subRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className="text-right">${subRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className={cn("text-right font-medium", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                        <TableCell className="text-right w-[90px]">${subRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                        <TableCell className="text-right w-[90px]">${subRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                           {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                         </TableCell>
-                        <TableCell className={cn("text-right font-medium", subRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                           {subRow.diffRate >= 0 ? '+' : ''}{subRow.diffRate.toFixed(1)}%
                         </TableCell>
+                        <TableCell className="text-left w-[280px]">{subRow.detail}</TableCell>
                       </TableRow>
                     ))}
                   </React.Fragment>
                 ))}
                 <TableRow className="bg-blue-50 font-bold">
-                  <TableCell className="font-bold">{totalRow.name}</TableCell>
-                  <TableCell className="text-right font-bold">${totalRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className="text-right font-bold">${totalRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className={cn("text-right font-bold", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
+                  <TableCell className="font-bold w-[140px]">{totalRow.name}</TableCell>
+                  <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                  <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                     {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                   </TableCell>
-                  <TableCell className={cn("text-right font-bold", totalRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
+                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
                     {totalRow.diffRate >= 0 ? '+' : ''}{totalRow.diffRate.toFixed(1)}%
                   </TableCell>
+                  <TableCell className="text-left font-bold w-[280px]">{totalRow.detail}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
