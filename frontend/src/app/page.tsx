@@ -1,5 +1,8 @@
 "use client"
 
+// Force refresh: Fix chart keys and XAxis labels
+
+
 import * as React from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -1495,8 +1498,8 @@ function InteractiveChartSection({
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
       return Array(13).fill(0).map((_, i) => {
-          // X축 라벨을 1월, 2월... 로 다시 변경 (26년 1월도 '1월'로 표시)
-          const monthItem: any = { name: i < 12 ? `${i+1}월` : `${i-11}월` };
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.1월)
+        const monthItem: any = { name: i < 12 ? `25.${i+1}월` : `26.${i-11}월` };
           let totalTarget = 0;
           
           allSeriesData.forEach(series => {
@@ -1531,8 +1534,8 @@ function InteractiveChartSection({
   // YOY Line Chart Data
   const yoyChartData = React.useMemo(() => {
       return Array(13).fill(0).map((_, i) => {
-          // X축 라벨을 1월, 2월... 로 다시 변경
-          const item: any = { name: i < 12 ? `${i+1}월` : `${i-11}월` };
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.1월)
+        const item: any = { name: i < 12 ? `25.${i+1}월` : `26.${i-11}월` };
           allSeriesData.forEach(series => {
               item[series.name] = series.yoyValues[i];
           });
@@ -1590,7 +1593,7 @@ function InteractiveChartSection({
                             axisLine={false} 
                             tickLine={false} 
                             interval={0}
-                            tickFormatter={(value) => value?.replace(/\(예상\)/g, '') || value}
+                            tickFormatter={(value) => value?.replace(/\(예상\)/g, '').replace(/25\.|26\./, '') || value}
                         />
                         <YAxis 
                             yAxisId="left" 
@@ -1740,7 +1743,7 @@ function InteractiveChartSection({
                                     axisLine={false} 
                                     tickLine={false} 
                                     interval={0}
-                                    tickFormatter={(value) => value?.replace(/\(예상\)/g, '') || value}
+                                    tickFormatter={(value) => value?.replace(/\(예상\)/g, '').replace(/25\.|26\./, '') || value}
                                 />
                                 <YAxis domain={[0, yMax]} tick={{fontSize: 10}} axisLine={false} tickLine={false} unit="%" />
                                 <Tooltip />
@@ -5212,6 +5215,7 @@ function parseSummaryCSV(csvText: string): Record<string, Record<string, string>
   return data;
 }
 
+// Force refresh: 2026-01 data check
 export default function DashboardPage() {
   const [expandAllDetails, setExpandAllDetails] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState("대시보드");
@@ -6388,10 +6392,10 @@ export default function DashboardPage() {
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
-    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 매핑: 25-Jan -> 3월, ..., 25-Oct -> 12월)
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
-    // CSV 헤더와 매핑 (사용자 요청: 25-Jan 컬럼을 3월 데이터로 사용하여 12월까지 표시)
-    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct'];
+    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 매핑: 25-Jan -> 3월, ..., 25-Oct -> 12월, 25-Nov -> 1월)
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
+    // CSV 헤더와 매핑 (사용자 요청: 25-Jan 컬럼을 3월 데이터로 사용하여 12월까지 표시, 25-Nov를 1월로 추가)
+    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -6424,6 +6428,8 @@ export default function DashboardPage() {
         period = '25.11실적';
       } else if (monthLabel === '12월') {
         period = '25.12실적';
+      } else if (monthLabel === '1월') {
+        period = '26.1실적';
       } else {
         const periodLabel = monthLabel.replace('월', '');
         period = `25.${periodLabel}실적`;
