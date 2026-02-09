@@ -1457,18 +1457,18 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(12).fill(0);
+              const values = csvChartData[dataKey] || Array(13).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(12).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(13).fill(100);
               
               return { name: opt, values, yoyValues };
           });
       } else {
           // Fallback to generated data
           return filterOptions.map(opt => {
-              const values = generateConsistentData(opt + "sales", 12, 2000, 8000);
-              const yoyValues = generateConsistentData(opt + "yoy", 12, 80, 180);
+              const values = generateConsistentData(opt + "sales", 13, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 13, 80, 180);
               return { name: opt, values, yoyValues };
           });
       }
@@ -1485,7 +1485,7 @@ function InteractiveChartSection({
           return csvChartData[key];
       }
       // Fallback: average of available series YOY values
-      return Array(12).fill(0).map((_, i) => {
+      return Array(13).fill(0).map((_, i) => {
           const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
           if (seriesYoys.length === 0) return 0;
           return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
@@ -1494,8 +1494,9 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(12).fill(0).map((_, i) => {
-          const monthItem: any = { name: `${i+1}월` };
+      return Array(13).fill(0).map((_, i) => {
+          // X축 라벨을 1월, 2월... 로 다시 변경 (26년 1월도 '1월'로 표시)
+          const monthItem: any = { name: i < 12 ? `${i+1}월` : `${i-11}월` };
           let totalTarget = 0;
           
           allSeriesData.forEach(series => {
@@ -1529,8 +1530,9 @@ function InteractiveChartSection({
 
   // YOY Line Chart Data
   const yoyChartData = React.useMemo(() => {
-      return Array(12).fill(0).map((_, i) => {
-          const item: any = { name: `${i+1}월` };
+      return Array(13).fill(0).map((_, i) => {
+          // X축 라벨을 1월, 2월... 로 다시 변경
+          const item: any = { name: i < 12 ? `${i+1}월` : `${i-11}월` };
           allSeriesData.forEach(series => {
               item[series.name] = series.yoyValues[i];
           });
@@ -5216,11 +5218,11 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2025-12",
-    "손익계산서": "2025-12",
-    "재무상태표": "2025-12",
-    "현금흐름표": "2025-12",
-    "영업비 분석": "2025-12",
+    "대시보드": "2026-01",
+    "손익계산서": "2026-01",
+    "재무상태표": "2026-01",
+    "현금흐름표": "2026-01",
+    "영업비 분석": "2026-01",
   });
   
   // CSV 데이터 로딩 상태
@@ -5234,10 +5236,11 @@ export default function DashboardPage() {
     if (activeTab !== "대시보드") return;
     
     setLoadingDashboard(true);
+    const timestamp = new Date().getTime();
     Promise.all([
-      fetch('/data/dashboard-data.csv').then(res => res.text()),
-      fetch('/data/dashboard-summary.csv').then(res => res.text()),
-      fetch('/data/direct-profit-popup.csv').then(async (res) => {
+      fetch(`/data/dashboard-data.csv?t=${timestamp}`).then(res => res.text()),
+      fetch(`/data/dashboard-summary.csv?t=${timestamp}`).then(res => res.text()),
+      fetch(`/data/direct-profit-popup.csv?t=${timestamp}`).then(async (res) => {
         const buf = await res.arrayBuffer();
         const bytes = new Uint8Array(buf);
         if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
@@ -5266,7 +5269,7 @@ export default function DashboardPage() {
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan)과 코드 형식(2025-01, 2025-02, ..., 2026-01) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -5279,7 +5282,8 @@ export default function DashboardPage() {
       '2025-09': '25-Sep',
       '2025-10': '25-Oct',
       '2025-11': '25-Nov',
-      '2025-12': '25-Dec'
+      '2025-12': '25-Dec',
+      '2026-01': '26-Jan'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -5294,7 +5298,7 @@ export default function DashboardPage() {
   };
   
   const getSummaryValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec)과 코드 형식(2025-01, 2025-02, ...) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan)과 코드 형식(2025-01, 2025-02, ..., 2026-01) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -5307,7 +5311,8 @@ export default function DashboardPage() {
       '2025-09': '25-Sep',
       '2025-10': '25-Oct',
       '2025-11': '25-Nov',
-      '2025-12': '25-Dec'
+      '2025-12': '25-Dec',
+      '2026-01': '26-Jan'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -6223,7 +6228,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
     
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -6499,8 +6504,8 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <span className="text-sm text-white">조회 기준:</span>
           <Select value={currentSelectedMonth} onValueChange={handleMonthChange}>
-            <SelectTrigger className="w-[160px] bg-white">
-              <SelectValue placeholder="2025년 10월" />
+              <SelectTrigger className="w-[160px] bg-white">
+              <SelectValue placeholder="2026년 01월" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="2025-01">2025년 01월</SelectItem>
@@ -6515,6 +6520,7 @@ export default function DashboardPage() {
               <SelectItem value="2025-10">2025년 10월</SelectItem>
               <SelectItem value="2025-11">2025년 11월</SelectItem>
               <SelectItem value="2025-12">2025년 12월</SelectItem>
+              <SelectItem value="2026-01">2026년 01월</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -6868,7 +6874,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* 1. Channel Sales Trend */}
             <InteractiveChartSection 
-                title="2025년 월별 채널별 매출 추세"
+                title="2025-26년 월별 채널별 매출 추세"
                 unit="K $"
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
@@ -6883,7 +6889,7 @@ export default function DashboardPage() {
             
             {/* 2. Item Sales Trend */}
             <InteractiveChartSection 
-                title="2025년 월별 아이템별 매출 추세"
+                title="2025-26년 월별 아이템별 매출 추세"
                 unit="K $"
                 iconColor="bg-orange-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
@@ -6898,7 +6904,7 @@ export default function DashboardPage() {
 
             {/* 3. Inventory Trend */}
             <InteractiveChartSection 
-                title="2025년 월별 아이템별 재고 추세"
+                title="2025-26년 월별 아이템별 재고 추세"
                 unit="K $"
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
