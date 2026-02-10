@@ -5073,6 +5073,289 @@ function STEBalanceSheetSection() {
 // 현금흐름표 CSV 파싱 및 표시 컴포넌트
 function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [cashFlowData, setCashFlowData] = React.useState<any[]>([]);
+  const [cashFlowHeaders, setCashFlowHeaders] = React.useState<string[]>([]);
+  
+  const [balanceData, setBalanceData] = React.useState<any[]>([]);
+  const [balanceHeaders, setBalanceHeaders] = React.useState<string[]>([]);
+  
+  const [workingCapitalData, setWorkingCapitalData] = React.useState<any[]>([]);
+  const [workingCapitalHeaders, setWorkingCapitalHeaders] = React.useState<string[]>([]);
+  
+  const [loading, setLoading] = React.useState(true);
+  
+  // 섹션별 접기/펼치기 상태
+  const [isCashFlowExpanded, setIsCashFlowExpanded] = React.useState(true);
+  const [isBalanceExpanded, setIsBalanceExpanded] = React.useState(true);
+  const [isWorkingCapitalExpanded, setIsWorkingCapitalExpanded] = React.useState(true);
+
+  // 현금흐름표 내부 항목 접기/펼치기 상태 (영업활동, 재무활동)
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['영업활동', '재무활동']));
+
+  const toggleRow = (label: string) => {
+    const newSet = new Set(expandedRows);
+    if (newSet.has(label)) {
+      newSet.delete(label);
+    } else {
+      newSet.add(label);
+    }
+    setExpandedRows(newSet);
+  };
+
+  const formatNumber = (val: string) => {
+    if (!val || val === '' || val === '-') return val || '';
+    if (val.includes('%') || val.includes('p')) return val;
+    const clean = val.replace(/,/g, '');
+    const num = parseFloat(clean);
+    if (isNaN(num)) return val;
+    return num.toLocaleString();
+  };
+
+  // 숫자가 음수이면 빨간색, 괄호 처리
+  const getCellClass = (val: string, isHeader: boolean = false) => {
+    if (isHeader) return "";
+    
+    // 값이 없거나 - 인 경우
+    if (!val || val === '-' || val === '') return "";
+    
+    // 괄호로 감싸져 있거나 마이너스로 시작하면 음수
+    if (val.startsWith('(') || val.startsWith('-') || val.includes('△')) {
+      return "text-red-600 font-medium";
+    }
+    
+    return "font-medium"; // 양수는 기본 검정 (진하게)
+  };
+
+  // 괄호 포맷팅 (음수일 경우)
+  const formatCell = (val: string) => {
+    if (!val || val === '' || val === '-') return '-';
+    
+    // 이미 괄호가 있거나 %인 경우 그대로 반환 (단, 콤마는 적용)
+    if (val.includes('%') || val.includes('p')) return val;
+    
+    const clean = val.replace(/,/g, '').replace(/[()]/g, '');
+    const num = parseFloat(clean);
+    
+    if (isNaN(num)) return val;
+    
+    // 원본 데이터가 음수 형태였거나, 숫자가 음수이면
+    const isNegative = val.startsWith('-') || val.startsWith('(') || num < 0;
+    
+    if (isNegative) {
+      return `(${Math.abs(num).toLocaleString()})`;
+    }
+    return num.toLocaleString();
+  };
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const timestamp = new Date().getTime();
+            
+            // 1. 현금흐름표 데이터 로드
+            const res1 = await fetch(`/data/sto-cash-flow-2026.csv?t=${timestamp}`);
+            const text1 = await res1.text();
+            const lines1 = text1.split('\n').filter(line => line.trim());
+            if (lines1.length > 1) {
+                setCashFlowHeaders(parseCSVLine(lines1[0]));
+                const parsed1 = [];
+                for(let i=1; i<lines1.length; i++) {
+                    const vals = parseCSVLine(lines1[i]);
+                    const label = vals[0].trim();
+                    // 하위 항목 식별
+                    const isSubItem = label === '매출수금' || label === '물품대 지출' || label === '비용지출' || 
+                                     label.startsWith('기타수금') || label.startsWith('기타지출');
+                    // 부모 항목 식별
+                    const isParent = label === '영업활동' || label === '재무활동';
+                    // 부모 키 찾기
+                    let parentKey = null;
+                    if (label === '매출수금' || label === '물품대 지출' || label === '비용지출') parentKey = '영업활동';
+                    else if (label.startsWith('기타수금') || label.startsWith('기타지출')) parentKey = '재무활동';
+
+                    parsed1.push({
+                        label,
+                        values: vals.slice(1),
+                        isSubItem,
+                        isParent,
+                        parentKey
+                    });
+                }
+                setCashFlowData(parsed1);
+            }
+
+            // 2. 현금잔액과 차입금잔액표 데이터 로드
+            const res2 = await fetch(`/data/sto-cash-balance-2026.csv?t=${timestamp}`);
+            const text2 = await res2.text();
+            const lines2 = text2.split('\n').filter(line => line.trim());
+            if (lines2.length > 1) {
+                setBalanceHeaders(parseCSVLine(lines2[0]));
+                const parsed2 = [];
+                for(let i=1; i<lines2.length; i++) {
+                    const vals = parseCSVLine(lines2[i]);
+                    parsed2.push({
+                        label: vals[0].trim(),
+                        values: vals.slice(1)
+                    });
+                }
+                setBalanceData(parsed2);
+            }
+
+            // 3. 운전자본표 데이터 로드
+            const res3 = await fetch(`/data/sto-working-capital-2026.csv?t=${timestamp}`);
+            const text3 = await res3.text();
+            const lines3 = text3.split('\n').filter(line => line.trim());
+            if (lines3.length > 1) {
+                setWorkingCapitalHeaders(parseCSVLine(lines3[0]));
+                const parsed3 = [];
+                for(let i=1; i<lines3.length; i++) {
+                    const vals = parseCSVLine(lines3[i]);
+                    parsed3.push({
+                        label: vals[0].trim(),
+                        values: vals.slice(1)
+                    });
+                }
+                setWorkingCapitalData(parsed3);
+            }
+            
+        } catch (err) {
+            console.error("Failed to load cash flow data:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-8">데이터를 불러오는 중...</div>;
+  }
+
+  // 공통 테이블 렌더링 함수
+  const renderTable = (title: string, headers: string[], data: any[], expanded: boolean, setExpanded: (val: boolean) => void, tableType: 'flow' | 'balance' | 'working') => {
+    return (
+      <Card className="mb-6 overflow-hidden border shadow-sm">
+        <div 
+            className="flex flex-row items-center justify-between p-4 bg-white border-b cursor-pointer hover:bg-slate-50 transition-colors"
+            onClick={() => setExpanded(!expanded)}
+        >
+            <div className="flex items-center gap-2">
+                <ChevronDownIcon className={cn("h-5 w-5 text-slate-500 transition-transform duration-200", !expanded && "-rotate-90")} />
+                <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+            </div>
+            <span className="text-xs text-slate-400 font-medium">
+                {expanded ? "접기" : "펼치기"}
+            </span>
+        </div>
+        
+        {expanded && (
+            <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader className="bg-slate-50">
+                        <TableRow>
+                            {headers.map((h, i) => (
+                                <TableHead 
+                                    key={i} 
+                                    className={cn(
+                                        "text-xs font-bold text-slate-700 h-9 px-2 whitespace-nowrap border-b border-slate-200",
+                                        i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-slate-50" : "text-right min-w-[80px]",
+                                        // 헤더 색상 로직
+                                        h.includes('Total') || h.includes('합계') || h === 'Base' || h === 'End' || h.includes('기초') || h.includes('기말') 
+                                            ? "bg-slate-100" : ""
+                                    )}
+                                >
+                                    {h === 'Category' ? '계정과목' : (h === 'Base' ? '기초잔액' : (h === 'End' ? '기말잔액' : h))}
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((row, rIdx) => {
+                            // 현금흐름표의 경우 접기/펼치기 로직 적용
+                            if (tableType === 'flow' && row.isSubItem) {
+                                if (!expandedRows.has(row.parentKey)) return null;
+                            }
+
+                            const isFlowParent = tableType === 'flow' && row.isParent;
+                            const isFlowSub = tableType === 'flow' && row.isSubItem;
+                            const isNetCash = tableType === 'flow' && row.label === 'Net Cash';
+                            const isTotalRow = row.label.includes('합계') || row.label === '기말잔액' || row.label === '기초잔액';
+                            
+                            // 행 스타일
+                            let rowClass = "hover:bg-slate-50/80 border-b border-slate-100 last:border-0";
+                            if (isFlowParent) rowClass += " bg-slate-50/50";
+                            if (isNetCash) rowClass += " bg-gray-100 border-t-2 border-gray-200";
+                            if (tableType === 'balance') rowClass += " odd:bg-white even:bg-slate-50/30";
+
+                            // 라벨 스타일
+                            let labelClass = "text-xs font-medium text-slate-700";
+                            if (isFlowParent) labelClass = "text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-1";
+                            if (isFlowSub) labelClass = "text-xs text-slate-500 pl-8";
+                            if (isNetCash) labelClass = "text-sm font-bold text-slate-900";
+                            
+                            return (
+                                <TableRow key={rIdx} className={rowClass}>
+                                    <TableCell 
+                                        className={cn(
+                                            "sticky left-0 z-10 bg-white border-r border-slate-100 py-2.5", 
+                                            isFlowParent && "bg-slate-50/50",
+                                            isNetCash && "bg-gray-100",
+                                            "pl-4"
+                                        )}
+                                        onClick={() => isFlowParent && toggleRow(row.label)}
+                                    >
+                                        <div className={labelClass}>
+                                            {isFlowParent && (
+                                                <ChevronDownIcon 
+                                                    className={cn(
+                                                        "h-3 w-3 text-slate-400 transition-transform", 
+                                                        !expandedRows.has(row.label) && "-rotate-90"
+                                                    )} 
+                                                />
+                                            )}
+                                            {row.label}
+                                        </div>
+                                    </TableCell>
+                                    {row.values.map((val: string, vIdx: number) => {
+                                        // 값 스타일
+                                        const formatted = formatCell(val);
+                                        const isNegative = formatted.startsWith('(');
+                                        
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums";
+                                        if (isNegative) cellClass += " text-red-600 font-bold";
+                                        else cellClass += " text-slate-700 font-medium";
+                                        
+                                        if (isNetCash) cellClass += " font-bold text-sm";
+                                        if (headers[vIdx+1] === 'YoY') cellClass += " font-bold";
+
+                                        return (
+                                            <TableCell key={vIdx} className={cellClass}>
+                                                {formatted}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+        )}
+      </Card>
+    );
+  };
+
+  return (
+    <div className="space-y-6 pb-10">
+      {renderTable("현금흐름표", cashFlowHeaders, cashFlowData, isCashFlowExpanded, setIsCashFlowExpanded, 'flow')}
+      {renderTable("현금잔액과 차입금잔액표", balanceHeaders, balanceData, isBalanceExpanded, setIsBalanceExpanded, 'balance')}
+      {renderTable("운전자본표", workingCapitalHeaders, workingCapitalData, isWorkingCapitalExpanded, setIsWorkingCapitalExpanded, 'working')}
+    </div>
+  );
+}
+
+// 현금흐름표 CSV 파싱 및 표시 컴포넌트 (OLD)
+function CashFlowSection_OLD({ selectedMonth }: { selectedMonth: string }) {
+  const [cashFlowData, setCashFlowData] = React.useState<any[]>([]);
   const [loanData, setLoanData] = React.useState<any[]>([]);
   const [factorsData, setFactorsData] = React.useState<any[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
