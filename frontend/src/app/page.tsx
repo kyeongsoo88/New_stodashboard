@@ -16,7 +16,7 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon, TagIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -383,6 +383,21 @@ function DetailedMetricCard({
                     })())}>
                         YoY {removeYoYParentheses(yoy)}
                     </span>
+                    {title.includes("할인율") && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <button className="font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs hover:bg-purple-200 transition-colors ml-0 cursor-pointer border-0">
+                                    CORE할인
+                                </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>CORE 할인 상세</DialogTitle>
+                                </DialogHeader>
+                                <CoreDiscountDialog data={null} />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                     {yoyAdditional && (
                         <span className={cn("font-bold px-2 py-0.5 rounded text-emerald-700 bg-emerald-100")}>
                             {yoyAdditional}
@@ -1380,8 +1395,25 @@ function InventoryPlanDialog({ data }: { data: any }) {
                     </Table>
                 </div>
             </div>
-    </div>
-  );
+        </div>
+    );
+}
+
+// CORE 할인 팝업 컴포넌트
+function CoreDiscountDialog({ data }: { data: any }) {
+    return (
+        <div className="p-8 bg-white rounded-lg min-h-[300px] flex items-center justify-center border border-gray-100 shadow-sm">
+            <div className="text-center">
+                <div className="mb-4 flex justify-center">
+                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                        <TagIcon className="h-6 w-6 text-purple-600" />
+                    </div>
+                </div>
+                <p className="text-gray-800 font-bold text-lg mb-2">데이터 준비 중입니다</p>
+                <p className="text-gray-500 text-sm">CORE 할인 관련 CSV 데이터가 준비되면<br/>이곳에 상세 분석 내용이 표시됩니다.</p>
+            </div>
+        </div>
+    );
 }
 
 // Reusable Interactive Chart Component
