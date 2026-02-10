@@ -358,7 +358,7 @@ function DetailedMetricCard({
                         
                         // 음수 체크 (적자, 적자전환 등)
                         if (yoy.includes("-") || yoy.includes("적자")) {
-                            return "text-red-600 bg-emerald-50";
+                            return "text-red-600 bg-emerald-100";
                         }
                         // 퍼센트 값이 있는 경우
                         if (yoyText.includes("%")) {
