@@ -1762,6 +1762,7 @@ function InteractiveChartSection({
               } else if (chartType === "inventory") {
                   // 재고 차트: display name을 CSV 키로 매핑
                   const inventoryMapping: Record<string, string> = {
+                      '26SS': '26SS',
                       '25FW': '25FW',
                       '25SS': '25SS',
                       'FW과시즌': 'FW과시즌',
@@ -7320,6 +7321,11 @@ export default function DashboardPage() {
           description: `YoY ${getDataValue('카드_기말재고_YOY', month, '97.0%')}`,
           topStoresDetails: [
             { 
+              name: "26SS", 
+              value: `${getDataValue('카드_기말재고_아이템_SS차기당시즌_값', month, '1,096')}`, 
+              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS차기시즌_전년', month, '14%')})` 
+            },
+            { 
               name: "25FW", 
               value: `${getDataValue('카드_기말재고_아이템_FW당시즌_값', month, '74,484')}`, 
               yoy: `(전년${getDataValue('카드_기말재고_아이템_FW당시즌_전년', month, '111%')})` 
@@ -7922,6 +7928,7 @@ export default function DashboardPage() {
     // 아이템별 재고 추세 데이터
     const inventoryData: Record<string, number[]> = {};
     const inventoryMapping: Record<string, string> = {
+      '26SS': '26SS',
       '25FW': '25FW',
       '25SS': '25SS',
       'FW과시즌': 'FW과시즌',
@@ -8539,7 +8546,7 @@ export default function DashboardPage() {
                 title="2025-26년 월별 아이템별 재고 추세"
                 unit="K $"
                 iconColor="bg-purple-500"
-                filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                filterOptions={["26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
                     {color: "purple", title: "조기경보", content: "• 총재고 $21.1M (YOY 117%), 12월 대비 $2.0M 감소\n• 25FW: $12.9M (비중 61%), Q1 소진 목표 미달 우려\n• 25SS: $6.6M (비중 31%, YOY 75%), 할인 소진 지속 필요"},
                     {color: "blue", title: "긍정신호", content: "• 12월 → 1월 재고 감소: $23.1M → $21.1M (9% 감소)\n• 25FW 소진 가속: $13.8M → $12.9M (7% 감소)\n• CORE 대폭 감소: $1.0M → $0.6M (43% 감소)\n• FW과시즌 정상화: $1.2M → $0.8M (30% 감소)"},
