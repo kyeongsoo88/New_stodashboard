@@ -1445,10 +1445,24 @@ function CoreDiscountDialog({ data }: { data: any }) {
                     const dateStr = values[0]; 
                     const discountStr = values[1]; 
                     const salesStr = values[2]; 
-                    const comment = values[3]; // 코멘트 컬럼
+                    
+                    // 코멘트가 쉼표를 포함하는 경우 처리
+                    // date, discount, sales 이후의 모든 부분을 합침
+                    let comment = values.slice(3).join(',');
+                    
+                    // 따옴표 제거 (CSV에서 쉼표 포함 문자열은 따옴표로 감싸짐)
+                    if (comment) {
+                        comment = comment.trim();
+                        // 앞뒤 따옴표 제거
+                        if (comment.startsWith('"') && comment.endsWith('"')) {
+                            comment = comment.slice(1, -1);
+                        }
+                        // 이스케이프된 따옴표 처리 ("" -> ")
+                        comment = comment.replace(/""/g, '"');
+                    }
 
-                    if (comment && comment.trim() !== '') {
-                        collectedComments.push(comment.trim());
+                    if (comment && comment !== '') {
+                        collectedComments.push(comment);
                     }
                     
                     const dateParts = dateStr.split('-');
