@@ -1412,7 +1412,17 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 // Cache busting
                 const timestamp = new Date().getTime();
                 const response = await fetch(`/data/core-discount-daily.csv?t=${timestamp}`);
-                const csvText = await response.text();
+                const buffer = await response.arrayBuffer();
+                let csvText;
+
+                // 인코딩 감지 및 디코딩 (UTF-8 시도 후 실패 시 EUC-KR)
+                try {
+                    const decoder = new TextDecoder('utf-8', { fatal: true });
+                    csvText = decoder.decode(buffer);
+                } catch (e) {
+                    const decoder = new TextDecoder('euc-kr');
+                    csvText = decoder.decode(buffer);
+                }
                 
                 const lines = csvText.split('\n').filter(line => line.trim() !== '');
                 
