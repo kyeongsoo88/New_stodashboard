@@ -1404,6 +1404,7 @@ function CoreDiscountDialog({ data }: { data: any }) {
     const [chartData, setChartData] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [comments, setComments] = React.useState<string[]>([]);
+    const [chartTitle, setChartTitle] = React.useState("CORE 할인율 및 실판 매출 추이 (Daily)");
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -1414,12 +1415,21 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 const csvText = await response.text();
                 
                 const lines = csvText.split('\n').filter(line => line.trim() !== '');
-                const headers = lines[0].split(',');
+                
+                // 첫 번째 줄이 타이틀인지 확인 (헤더가 아니라면 타이틀로 간주)
+                // 보통 헤더는 'date'로 시작하므로, 'date'로 시작하지 않으면 첫 줄을 타이틀로 사용
+                let startIndex = 0;
+                if (!lines[0].startsWith('date')) {
+                    setChartTitle(lines[0]);
+                    startIndex = 1;
+                }
+                
+                const headers = lines[startIndex].split(',');
                 
                 // 코멘트 수집
                 const collectedComments: string[] = [];
                 
-                const parsedData = lines.slice(1).map(line => {
+                const parsedData = lines.slice(startIndex + 1).map(line => {
                     const values = line.split(',');
                     const dateStr = values[0]; 
                     const discountStr = values[1]; 
@@ -1479,7 +1489,7 @@ function CoreDiscountDialog({ data }: { data: any }) {
 
     return (
         <div className="p-6 bg-white rounded-lg">
-            <h3 className="text-lg font-bold mb-4 text-slate-800">CORE 할인율 및 실판 매출 추이 (Daily)</h3>
+            <h3 className="text-lg font-bold mb-4 text-slate-800">{chartTitle}</h3>
             <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
