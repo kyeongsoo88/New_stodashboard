@@ -1430,7 +1430,8 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 // 보통 헤더는 'date'로 시작하므로, 'date'로 시작하지 않으면 첫 줄을 타이틀로 사용
                 let startIndex = 0;
                 if (!lines[0].startsWith('date')) {
-                    setChartTitle(lines[0]);
+                    // 엑셀 저장 시 발생하는 불필요한 콤마 제거
+                    setChartTitle(lines[0].replace(/,+$/, ''));
                     startIndex = 1;
                 }
                 
