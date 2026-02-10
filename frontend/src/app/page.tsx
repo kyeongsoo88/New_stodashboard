@@ -148,11 +148,11 @@ function EditableInsightCard({
 
     // 클라이언트에서만 localStorage 읽기 (Hydration 에러 방지)
     React.useEffect(() => {
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-            try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try {
                 setItems(JSON.parse(saved));
-            } catch {
+                } catch {
                 // 파싱 실패 시 defaultItems 사용
             }
         }
@@ -2169,7 +2169,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
     setLoading(true);
     // CSV 파일 읽기
     const timestamp = new Date().getTime();
-    fetch(`/data/sto-income-statement-2026.csv?t=${timestamp}`)
+    fetch(`/data/sto-income-statement-2026-v3.csv?t=${timestamp}`)
       .then(async (res) => {
         const buf = await res.arrayBuffer();
         const bytes = new Uint8Array(buf);
@@ -2278,8 +2278,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         <div className="relative max-h-[800px] overflow-auto">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
-                <TableHead className="w-[140px] text-left border-r pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
+                <TableHead className="w-[140px] text-left border-r pl-4 sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
                   {headers[0]}
                 </TableHead>
                 {headers.slice(1).map((h, i) => {
@@ -2292,10 +2292,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   if (h.includes("실적")) {
                     bgColor = "bg-gray-100";
                   } else if (h === "YoY") {
-                    bgColor = "bg-yellow-200";
+                    bgColor = "bg-gray-100";
                     textColor = "text-black";
-                  } else if (h.includes("Total")) {
-                    bgColor = "bg-slate-200";
+                  } else if (h.includes("Total") || h === "26년" || h === "연간 YoY") {
+                    bgColor = "bg-gray-100";
                     textColor = "text-black";
                   }
 
@@ -2368,7 +2368,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                       }
 
                       // YoY 컬럼 (3번째 값, 인덱스 2) 강조
-                      const isYoYCol = vIdx === 2 || headers[vIdx+1] === "Total YoY";
+                      const isYoYCol = vIdx === 2 || headers[vIdx+1] === "Total YoY" || headers[vIdx+1] === "연간 YoY";
                       
                       return (
                         <TableCell 
@@ -3160,7 +3160,7 @@ function STEIncomeStatementSection() {
         <div className="relative max-h-[800px] overflow-auto">
           <Table>
             <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
                 {visibleHeaderIndices.map((headerIndex) => {
                   const header = headers[headerIndex];
                   const isFirst = headerIndex === 0;
@@ -3170,9 +3170,9 @@ function STEIncomeStatementSection() {
                       className={cn(
                         "text-center min-w-[100px] border-r whitespace-nowrap text-[11px] px-2 h-8",
                         isFirst
-                          ? "w-[220px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]"
+                          ? "w-[220px] text-left pl-4 sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]"
                           : "text-right",
-                        (header || "").includes("YTD") && "bg-yellow-200 text-black",
+                        (header || "").includes("YTD") && "bg-gray-100 text-black",
                         ((header || "").includes("A") || (header || "").includes("F")) && "bg-gray-100"
                       )}
                     >
@@ -3629,9 +3629,9 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   const totalRow = {
     name: '합계',
-    ytd24: totalOperatingExpense24,
+    ytd24: totalOperatingExpense25,
     ytd25: totalOperatingExpense,
-    diff: totalOperatingExpense - totalOperatingExpense24,
+    diff: totalOperatingExpense - totalOperatingExpense25,
     diffRate: totalOperatingExpenseYOY - 100,
     detail: '',
   };
@@ -3818,24 +3818,24 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 <Tooltip formatter={(value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}K`} />
                 <Legend />
                 <Bar 
-                  dataKey={year24Label} 
+                  dataKey={year25Label} 
                   fill="#e5e7eb"
                 >
                   {chartData.map((entry, index) => (
                     <Cell 
-                      key={`cell-24-${index}`} 
+                      key={`cell-25-${index}`} 
                       fill="#e5e7eb"
                       style={{ cursor: 'pointer' }}
                     />
                   ))}
                 </Bar>
                 <Bar 
-                  dataKey={year25Label} 
+                  dataKey={year26Label} 
                   fill="#374151"
                 >
                   {chartData.map((entry, index) => (
                     <Cell 
-                      key={`cell-25-${index}`} 
+                      key={`cell-26-${index}`} 
                       fill="#374151"
                       style={{ cursor: 'pointer' }}
                     />
@@ -3914,8 +3914,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[140px]">대분류</TableHead>
-                  <TableHead className="text-right w-[90px]">{year24Label}</TableHead>
                   <TableHead className="text-right w-[90px]">{year25Label}</TableHead>
+                  <TableHead className="text-right w-[90px]">{year26Label}</TableHead>
                   <TableHead className="text-right w-[90px]">증감액</TableHead>
                   <TableHead className="text-right w-[90px]">증감률</TableHead>
                   <TableHead className="text-center w-[280px]">상세</TableHead>
@@ -4196,9 +4196,9 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       </CardHeader>
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
-          <Table>
+          <Table className="w-full table-fixed">
             <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
                   return (
@@ -4206,15 +4206,15 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                     key={index}
                       className={cn(
                         "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
-                        // 기본 데이터 컬럼 너비 (110px로 통일 및 축소)
-                        "w-[110px] min-w-[110px]",
-                        // 계정과목 (첫 번째 열)
-                        index === 0 && "w-[110px] min-w-[110px] text-center sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                        // 상세 컬럼 (코멘트용 넓게)
-                        header === '상세' && "w-[300px] min-w-[300px] text-center",
+                        // 기본 데이터 컬럼 너비
+                        "min-w-[80px]",
+                        // 계정과목 (첫 번째 열): 12% 비중, 최소 120px
+                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        // 상세 컬럼 (코멘트용 넓게): 25% 비중, 최소 300px
+                        header === '상세' && "w-[25%] min-w-[300px] text-center",
                       // 헤더 배경색
-                      header === '25년 기말' && "bg-yellow-200 text-black",
-                      header === 'YoY' && "bg-slate-100 text-black"
+                      header === '25년 기말' && "bg-gray-100 text-black",
+                      header === 'YoY' && "bg-gray-100 text-black"
                     )}
                   >
                     {header}
@@ -4240,6 +4240,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                     <TableCell
                       className={cn(
                         "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "min-w-[120px] truncate",
                         rowBg,
                         isSection
                           ? "font-bold pl-2"
@@ -4275,8 +4276,11 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         <TableCell
                           key={`${rowIndex}-${headerIdx}`}
                           className={cn(
-                            "text-right px-2 border-r tabular-nums whitespace-nowrap font-medium",
-                            isDetailCol && "text-left",
+                            "text-right px-2 border-r tabular-nums font-medium",
+                            // 일반 컬럼: 최소 너비, 말줄임
+                            !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
+                            // 상세 컬럼: 최소 너비, 줄바꿈 허용
+                            isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
                             !isDetailCol && isNegative(value) && "text-red-600",
                             isSection && "font-bold"
                           )}
@@ -4462,9 +4466,9 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
       </CardHeader>
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
-          <Table>
+          <Table className="w-full table-fixed">
             <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
                   return (
@@ -4472,11 +4476,11 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                       key={index}
                       className={cn(
                         "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
-                        "w-[110px] min-w-[110px]",
-                        index === 0 && "w-[110px] min-w-[110px] text-center sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                        header === '상세' && "w-[300px] min-w-[300px] text-center",
-                        header === '25년 기말' && "bg-yellow-200 text-black",
-                        header === 'YoY' && "bg-slate-100 text-black"
+                        "min-w-[80px]",
+                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        header === '상세' && "w-[25%] min-w-[300px] text-center",
+                        header === '25년 기말' && "bg-gray-100 text-black",
+                        header === 'YoY' && "bg-gray-100 text-black"
                       )}
                     >
                       {header}
@@ -4500,6 +4504,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                     <TableCell
                       className={cn(
                         "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "min-w-[120px] truncate",
                         rowBg,
                         isMain ? "font-bold pl-2" : "pl-6"
                       )}
@@ -4530,8 +4535,11 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                           <TableCell
                             key={`${rowIndex}-${headerIdx}`}
                             className={cn(
-                              "text-right px-2 border-r tabular-nums whitespace-nowrap font-medium",
-                              isDetailCol && "text-left",
+                              "text-right px-2 border-r tabular-nums font-medium",
+                              // 일반 컬럼: 최소 너비, 말줄임
+                              !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
+                              // 상세 컬럼: 최소 너비, 줄바꿈 허용
+                              isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
                               !isDetailCol && isNegative(value) && "text-red-600",
                               isMain && "font-bold"
                             )}
@@ -6032,7 +6040,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
         {expanded && (
             <div className="overflow-x-auto">
                 <Table>
-                    <TableHeader className="bg-slate-50">
+                    <TableHeader className="bg-gray-100">
                         <TableRow>
                             {headers.map((h, i) => {
                                 if (!isMonthColumnVisible(h, i, headers)) return null;
@@ -6042,10 +6050,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         key={i} 
                                         className={cn(
                                             "text-xs font-bold text-slate-700 h-9 px-2 whitespace-nowrap border-b border-slate-200",
-                                            i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-slate-50" : "text-right min-w-[80px]",
+                                            i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-gray-100" : "text-right min-w-[80px]",
                                             // 헤더 색상 로직
                                             h.includes('Total') || h.includes('합계') || h === 'Base' || h === 'End' || h.includes('기초') || h.includes('기말') 
-                                                ? "bg-slate-100" : ""
+                                                ? "bg-gray-100" : ""
                                         )}
                                     >
                                         {h === 'Category' || h === '계정과목'
@@ -6077,14 +6085,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
                             // 라벨 스타일
                             // 부모 행 스타일을 우선 적용해 아이콘이 항상 텍스트 왼쪽에 오도록 유지
-                            let labelClass = "text-xs font-medium text-slate-700";
+                            let labelClass = "text-xs font-bold text-slate-700";
                             if (isFlowParent) {
                                 labelClass = cn(
                                     "text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-1 whitespace-nowrap",
                                     isFlowSub && "pl-8"
                                 );
                             } else if (isFlowSub) {
-                                labelClass = "text-xs text-slate-500 pl-8";
+                                labelClass = "text-xs font-bold text-slate-700 pl-8";
                             }
                             if (isMaterialOutflow) {
                                 // 비용지출과 같은 열 시작점에 맞추기 위해 아이콘 자리만큼 공간 확보
@@ -6127,12 +6135,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums";
-                                        if (isNegative) cellClass += " text-red-600 font-bold";
-                                        else cellClass += " text-slate-700 font-medium";
-                                        
-                                        if (isNetCash) cellClass += " font-bold";
-                                        if (headers[headerIndex] === 'YoY') cellClass += " font-bold";
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums font-bold";
+                                        if (isNegative) cellClass += " text-red-600";
+                                        else cellClass += " text-slate-700";
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
