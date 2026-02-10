@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MetricCard } from "@/components/dashboard/metric-card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie, ReferenceLine } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
@@ -1504,34 +1504,52 @@ function CoreDiscountDialog({ data }: { data: any }) {
             <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                        <CartesianGrid stroke="#f5f5f5" />
+                        <defs>
+                            <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.3}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                         <XAxis 
                             dataKey="date" 
                             scale="point" 
                             padding={{ left: 10, right: 10 }} 
-                            tick={{ fontSize: 11 }}
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            axisLine={{ stroke: '#cbd5e1' }}
+                            tickLine={false}
                         />
                         <YAxis 
                             yAxisId="left" 
                             orientation="left" 
                             tickFormatter={(v) => `${v}%`}
-                            label={{ value: '할인율 (%)', angle: -90, position: 'insideLeft' }}
+                            label={{ value: '할인율 (%)', angle: -90, position: 'insideLeft', fill: '#7c3aed', fontSize: 12 }}
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            axisLine={false}
+                            tickLine={false}
                         />
                         <YAxis 
                             yAxisId="right" 
                             orientation="right" 
                             tickFormatter={(v) => v.toLocaleString()}
-                            label={{ value: '실판 매출', angle: 90, position: 'insideRight' }}
+                            label={{ value: '실판 매출', angle: 90, position: 'insideRight', fill: '#64748b', fontSize: 12 }}
+                            tick={{ fontSize: 11, fill: '#64748b' }}
+                            axisLine={false}
+                            tickLine={false}
                         />
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                        
+                        {/* 0 기준선 추가 */}
+                        <ReferenceLine y={0} yAxisId="left" stroke="#cbd5e1" strokeWidth={1} />
+                        
                         <Bar 
                             yAxisId="right" 
                             dataKey="sales" 
                             name="실판 매출" 
-                            fill="#9ca3af" 
-                            barSize={10} 
-                            radius={[2, 2, 0, 0]}
+                            fill="url(#salesGradient)" 
+                            barSize={12}
+                            radius={[4, 4, 0, 0]}
                         />
                         <Line 
                             yAxisId="left" 
@@ -1539,9 +1557,9 @@ function CoreDiscountDialog({ data }: { data: any }) {
                             dataKey="discount" 
                             name="할인율" 
                             stroke="#7c3aed" 
-                            strokeWidth={2} 
-                            dot={{ r: 3, fill: "#7c3aed" }} 
-                            activeDot={{ r: 5 }} 
+                            strokeWidth={3} 
+                            dot={{ r: 4, fill: "#fff", stroke: "#7c3aed", strokeWidth: 2 }} 
+                            activeDot={{ r: 6, fill: "#7c3aed", stroke: "#fff", strokeWidth: 2 }} 
                         />
                     </ComposedChart>
                 </ResponsiveContainer>
