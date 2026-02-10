@@ -1401,16 +1401,122 @@ function InventoryPlanDialog({ data }: { data: any }) {
 
 // CORE 할인 팝업 컴포넌트
 function CoreDiscountDialog({ data }: { data: any }) {
-    return (
-        <div className="p-8 bg-white rounded-lg min-h-[300px] flex items-center justify-center border border-gray-100 shadow-sm">
-            <div className="text-center">
-                <div className="mb-4 flex justify-center">
-                    <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                        <TagIcon className="h-6 w-6 text-purple-600" />
+    const [chartData, setChartData] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Cache busting
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/data/core-discount-daily.csv?t=${timestamp}`);
+                const csvText = await response.text();
+                
+                const lines = csvText.split('\n').filter(line => line.trim() !== '');
+                const headers = lines[0].split(',');
+                
+                const parsedData = lines.slice(1).map(line => {
+                    const values = line.split(',');
+                    const dateStr = values[0]; // 2026-01-01
+                    const discountStr = values[1]; // 48%
+                    const salesStr = values[2]; // 5677
+                    
+                    const dateParts = dateStr.split('-');
+                    const formattedDate = `${dateParts[1]}.${dateParts[2]}`; // 01.01
+                    
+                    return {
+                        date: formattedDate,
+                        fullDate: dateStr,
+                        discount: parseFloat(discountStr.replace('%', '')),
+                        sales: parseFloat(salesStr)
+                    };
+                });
+                
+                setChartData(parsedData);
+            } catch (error) {
+                console.error("Failed to load CORE discount data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (!active || !payload || payload.length === 0) return null;
+
+        return (
+            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1">
+                <div className="font-semibold text-gray-800 mb-1">{label}</div>
+                {payload.map((entry: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between gap-2">
+                        <span style={{ color: entry.color }}>{entry.name}:</span>
+                        <span className="font-medium">
+                            {entry.dataKey === 'discount' 
+                                ? `${entry.value}%` 
+                                : entry.value.toLocaleString()}
+                        </span>
                     </div>
-                </div>
-                <p className="text-gray-800 font-bold text-lg mb-2">데이터 준비 중입니다</p>
-                <p className="text-gray-500 text-sm">CORE 할인 관련 CSV 데이터가 준비되면<br/>이곳에 상세 분석 내용이 표시됩니다.</p>
+                ))}
+            </div>
+        );
+    };
+
+    if (loading) {
+        return <div className="p-8 text-center text-gray-500">데이터를 불러오는 중...</div>;
+    }
+
+    return (
+        <div className="p-6 bg-white rounded-lg">
+            <h3 className="text-lg font-bold mb-4 text-slate-800">CORE 할인율 및 실판 매출 추이 (Daily)</h3>
+            <div className="h-[400px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                        <CartesianGrid stroke="#f5f5f5" />
+                        <XAxis 
+                            dataKey="date" 
+                            scale="point" 
+                            padding={{ left: 10, right: 10 }} 
+                            tick={{ fontSize: 11 }}
+                        />
+                        <YAxis 
+                            yAxisId="left" 
+                            orientation="left" 
+                            tickFormatter={(v) => `${v}%`}
+                            label={{ value: '할인율 (%)', angle: -90, position: 'insideLeft' }}
+                        />
+                        <YAxis 
+                            yAxisId="right" 
+                            orientation="right" 
+                            tickFormatter={(v) => v.toLocaleString()}
+                            label={{ value: '실판 매출', angle: 90, position: 'insideRight' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        <Bar 
+                            yAxisId="right" 
+                            dataKey="sales" 
+                            name="실판 매출" 
+                            fill="#9ca3af" 
+                            barSize={10} 
+                            radius={[2, 2, 0, 0]}
+                        />
+                        <Line 
+                            yAxisId="left" 
+                            type="monotone" 
+                            dataKey="discount" 
+                            name="할인율" 
+                            stroke="#7c3aed" 
+                            strokeWidth={2} 
+                            dot={{ r: 3, fill: "#7c3aed" }} 
+                            activeDot={{ r: 5 }} 
+                        />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+            <div className="mt-4 text-xs text-gray-500 text-center">
+                * 2026년 1월 1일 ~ 2월 8일 데이터 기준
             </div>
         </div>
     );
