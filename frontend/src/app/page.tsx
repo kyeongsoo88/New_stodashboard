@@ -2115,7 +2115,250 @@ function parseCSVLine(line: string): string[] {
 }
 
 // 손익계산서 CSV 파싱 및 표시 컴포넌트
-function IncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
+function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string }) {
+  const [csvData, setCsvData] = React.useState<any[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [allExpanded, setAllExpanded] = React.useState(false); // 기본값: 축소
+  const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접기 (Feb-Dec 숨김)
+
+  // 숫자가 포함된 문자열을 숫자로 변환 (천단위 콤마 제거) 및 포맷팅
+  const formatNumber = (val: string) => {
+    if (!val || val === '' || val === '-') return val || '';
+    // %나 p가 포함된 경우 (비율)
+    if (val.includes('%') || val.includes('p')) return val;
+    
+    // 이미 콤마가 있는지 확인
+    const clean = val.replace(/,/g, '');
+    const num = parseFloat(clean);
+    
+    if (isNaN(num)) return val;
+    return num.toLocaleString();
+  };
+
+  // 컬럼 표시 여부 확인
+  const isColumnVisible = (idx: number) => {
+    // 0: Jan-26실적, 1: Jan-25실적, 2: YoY
+    // 3: Feb-26F ... 13: Dec-26F
+    // 14: 2026 Total, 15: Total YoY
+    
+    if (showAllMonths) return true;
+    
+    // 항상 표시: Jan-26(0), Jan-25(1), YoY(2), Total(14), Total YoY(15)
+    if (idx <= 2) return true;
+    if (idx >= 14) return true;
+    
+    return false; // Feb~Dec 숨김
+  };
+
+  React.useEffect(() => {
+    setLoading(true);
+    // CSV 파일 읽기
+    const timestamp = new Date().getTime();
+    fetch(`/data/sto-income-statement-2026.csv?t=${timestamp}`)
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+        
+        // 헤더 파싱 (첫 번째 줄)
+        const headerLine = lines[0];
+        const parsedHeaders = parseCSVLine(headerLine);
+        setHeaders(parsedHeaders);
+        
+        // 데이터 파싱
+        const parsed: any[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim() || line.match(/^,{10,}/)) continue; // 빈 줄 스킵
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2 || !values[0]) continue;
+          
+          const label = values[0].trim();
+          
+          // 메인 카테고리인지 확인 (숫자.로 시작하거나 Gross Profit, Direct Profit, Operating Profit)
+          const isMainCategory = /^\d+\./.test(label) || 
+                               label === 'Gross Profit' || 
+                               label === 'Direct Profit' || 
+                               label === 'Operating Profit';
+                               
+          // 비율 행인지 확인 (%)
+          const isRatioRow = label === '(%)' || label === 'Discount Rate';
+          
+          // 서브 아이템인지 확인 (메인 카테고리도 아니고 비율 행도 아니면)
+          const isSubItem = !isMainCategory && !isRatioRow;
+
+          parsed.push({
+            id: `row-${i}`,
+            label: label,
+            values: values.slice(1), // 첫 번째 컬럼(Category) 제외한 데이터
+            isMainCategory,
+            isRatioRow,
+            isSubItem
+          });
+        }
+        
+        setCsvData(parsed);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load income statement CSV:", err);
+        setLoading(false);
+      });
+  }, [selectedMonth]);
+
+  if (loading) {
+    return <div className="text-center py-8">데이터를 불러오는 중...</div>;
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-bold">STO 손익계산서 (단위: K $)</CardTitle>
+        <div className="flex gap-2">
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowAllMonths(!showAllMonths)}
+            >
+                {showAllMonths ? "월 접기" : "월 펼치기"}
+            </Button>
+            <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setAllExpanded(!allExpanded)}
+            >
+            {allExpanded ? "상세 접기" : "상세 펼치기"}
+            </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 overflow-x-auto">
+        <div className="relative max-h-[800px] overflow-auto">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
+              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+                <TableHead className="w-[140px] text-left border-r pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+                  {headers[0]}
+                </TableHead>
+                {headers.slice(1).map((h, i) => {
+                  if (!isColumnVisible(i)) return null;
+
+                  let bgColor = "bg-slate-100";
+                  let textColor = "text-slate-700";
+                  
+                  // 색상 로직: 실적(노란색), F(일반), Total(강조)
+                  if (h.includes("실적")) {
+                    bgColor = "bg-gray-100";
+                  } else if (h === "YoY") {
+                    bgColor = "bg-yellow-200";
+                    textColor = "text-black";
+                  } else if (h.includes("Total")) {
+                    bgColor = "bg-slate-200";
+                    textColor = "text-black";
+                  }
+
+                  return (
+                    <TableHead 
+                      key={i} 
+                      className={cn(
+                        "text-center min-w-[80px] border-r whitespace-nowrap text-[11px] px-1 h-8",
+                        bgColor,
+                        textColor
+                      )}
+                    >
+                      {h}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {csvData.map((row, idx) => {
+                // 펼치기/접기 로직: 메인 카테고리와 주요 Profit 행은 항상 표시
+                // 서브 아이템은 allExpanded가 true일 때만 표시
+                if (row.isSubItem && !allExpanded) return null;
+
+                let rowBg = "bg-white";
+                let textStyle = "text-slate-600";
+                let labelStyle = "font-normal pl-8"; // 서브 아이템 들여쓰기
+
+                // 스타일링
+                if (row.isMainCategory) {
+                  rowBg = "bg-slate-50";
+                  textStyle = "font-bold text-slate-900";
+                  labelStyle = "font-bold pl-4";
+                  
+                  // 주요 이익 항목 강조
+                  if (row.label === "Gross Profit" || row.label === "Direct Profit" || row.label === "Operating Profit") {
+                    rowBg = "bg-blue-50";
+                    textStyle = "font-bold text-blue-900";
+                  }
+                } else if (row.isRatioRow) {
+                  if (row.label === "Discount Rate") {
+                    rowBg = "bg-orange-50";
+                    textStyle = "text-orange-900 font-medium";
+                    labelStyle = "font-medium pl-4";
+                  } else {
+                    // (%) 행 - 가운데 정렬
+                    rowBg = "bg-blue-50/50";
+                    textStyle = "text-blue-800 font-medium";
+                    labelStyle = "text-center font-medium italic text-xs px-0"; // 가운데 정렬, 패딩 제거
+                  }
+                }
+
+                return (
+                  <TableRow key={idx} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                    <TableCell className={cn("border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]", rowBg, labelStyle)}>
+                      {row.label}
+                    </TableCell>
+                    {row.values.map((val: string, vIdx: number) => {
+                      if (!isColumnVisible(vIdx)) return null;
+
+                      let cellTextColor = textStyle;
+                      
+                      // 값에 따른 색상 처리 (음수: 빨강)
+                      const isNegative = val.includes("-") || val.startsWith("(");
+                      if (isNegative) {
+                        cellTextColor = "text-red-600";
+                      } else if (row.label === 'Discount Rate' || row.label === '(%)') {
+                         // 비율 행은 기본 색상 유지 또는 파랑
+                         if (!isNegative && row.label === '(%)') cellTextColor = "text-blue-600";
+                      }
+
+                      // YoY 컬럼 (3번째 값, 인덱스 2) 강조
+                      const isYoYCol = vIdx === 2 || headers[vIdx+1] === "Total YoY";
+                      
+                      return (
+                        <TableCell 
+                          key={vIdx} 
+                          className={cn(
+                            "text-right px-2 border-r tabular-nums whitespace-nowrap",
+                            cellTextColor,
+                            isYoYCol && "font-bold"
+                          )}
+                        >
+                          {formatNumber(val)}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 구 버전 (사용하지 않음)
+function IncomeStatementSection_OLD({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<any[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -6777,7 +7020,7 @@ export default function DashboardPage() {
         {/* 손익계산서 탭 콘텐츠 */}
         {activeTab === "손익계산서" && (
           <>
-            <IncomeStatementSection selectedMonth={currentSelectedMonth} />
+            <STOIncomeStatementSection selectedMonth={currentSelectedMonth} />
             <STEIncomeStatementSection />
           </>
         )}
