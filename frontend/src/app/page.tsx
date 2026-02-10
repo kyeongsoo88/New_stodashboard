@@ -2156,9 +2156,29 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
     // CSV 파일 읽기
     const timestamp = new Date().getTime();
     fetch(`/data/sto-income-statement-2026.csv?t=${timestamp}`)
-      .then(res => res.text())
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+
+        // BOM/인코딩 감지: UTF-16LE -> UTF-8(BOM) -> UTF-8 -> EUC-KR
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          return new TextDecoder('utf-16le').decode(bytes);
+        }
+        if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+        try {
+          return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        } catch {
+          return new TextDecoder('euc-kr').decode(bytes);
+        }
+      })
       .then(text => {
-        const lines = text.split('\n').filter(line => line.trim());
+        const lines = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line)
+          .filter((line) => !line.toLowerCase().startsWith('sep='));
         if (lines.length < 2) {
           setLoading(false);
           return;
@@ -2167,6 +2187,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         // 헤더 파싱 (첫 번째 줄)
         const headerLine = lines[0];
         const parsedHeaders = parseCSVLine(headerLine);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
         setHeaders(parsedHeaders);
         
         // 데이터 파싱
@@ -3107,8 +3130,8 @@ function STEIncomeStatementSection() {
     .map(({ idx }) => idx);
 
   return (
-    <Card className="mt-8">
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card className="mt-8 overflow-hidden">
+      <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STE 손익계산서 (단위 : K $)</CardTitle>
         <Button
           variant="outline"
@@ -3119,105 +3142,95 @@ function STEIncomeStatementSection() {
           {showAllMonths ? "월 접기" : "월 펼치기"}
         </Button>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-hidden">
-          <div className="relative w-full overflow-auto">
-            <table className="w-full caption-bottom text-sm">
-              <thead className="[&_tr]:border-b">
-                <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted bg-gray-50/50">
-                  {visibleHeaderIndices.map((headerIndex) => {
-                    const header = headers[headerIndex];
-                    const index = headerIndex;
-                    return (
-                    <th 
-                      key={index} 
-                      className={`h-12 px-4 align-middle font-bold text-muted-foreground [&:has([role=checkbox])]:pr-0 ${
-                        index === 0
-                          ? "w-[250px] font-bold text-left sticky left-0 z-20 bg-gray-50"
-                          : "text-right font-bold min-w-[100px]"
-                      }`}
-                    >
-                      {header === '구분' ? '중분류' : header}
-                    </th>
-                  )})}
-                </tr>
-              </thead>
-              <tbody className="[&_tr:last-child]:border-0">
-                {csvData.map((row, rowIndex) => {
-                  // 하위 항목인 경우 부모가 펼쳐져 있는지 확인
-                  if (row.isSubItem && row.parent && !expandedRows.has(row.parent)) {
-                    return null; // 숨김
-                  }
-
+      <CardContent className="p-0 overflow-x-auto">
+        <div className="relative max-h-[800px] overflow-auto">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
+              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+                {visibleHeaderIndices.map((headerIndex) => {
+                  const header = headers[headerIndex];
+                  const isFirst = headerIndex === 0;
                   return (
-                    <tr 
-                      key={rowIndex} 
+                    <TableHead
+                      key={headerIndex}
                       className={cn(
-                        row.isMainCategory ? "bg-gray-100" :
-                        row.isSubItem ? "bg-gray-50" : "",
-                        "hover:bg-gray-50",
-                        row.hasChildren ? "cursor-pointer" : ""
+                        "text-center min-w-[100px] border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        isFirst
+                          ? "w-[220px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]"
+                          : "text-right",
+                        (header || "").includes("YTD") && "bg-yellow-200 text-black",
+                        ((header || "").includes("A") || (header || "").includes("F")) && "bg-gray-100"
                       )}
                     >
-                      <td
-                        className={cn(
-                          "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 sticky left-0 z-10 flex items-center h-full",
-                          row.isMainCategory ? "font-bold text-base" : "font-medium",
-                          row.isSubItem ? "pl-12 text-sm text-gray-600" : "pl-2",
-                          row.isCalculationResult ? "font-bold text-base" : "",
-                          row.isMainCategory ? "bg-gray-100" : "bg-white",
-                          row.hasChildren ? "cursor-pointer" : ""
-                        )}
-                        onClick={() => {
-                          if (row.hasChildren) toggleRow(row.label);
-                        }}
-                      >
-                        {row.hasChildren && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleRow(row.label);
-                            }}
-                            className="w-4 flex justify-center mr-1 text-xs text-gray-500"
-                            aria-label={`${row.label} ${expandedRows.has(row.label) ? "접기" : "펼치기"}`}
-                          >
-                            {expandedRows.has(row.label) ? (
-                              <ChevronDownIcon className="h-4 w-4" />
-                            ) : (
-                              <ChevronRightIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        )}
-                        {/* 아이콘 자리 고정: 하위행이 아닌 경우(메인/계산행 포함) 항상 w-4 공간 확보 */}
-                        {!row.hasChildren && !row.isSubItem ? (
-                          <span className="w-4 mr-1 inline-block" />
-                        ) : null}
-                        {row.label}
-                      </td>
-                      {visibleHeaderIndices
-                        .filter((idx) => idx !== 0)
-                        .map((headerIdx) => {
-                          const valIndex = headerIdx - 1; // headers[0]은 label, values[0]은 headers[1]에 대응
-                          const val = row.values?.[valIndex] ?? '';
-                          return (
-                            <td
-                              key={headerIdx}
-                              className={cn(
-                                "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 text-right font-bold",
-                                getValueColor(val)
-                              )}
-                            >
-                              {formatValue(val)}
-                            </td>
-                          );
-                        })}
-                    </tr>
+                      {header === "구분" || header === "Category" ? "중분류" : header}
+                    </TableHead>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {csvData.map((row, rowIndex) => {
+                if (row.isSubItem && row.parent && !expandedRows.has(row.parent)) return null;
+
+                const rowBg = row.isMainCategory
+                  ? "bg-slate-50"
+                  : row.isSubItem
+                  ? "bg-white"
+                  : "bg-white";
+                const stickyBg = row.isMainCategory ? "bg-slate-50" : "bg-white";
+
+                return (
+                  <TableRow
+                    key={rowIndex}
+                    className={cn("text-xs border-b hover:bg-slate-100/50", rowBg, row.hasChildren && "cursor-pointer")}
+                  >
+                    <TableCell
+                      className={cn(
+                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] py-2",
+                        stickyBg,
+                        row.isMainCategory ? "font-bold pl-4" : row.isSubItem ? "pl-10 text-slate-600" : "pl-4",
+                        row.isCalculationResult && "font-bold"
+                      )}
+                      onClick={() => row.hasChildren && toggleRow(row.label)}
+                    >
+                      <div className={cn("flex items-center gap-1", row.hasChildren && "cursor-pointer")}>
+                        {row.hasChildren ? (
+                          expandedRows.has(row.label) ? (
+                            <ChevronDownIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          ) : (
+                            <ChevronRightIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          )
+                        ) : (
+                          !row.isSubItem && <span className="inline-block h-3 w-3 flex-shrink-0" />
+                        )}
+                        <span>{row.label}</span>
+                      </div>
+                    </TableCell>
+
+                    {visibleHeaderIndices
+                      .filter((idx) => idx !== 0)
+                      .map((headerIdx) => {
+                        const valIndex = headerIdx - 1;
+                        const val = row.values?.[valIndex] ?? "";
+                        return (
+                          <TableCell
+                            key={headerIdx}
+                            className={cn(
+                              "text-right px-2 border-r tabular-nums whitespace-nowrap font-medium",
+                              getValueColor(val),
+                              row.isMainCategory && "font-bold",
+                              row.isCalculationResult && "font-bold"
+                            )}
+                          >
+                            {formatValue(val)}
+                          </TableCell>
+                        );
+                      })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
@@ -5088,8 +5101,35 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [isBalanceExpanded, setIsBalanceExpanded] = React.useState(true);
   const [isWorkingCapitalExpanded, setIsWorkingCapitalExpanded] = React.useState(true);
 
-  // 현금흐름표 내부 항목 접기/펼치기 상태 (영업활동, 재무활동)
-  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['영업활동', '재무활동']));
+  // 현금흐름표 내부 항목 접기/펼치기 기본값
+  // 기본: 영업활동/재무활동만 펼침, 매출수금/비용지출은 접힘
+  const defaultExpandedRows = React.useMemo(() => new Set<string>(['영업활동', '재무활동']), []);
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(defaultExpandedRows);
+  const flowParentRows = ['영업활동', '매출수금', '비용지출', '재무활동'];
+  const areAllFlowRowsExpanded = flowParentRows.every((row) => expandedRows.has(row));
+
+  const toggleAllFlowRows = () => {
+    setExpandedRows((prev) => {
+      if (flowParentRows.every((row) => prev.has(row))) {
+        // 전체 접기: 4개 부모 행 모두 접기
+        const next = new Set(prev);
+        flowParentRows.forEach((row) => next.delete(row));
+        return next;
+      }
+      // 전체 펼치기: 4개 부모 행 모두 펼치기
+      const next = new Set(prev);
+      flowParentRows.forEach((row) => next.add(row));
+      return next;
+    });
+  };
+
+  // 현금흐름표 기본 표시 레벨 고정
+  React.useEffect(() => {
+    setExpandedRows(new Set(defaultExpandedRows));
+  }, [defaultExpandedRows]);
+  
+  // 월 접기/펼치기 상태 (Feb~Dec 기본 접힘)
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
 
   const toggleRow = (label: string) => {
     const newSet = new Set(expandedRows);
@@ -5154,22 +5194,51 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             
             // 1. 현금흐름표 데이터 로드
             const res1 = await fetch(`/data/sto-cash-flow-2026.csv?t=${timestamp}`);
-            const text1 = await res1.text();
-            const lines1 = text1.split('\n').filter(line => line.trim());
+            const buf1 = await res1.arrayBuffer();
+            const bytes1 = new Uint8Array(buf1);
+            let text1 = '';
+            // BOM 기반 인코딩 감지
+            if (bytes1.length >= 2 && bytes1[0] === 0xff && bytes1[1] === 0xfe) {
+                text1 = new TextDecoder('utf-16le').decode(bytes1);
+            } else if (bytes1.length >= 3 && bytes1[0] === 0xef && bytes1[1] === 0xbb && bytes1[2] === 0xbf) {
+                text1 = new TextDecoder('utf-8').decode(bytes1);
+            } else {
+                // UTF-8 시도 후 실패 시 EUC-KR
+                try {
+                    text1 = new TextDecoder('utf-8', { fatal: true }).decode(bytes1);
+                } catch (e) {
+                    text1 = new TextDecoder('euc-kr').decode(bytes1);
+                }
+            }
+            const lines1 = text1
+              .split('\n')
+              .map((line) => line.trim())
+              .filter((line) => line)
+              .filter((line) => !line.toLowerCase().startsWith('sep='));
             if (lines1.length > 1) {
-                setCashFlowHeaders(parseCSVLine(lines1[0]));
+                const headers1 = parseCSVLine(lines1[0]);
+                // BOM 제거
+                if (headers1.length > 0) {
+                    headers1[0] = (headers1[0] || '').replace(/^\uFEFF/, '');
+                }
+                setCashFlowHeaders(headers1);
                 const parsed1 = [];
                 for(let i=1; i<lines1.length; i++) {
                     const vals = parseCSVLine(lines1[i]);
                     const label = vals[0].trim();
                     // 하위 항목 식별
                     const isSubItem = label === '매출수금' || label === '물품대 지출' || label === '비용지출' || 
-                                     label.startsWith('기타수금') || label.startsWith('기타지출');
+                                     label.startsWith('기타수금') || label.startsWith('기타지출') ||
+                                     label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스' ||
+                                     label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용';
                     // 부모 항목 식별
-                    const isParent = label === '영업활동' || label === '재무활동';
+                    const isParent = label === '영업활동' || label === '재무활동' || 
+                                    label === '매출수금' || label === '비용지출';
                     // 부모 키 찾기
                     let parentKey = null;
                     if (label === '매출수금' || label === '물품대 지출' || label === '비용지출') parentKey = '영업활동';
+                    else if (label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스') parentKey = '매출수금';
+                    else if (label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용') parentKey = '비용지출';
                     else if (label.startsWith('기타수금') || label.startsWith('기타지출')) parentKey = '재무활동';
 
                     parsed1.push({
@@ -5185,10 +5254,32 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
             // 2. 현금잔액과 차입금잔액표 데이터 로드
             const res2 = await fetch(`/data/sto-cash-balance-2026.csv?t=${timestamp}`);
-            const text2 = await res2.text();
-            const lines2 = text2.split('\n').filter(line => line.trim());
+            const buf2 = await res2.arrayBuffer();
+            const bytes2 = new Uint8Array(buf2);
+            let text2 = '';
+            if (bytes2.length >= 2 && bytes2[0] === 0xff && bytes2[1] === 0xfe) {
+                text2 = new TextDecoder('utf-16le').decode(bytes2);
+            } else if (bytes2.length >= 3 && bytes2[0] === 0xef && bytes2[1] === 0xbb && bytes2[2] === 0xbf) {
+                text2 = new TextDecoder('utf-8').decode(bytes2);
+            } else {
+                try {
+                    text2 = new TextDecoder('utf-8', { fatal: true }).decode(bytes2);
+                } catch (e) {
+                    text2 = new TextDecoder('euc-kr').decode(bytes2);
+                }
+            }
+            const lines2 = text2
+              .split('\n')
+              .map((line) => line.trim())
+              .filter((line) => line)
+              .filter((line) => !line.toLowerCase().startsWith('sep='));
             if (lines2.length > 1) {
-                setBalanceHeaders(parseCSVLine(lines2[0]));
+                const headers2 = parseCSVLine(lines2[0]);
+                // BOM 제거
+                if (headers2.length > 0) {
+                    headers2[0] = (headers2[0] || '').replace(/^\uFEFF/, '');
+                }
+                setBalanceHeaders(headers2);
                 const parsed2 = [];
                 for(let i=1; i<lines2.length; i++) {
                     const vals = parseCSVLine(lines2[i]);
@@ -5202,10 +5293,32 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
             // 3. 운전자본표 데이터 로드
             const res3 = await fetch(`/data/sto-working-capital-2026.csv?t=${timestamp}`);
-            const text3 = await res3.text();
-            const lines3 = text3.split('\n').filter(line => line.trim());
+            const buf3 = await res3.arrayBuffer();
+            const bytes3 = new Uint8Array(buf3);
+            let text3 = '';
+            if (bytes3.length >= 2 && bytes3[0] === 0xff && bytes3[1] === 0xfe) {
+                text3 = new TextDecoder('utf-16le').decode(bytes3);
+            } else if (bytes3.length >= 3 && bytes3[0] === 0xef && bytes3[1] === 0xbb && bytes3[2] === 0xbf) {
+                text3 = new TextDecoder('utf-8').decode(bytes3);
+            } else {
+                try {
+                    text3 = new TextDecoder('utf-8', { fatal: true }).decode(bytes3);
+                } catch (e) {
+                    text3 = new TextDecoder('euc-kr').decode(bytes3);
+                }
+            }
+            const lines3 = text3
+              .split('\n')
+              .map((line) => line.trim())
+              .filter((line) => line)
+              .filter((line) => !line.toLowerCase().startsWith('sep='));
             if (lines3.length > 1) {
-                setWorkingCapitalHeaders(parseCSVLine(lines3[0]));
+                const headers3 = parseCSVLine(lines3[0]);
+                // BOM 제거
+                if (headers3.length > 0) {
+                    headers3[0] = (headers3[0] || '').replace(/^\uFEFF/, '');
+                }
+                setWorkingCapitalHeaders(headers3);
                 const parsed3 = [];
                 for(let i=1; i<lines3.length; i++) {
                     const vals = parseCSVLine(lines3[i]);
@@ -5230,21 +5343,88 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
   }
 
+  // 헤더 변환 함수
+  const formatHeader = (header: string): string => {
+    const headerMap: Record<string, string> = {
+      // 월 표기
+      'Jan': '1월',
+      'Feb': '2월',
+      'Mar': '3월',
+      'Apr': '4월',
+      'May': '5월',
+      'Jun': '6월',
+      'Jul': '7월',
+      'Aug': '8월',
+      'Sep': '9월',
+      'Oct': '10월',
+      'Nov': '11월',
+      'Dec': '12월',
+      // 기말 표기
+      '2025 End': '25년(기말)',
+      '2026 End': '26년(기말)',
+      'End': '26년(기말)',
+      // 합계 표기
+      '2026년(합계)': '26년(합계)',
+      '2026년(합)': '26년(합계)',
+      '2026 Total': '26년(합계)',
+    };
+    return headerMap[header] || header;
+  };
+
+  // 월 컬럼 가시성 확인 함수
+  const isMonthColumnVisible = (header: string, index: number, headers: string[]): boolean => {
+    // 계정과목, 2025년(합계), 2025 End, 1월은 항상 보임
+    if (index === 0 || header === '2025년(합계)' || header === '2025 Total' || header === '2025 End' || header === '1월' || header === 'Jan' || header === 'Base') return true;
+    // 2026년(합), 2026 Total, 2026 End, YoY는 항상 보임
+    if (header === '2026년(합)' || header === '2026 Total' || header === '2026 End' || header === 'YoY' || header === 'End' || header.includes('Total') || header.includes('YoY') || header.includes('합')) return true;
+    // 2월~12월 또는 Feb~Dec는 showAllMonths 상태에 따라 결정
+    const monthHeaders = ['2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (monthHeaders.includes(header)) {
+      return showAllMonths;
+    }
+    return true;
+  };
+
   // 공통 테이블 렌더링 함수
   const renderTable = (title: string, headers: string[], data: any[], expanded: boolean, setExpanded: (val: boolean) => void, tableType: 'flow' | 'balance' | 'working') => {
     return (
       <Card className="mb-6 overflow-hidden border shadow-sm">
         <div 
-            className="flex flex-row items-center justify-between p-4 bg-white border-b cursor-pointer hover:bg-slate-50 transition-colors"
-            onClick={() => setExpanded(!expanded)}
+            className="flex flex-row items-center justify-between p-4 bg-white border-b"
         >
-            <div className="flex items-center gap-2">
+            <div 
+                className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors flex-1"
+                onClick={() => setExpanded(!expanded)}
+            >
                 <ChevronDownIcon className={cn("h-5 w-5 text-slate-500 transition-transform duration-200", !expanded && "-rotate-90")} />
                 <h3 className="text-lg font-bold text-slate-800">{title}</h3>
             </div>
-            <span className="text-xs text-slate-400 font-medium">
-                {expanded ? "접기" : "펼치기"}
-            </span>
+            <div className="flex items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAllMonths(!showAllMonths);
+                    }}
+                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+                >
+                    {showAllMonths ? "월 접기" : "월 펼치기"}
+                </Button>
+                {tableType === 'flow' && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAllFlowRows();
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                    >
+                        {areAllFlowRowsExpanded ? "상세 접기" : "상세 펼치기"}
+                    </Button>
+                )}
+            </div>
         </div>
         
         {expanded && (
@@ -5252,20 +5432,26 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 <Table>
                     <TableHeader className="bg-slate-50">
                         <TableRow>
-                            {headers.map((h, i) => (
-                                <TableHead 
-                                    key={i} 
-                                    className={cn(
-                                        "text-xs font-bold text-slate-700 h-9 px-2 whitespace-nowrap border-b border-slate-200",
-                                        i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-slate-50" : "text-right min-w-[80px]",
-                                        // 헤더 색상 로직
-                                        h.includes('Total') || h.includes('합계') || h === 'Base' || h === 'End' || h.includes('기초') || h.includes('기말') 
-                                            ? "bg-slate-100" : ""
-                                    )}
-                                >
-                                    {h === 'Category' ? '계정과목' : (h === 'Base' ? '기초잔액' : (h === 'End' ? '기말잔액' : h))}
-                                </TableHead>
-                            ))}
+                            {headers.map((h, i) => {
+                                if (!isMonthColumnVisible(h, i, headers)) return null;
+                                
+                                return (
+                                    <TableHead 
+                                        key={i} 
+                                        className={cn(
+                                            "text-xs font-bold text-slate-700 h-9 px-2 whitespace-nowrap border-b border-slate-200",
+                                            i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-slate-50" : "text-right min-w-[80px]",
+                                            // 헤더 색상 로직
+                                            h.includes('Total') || h.includes('합계') || h === 'Base' || h === 'End' || h.includes('기초') || h.includes('기말') 
+                                                ? "bg-slate-100" : ""
+                                        )}
+                                    >
+                                        {h === 'Category' || h === '계정과목'
+                                          ? '계정과목'
+                                          : (h === 'Base' ? '기초잔액' : formatHeader(h))}
+                                    </TableHead>
+                                );
+                            })}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -5278,6 +5464,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             const isFlowParent = tableType === 'flow' && row.isParent;
                             const isFlowSub = tableType === 'flow' && row.isSubItem;
                             const isNetCash = tableType === 'flow' && row.label === 'Net Cash';
+                            const isMaterialOutflow = tableType === 'flow' && row.label === '물품대 지출';
                             const isTotalRow = row.label.includes('합계') || row.label === '기말잔액' || row.label === '기초잔액';
                             
                             // 행 스타일
@@ -5287,16 +5474,27 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             if (tableType === 'balance') rowClass += " odd:bg-white even:bg-slate-50/30";
 
                             // 라벨 스타일
+                            // 부모 행 스타일을 우선 적용해 아이콘이 항상 텍스트 왼쪽에 오도록 유지
                             let labelClass = "text-xs font-medium text-slate-700";
-                            if (isFlowParent) labelClass = "text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-1";
-                            if (isFlowSub) labelClass = "text-xs text-slate-500 pl-8";
-                            if (isNetCash) labelClass = "text-sm font-bold text-slate-900";
+                            if (isFlowParent) {
+                                labelClass = cn(
+                                    "text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-1 whitespace-nowrap",
+                                    isFlowSub && "pl-8"
+                                );
+                            } else if (isFlowSub) {
+                                labelClass = "text-xs text-slate-500 pl-8";
+                            }
+                            if (isMaterialOutflow) {
+                                // 비용지출과 같은 열 시작점에 맞추기 위해 아이콘 자리만큼 공간 확보
+                                labelClass = "text-xs font-bold text-slate-900 pl-8 flex items-center gap-1 whitespace-nowrap";
+                            }
+                            if (isNetCash) labelClass = "text-xs font-bold text-slate-900";
                             
                             return (
                                 <TableRow key={rIdx} className={rowClass}>
                                     <TableCell 
                                         className={cn(
-                                            "sticky left-0 z-10 bg-white border-r border-slate-100 py-2.5", 
+                                            "sticky left-0 z-10 bg-white border-r border-slate-100 py-2", 
                                             isFlowParent && "bg-slate-50/50",
                                             isNetCash && "bg-gray-100",
                                             "pl-4"
@@ -5305,17 +5503,24 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     >
                                         <div className={labelClass}>
                                             {isFlowParent && (
-                                                <ChevronDownIcon 
+                                                <ChevronDownIcon
                                                     className={cn(
-                                                        "h-3 w-3 text-slate-400 transition-transform", 
+                                                        "h-3 w-3 text-slate-400 transition-transform flex-shrink-0",
                                                         !expandedRows.has(row.label) && "-rotate-90"
-                                                    )} 
+                                                    )}
                                                 />
                                             )}
+                                            {isMaterialOutflow && <span className="h-3 w-3 flex-shrink-0" />}
                                             {row.label}
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
+                                        // 월 컬럼 가시성 확인
+                                        const headerIndex = vIdx + 1;
+                                        if (headerIndex >= headers.length || !isMonthColumnVisible(headers[headerIndex], headerIndex, headers)) {
+                                            return null;
+                                        }
+                                        
                                         // 값 스타일
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
@@ -5324,8 +5529,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         if (isNegative) cellClass += " text-red-600 font-bold";
                                         else cellClass += " text-slate-700 font-medium";
                                         
-                                        if (isNetCash) cellClass += " font-bold text-sm";
-                                        if (headers[vIdx+1] === 'YoY') cellClass += " font-bold";
+                                        if (isNetCash) cellClass += " font-bold";
+                                        if (headers[headerIndex] === 'YoY') cellClass += " font-bold";
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
@@ -7330,11 +7535,11 @@ export default function DashboardPage() {
               title="핵심 성과"
               icon={LightbulbIcon}
               defaultItems={[
-                "역대 최고 실적: $3,535K 매출, YOY 155% 달성",
-                "US EC 압도적 성장: $3,327K (비중 94%), YOY 170% 달성",
-                "25FW 본격화: $1,690K 매출, 전체 비중 50% 차지"
+                "12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성",
+                "US EC $3,327K (94%), 11월 대비 17% 추가 성장",
+                "연말군 US EC $1,625K, 하반기 급성장세"
               ]}
-              storageKey="ceo-insights-key-performance-v4"
+              storageKey="ceo-insights-key-performance-v5"
               cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
               titleClassName="text-purple-700"
             />
@@ -7344,10 +7549,11 @@ export default function DashboardPage() {
               defaultItems={[
                 "할인율 급등: 57.1%로 전년 대비 +17.6%p, US EC 56.8% (전년 대비 +18.7%p)",
                 "US EC $3.3M 매출에도 불구, 직접이익 적자 56.8%의 할인율 및 SEM 비용: $840K (25.3%)",
-                "재고 부담: $23,133K YOY 183% (전월대비 $7,943K 소진) 25SS 잔여 재고 $6,766K",
+                "재고 부담: $23,133K YOY 183% (전월대비 $7,943K 소진)",
+                "25SS 잔여 재고 $6,766K",
                 "SEM CPM 단가: 12월 최대 $34, 평균 $24 (vs 평월 $10)"
               ]}
-              storageKey="ceo-insights-major-risks-v4"
+              storageKey="ceo-insights-major-risks-v5"
               cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
               titleClassName="text-blue-700"
             />
@@ -7355,12 +7561,12 @@ export default function DashboardPage() {
               title="CEO 전략 방향"
               icon={TargetIcon}
               defaultItems={[
-                "할인율 관리: 재고소진 목적의 할인정책과 당신즌 구분하여 할인정책 적용 (25SS 70%, 25FW 50% 할인중)",
+                "할인율 관리: 재고소진 목적의 할인정책 단속 구분화에 할당",
                 "EC 온라인 수익성 회복: 직접이익률 25% 이상 회복 위해, SEM 광고비 효율성 관점 투자",
                 "단일 아이템 집중: US EC Track Jacket/Pant 매출 비중 당년 70% (매출 YoY 170%)",
-                "CORE 할인 관리: CORE 단종 예정 SKU 소진 위한 12월~1월초 할인효과 반영. 1월 8일 부 CORE 할인율 정책 0%~3%로 관리"
+                "CORE 할인 관리: CORE 단종 예정 SKU 소진 위한 12월~1월초 할인율과 반면, 1월 8일 부 CORE 할인율 정책 0%~3%로 관리"
               ]}
-              storageKey="ceo-insights-strategy-v6"
+              storageKey="ceo-insights-strategy-v7"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
               titleClassName="text-green-700"
             />
@@ -7631,9 +7837,9 @@ export default function DashboardPage() {
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
                 insights={[
-                    {color: "purple", title: "주요 인사이트", content: "• 12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성\n• US EC $3,327K (94%), 11월 대비 17% 추가 성장\n• 연평균 US EC $1,625K, 하반기 급성장세"},
-                    {color: "blue", title: "채널 트렌드", content: "• US EC: 연말 특수로 폭발적 성장 (YOY 170%)\n• 라이선스: 하반기 회복세 지속 ($121K, YOY 107%)\n• EU EC: 반등 신호 ($70K, YOY 40%)\n• US홀세일: 연중 최저 수준 ($17K, 비중 0.5%)"},
-                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 94% → 채널 다변화 시급\n• EU EC 반등 모멘텀 활용, 26년 확대 전략 수립\n• US홀세일 재편 또는 단계적 철수 검토\n• 라이선스 파트너십 강화로 안정적 수익원 확보"}
+                    {color: "purple", title: "주요 인사이트", content: "• 12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성\n• US EC $3,327K (94%), 11월 대비 17% 추가 성장\n• 연말군 US EC $1,625K, 하반기 급성장세"},
+                    {color: "blue", title: "재고 트렌드", content: "• US EC: 연말 특수로 폭발적 성장 (YOY 170%)\n• EU EC: 반등 신호 ($70K, YOY 40%)\n• US홀세일: 연중 최저 수준 ($17K, 비중 0.5%)"},
+                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 94% → 채널 다변화 필요\n• EU EC 반등 모멘텀 활용, 26년 확대 전략 수립\n• US홀세일 재편 검토"}
                 ]}
                 csvChartData={chartDataForComponents?.channelSales}
                 chartType="channel"
@@ -7663,7 +7869,7 @@ export default function DashboardPage() {
                 insights={[
                     {color: "purple", title: "조기경보", content: "• 총재고 $23,133K로 대폭 감소 (YOY 183%)\n• 25FW: $13,830K (비중 60%), 26년 초 소진 집중 필요\n• 25SS: $6,770K (비중 29%), 시즌 종료 임박"},
                     {color: "blue", title: "긍정신호", content: "• 11월 대비 재고 25% 감소: $31,076K → $23,133K\n• 25SS 소진 가속: $9,610K → $6,770K (30% 감소)\n• FW과시즌 지속 감소: $1,831K → $1,221K\n• CORE 재고 정상화: $2,113K → $1,033K (51% 감소)"},
-                    {color: "green", title: "인사이트", content: "• 연말 세일 효과로 재고 건전성 개선\n• 25FW 재고 비중 60%, 26년 1Q 소진 전략 필요\n• 과시즌 재고 거의 정리 완료 ($1,498K)\n• 26SS 신규 입고 준비 단계 진입"}
+                    {color: "green", title: "핵심액션", content: "• 26SS 신상품 준비 및 출시 타이밍 최적화\n• 25FW 재고 소진 전략 수립 (할인율 관리)\n• CORE 라인업 강화로 안정적 매출 기반 확보"}
                 ]}
                 csvChartData={chartDataForComponents?.inventory}
                 chartType="inventory"
