@@ -1403,6 +1403,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
 function CoreDiscountDialog({ data }: { data: any }) {
     const [chartData, setChartData] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [comments, setComments] = React.useState<string[]>([]);
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -1415,14 +1416,22 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 const lines = csvText.split('\n').filter(line => line.trim() !== '');
                 const headers = lines[0].split(',');
                 
+                // 코멘트 수집
+                const collectedComments: string[] = [];
+                
                 const parsedData = lines.slice(1).map(line => {
                     const values = line.split(',');
-                    const dateStr = values[0]; // 2026-01-01
-                    const discountStr = values[1]; // 48%
-                    const salesStr = values[2]; // 5677
+                    const dateStr = values[0]; 
+                    const discountStr = values[1]; 
+                    const salesStr = values[2]; 
+                    const comment = values[3]; // 코멘트 컬럼
+
+                    if (comment && comment.trim() !== '') {
+                        collectedComments.push(comment.trim());
+                    }
                     
                     const dateParts = dateStr.split('-');
-                    const formattedDate = `${dateParts[1]}.${dateParts[2]}`; // 01.01
+                    const formattedDate = `${dateParts[1]}.${dateParts[2]}`; 
                     
                     return {
                         date: formattedDate,
@@ -1433,6 +1442,7 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 });
                 
                 setChartData(parsedData);
+                setComments(collectedComments);
             } catch (error) {
                 console.error("Failed to load CORE discount data:", error);
             } finally {
@@ -1515,6 +1525,25 @@ function CoreDiscountDialog({ data }: { data: any }) {
                     </ComposedChart>
                 </ResponsiveContainer>
             </div>
+            
+            {/* 코멘트 섹션: 코멘트가 있을 때만 표시 */}
+            {comments.length > 0 && (
+                <div className="mt-6 bg-slate-50 p-4 rounded-md border border-slate-100">
+                    <h4 className="text-sm font-bold mb-2 text-slate-700 flex items-center gap-2">
+                        <LightbulbIcon className="h-4 w-4 text-amber-500" />
+                        Analysis & Note
+                    </h4>
+                    <ul className="space-y-1">
+                        {comments.map((comment, index) => (
+                            <li key={index} className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-slate-400 flex-shrink-0" />
+                                <span>{comment}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
             <div className="mt-4 text-xs text-gray-500 text-center">
                 * 2026년 1월 1일 ~ 2월 8일 데이터 기준
             </div>
