@@ -142,21 +142,21 @@ function EditableInsightCard({
     cardClassName: string,
     titleClassName: string
 }) {
-    const [items, setItems] = React.useState<string[]>(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                try {
-                    return JSON.parse(saved);
-                } catch {
-                    return defaultItems;
-                }
-            }
-        }
-        return defaultItems;
-    });
+    const [items, setItems] = React.useState<string[]>(defaultItems);
     const [isEditing, setIsEditing] = React.useState(false);
     const [editText, setEditText] = React.useState('');
+
+    // 클라이언트에서만 localStorage 읽기 (Hydration 에러 방지)
+    React.useEffect(() => {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            try {
+                setItems(JSON.parse(saved));
+            } catch {
+                // 파싱 실패 시 defaultItems 사용
+            }
+        }
+    }, [storageKey]);
 
     const startEdit = () => {
         setEditText(items.join('\n'));
@@ -1073,11 +1073,25 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
                 </div>
             </div>
             
-            <div className="h-[300px] bg-white p-4 rounded-lg shadow-sm">
+            <div className="h-[350px] bg-white p-4 rounded-lg shadow-sm">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="month" stroke="#6b7280" />
+                        <XAxis 
+                            dataKey="month" 
+                            stroke="#6b7280" 
+                            interval={0}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                            tickFormatter={(value) => {
+                                // "25.1월" 형식에서 "1월"만 추출
+                                if (typeof value === 'string' && value.includes('.')) {
+                                    return value.split('.')[1];
+                                }
+                                return value;
+                            }}
+                        />
                         <YAxis yAxisId="left" domain={[0, 1800]} stroke="#6b7280" />
                         <YAxis yAxisId="right" orientation="right" domain={[0, 28]} stroke="#6b7280" />
                         <Tooltip 
@@ -1600,8 +1614,8 @@ function CoreDiscountDialog({ data }: { data: any }) {
             <div className="mt-4 text-xs text-gray-500 text-center">
                 * 2026년 1월 1일 ~ 2월 8일 데이터 기준
             </div>
-        </div>
-    );
+    </div>
+  );
 }
 
 // Reusable Interactive Chart Component
@@ -3390,10 +3404,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return sum;
   };
 
-  // 24년 당월 값 가져오기
-  const get24MonthValue = (dataKey: string, month: string): number => {
+  // 25년 당월 값 가져오기 (전년 비교용)
+  const get25MonthValue = (dataKey: string, month: string): number => {
     const monthNum = parseInt(month.split('-')[1]);
-    const monthKey = `24년 ${monthNum}월`;
+    const monthKey = `25년 ${monthNum}월`;
     if (csvData[dataKey] && csvData[dataKey][monthKey]) {
       const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
       return parseFloat(val) || 0;
@@ -3401,14 +3415,14 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return 0;
   };
 
-  // 24년 YTD 값 계산 (24년 데이터 키 사용)
-  const get24YTDValue = (dataKey: string, month: string): number => {
+  // 25년 YTD 값 계산 (전년 비교용)
+  const get25YTDValue = (dataKey: string, month: string): number => {
     const monthNum = parseInt(month.split('-')[1]);
     let sum = 0;
     
-    // 24년 데이터는 같은 키에 24년 월별 컬럼으로 저장됨
+    // 25년 데이터는 같은 키에 25년 월별 컬럼으로 저장됨
     for (let i = 1; i <= monthNum; i++) {
-      const monthKey = `24년 ${i}월`;
+      const monthKey = `25년 ${i}월`;
       if (csvData[dataKey] && csvData[dataKey][monthKey]) {
         const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
         const num = parseFloat(val);
@@ -3421,13 +3435,43 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return sum;
   };
 
-  // 현재 표시할 값 (YTD 또는 당월)
+  // 26년 당월 값 가져오기 (당년 데이터)
+  const get26MonthValue = (dataKey: string, month: string): number => {
+    const monthNum = parseInt(month.split('-')[1]);
+    const monthKey = `26년 ${monthNum}월`;
+    if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+      const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+      return parseFloat(val) || 0;
+    }
+    return 0;
+  };
+
+  // 26년 YTD 값 계산 (당년 데이터)
+  const get26YTDValue = (dataKey: string, month: string): number => {
+    const monthNum = parseInt(month.split('-')[1]);
+    let sum = 0;
+    
+    // 26년 데이터는 같은 키에 26년 월별 컬럼으로 저장됨
+    for (let i = 1; i <= monthNum; i++) {
+      const monthKey = `26년 ${i}월`;
+      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+          sum += num;
+        }
+      }
+    }
+    
+    return sum;
+  };
+
+  // 현재 표시할 값 (YTD 또는 당월) - 26년 데이터
   const getCurrentValue = (dataKey: string, month: string): number => {
     if (viewMode === "YTD") {
-      return getYTDValue(dataKey, month);
+      return get26YTDValue(dataKey, month);
     } else {
-      const val = getDataValue(dataKey, month, '0');
-      return parseFloat(val.replace(/[^0-9.-]/g, '')) || 0;
+      return get26MonthValue(dataKey, month);
     }
   };
 
@@ -3436,8 +3480,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   // KPI 데이터
   const totalOperatingExpense = getCurrentValue('영업비_총영업비', selectedMonthLocal);
-  const totalOperatingExpense24 = viewMode === "YTD" ? get24YTDValue('영업비_총영업비', selectedMonthLocal) : get24MonthValue('영업비_총영업비', selectedMonthLocal);
-  const totalOperatingExpenseYOY = totalOperatingExpense24 > 0 ? (totalOperatingExpense / totalOperatingExpense24 * 100) : 0;
+  const totalOperatingExpense25 = viewMode === "YTD" ? get25YTDValue('영업비_총영업비', selectedMonthLocal) : get25MonthValue('영업비_총영업비', selectedMonthLocal);
+  const totalOperatingExpenseYOY = totalOperatingExpense25 > 0 ? (totalOperatingExpense / totalOperatingExpense25 * 100) : 0;
 
   const personnelCost = getCurrentValue('영업비_인건비', selectedMonthLocal);
   const personnelCostRatio = totalOperatingExpense > 0 ? (personnelCost / totalOperatingExpense * 100) : 0;
@@ -3516,13 +3560,13 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     ],
   };
 
-  const year24Label = viewMode === "YTD" ? "24년 YTD" : `24년 ${currentMonthNum}월`;
   const year25Label = viewMode === "YTD" ? "25년 YTD" : `25년 ${currentMonthNum}월`;
+  const year26Label = viewMode === "YTD" ? "26년 YTD" : `26년 ${currentMonthNum}월`;
   
   const chartData = accountCategories.map(cat => ({
     name: cat.name,
-    [year24Label]: viewMode === "YTD" ? get24YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get24MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
-    [year25Label]: viewMode === "YTD" ? getYTDValue(`영업비_${cat.key}`, selectedMonthLocal) : getCurrentValue(`영업비_${cat.key}`, selectedMonthLocal),
+    [year25Label]: viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
+    [year26Label]: viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
   }));
 
   // 선택된 대분류에 따른 파이 차트 데이터
@@ -3567,16 +3611,16 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   // 대분류별 상세 테이블 데이터
   const detailTableData = accountCategories.map(cat => {
-    const val25 = viewMode === "YTD" ? getYTDValue(`영업비_${cat.key}`, selectedMonthLocal) : getCurrentValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const val24 = viewMode === "YTD" ? get24YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get24MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const diff = val25 - val24;
-    const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+    const val26 = viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const val25 = viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const diff = val26 - val25;
+    const diffRate = val25 > 0 ? (diff / val25 * 100) : 0;
     const detail = detailNotes[cat.name] || '';
     
     return {
       name: cat.name,
-      ytd24: val24,
-      ytd25: val25,
+      ytd24: val25,
+      ytd25: val26,
       diff: diff,
       diffRate: diffRate,
       detail: detail,
@@ -3615,17 +3659,17 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     
     return subCats.map(sub => {
       const dataKey = `영업비_${categoryKey}_${sub.key}`;
-      const val25 = viewMode === "YTD" ? getYTDValue(dataKey, selectedMonthLocal) : getCurrentValue(dataKey, selectedMonthLocal);
-      const val24 = viewMode === "YTD" ? get24YTDValue(dataKey, selectedMonthLocal) : get24MonthValue(dataKey, selectedMonthLocal);
-      const diff = val25 - val24;
-      const diffRate = val24 > 0 ? (diff / val24 * 100) : 0;
+      const val26 = viewMode === "YTD" ? get26YTDValue(dataKey, selectedMonthLocal) : get26MonthValue(dataKey, selectedMonthLocal);
+      const val25 = viewMode === "YTD" ? get25YTDValue(dataKey, selectedMonthLocal) : get25MonthValue(dataKey, selectedMonthLocal);
+      const diff = val26 - val25;
+      const diffRate = val25 > 0 ? (diff / val25 * 100) : 0;
       const detailKey = `${categoryName}||${sub.name}`;
       const detail = detailNotes[detailKey] || '';
       
       return {
         name: sub.name,
-        ytd24: val24,
-        ytd25: val25,
+        ytd24: val25,
+        ytd25: val26,
         diff: diff,
         diffRate: diffRate,
         detail: detail,
@@ -3650,7 +3694,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <div>
               <CardTitle className="text-xl font-bold mb-1">STO 영업비 분석</CardTitle>
               <CardDescription className="text-sm">
-                {viewMode === "YTD" ? "24년 YTD vs 25년 YTD (단위: K $)" : "24년 당월 vs 25년 당월 (단위: K $)"}
+                {viewMode === "YTD" ? "25년 YTD vs 26년 YTD (단위: K $)" : "26년 1월 vs 25년 1월 (단위: K $)"}
               </CardDescription>
             </div>
             <div className="flex gap-2 items-center">
@@ -4160,14 +4204,14 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                   return (
                   <TableHead
                     key={index}
-                    className={cn(
-                      "text-right border-r whitespace-nowrap text-[11px] px-2 h-8",
-                      // 기본 데이터 컬럼 너비 (110px로 통일 및 축소)
-                      "w-[110px] min-w-[110px]",
-                      // 계정과목 (첫 번째 열)
-                      index === 0 && "w-[110px] min-w-[110px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                      // 상세 컬럼 (코멘트용 넓게)
-                      header === '상세' && "w-[300px] min-w-[300px] text-left",
+                      className={cn(
+                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        // 기본 데이터 컬럼 너비 (110px로 통일 및 축소)
+                        "w-[110px] min-w-[110px]",
+                        // 계정과목 (첫 번째 열)
+                        index === 0 && "w-[110px] min-w-[110px] text-center sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        // 상세 컬럼 (코멘트용 넓게)
+                        header === '상세' && "w-[300px] min-w-[300px] text-center",
                       // 헤더 배경색
                       header === '25년 기말' && "bg-yellow-200 text-black",
                       header === 'YoY' && "bg-slate-100 text-black"
@@ -4427,10 +4471,10 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                     <TableHead
                       key={index}
                       className={cn(
-                        "text-right border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
                         "w-[110px] min-w-[110px]",
-                        index === 0 && "w-[110px] min-w-[110px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                        header === '상세' && "w-[300px] min-w-[300px] text-left",
+                        index === 0 && "w-[110px] min-w-[110px] text-center sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        header === '상세' && "w-[300px] min-w-[300px] text-center",
                         header === '25년 기말' && "bg-yellow-200 text-black",
                         header === 'YoY' && "bg-slate-100 text-black"
                       )}
@@ -6778,7 +6822,7 @@ export default function DashboardPage() {
   }, [activeTab]);
   
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
-  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2025-12";
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-01";
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
@@ -7843,8 +7887,8 @@ export default function DashboardPage() {
       return null;
     }
     
-      const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12'];
-      const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
       
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
@@ -7875,8 +7919,14 @@ export default function DashboardPage() {
         const adSpend = parseFloat(getValue('팝업_SEM광고비_adSpend', month, '0').replace(/[,%]/g, '')) || 0;
         const ratio2025 = parseFloat(getValue('팝업_SEM광고비_ratio2025', month, '0').replace(/[,%]/g, '')) || 0;
         const ratio2024 = parseFloat(getValue('팝업_SEM광고비_ratio2024', month, '0').replace(/[,%]/g, '')) || 0;
+        
+        // X축 라벨 중복 방지를 위해 연도 포함 (예: 25.1월)
+        const yearPart = month.substring(2, 4);
+        const monthPart = parseInt(month.substring(5, 7));
+        const uniqueLabel = `${yearPart}.${monthPart}월`;
+
         return {
-          month: monthLabels[idx],
+          month: uniqueLabel,
           sales,
           adSpend,
           ratio2025,
@@ -8098,11 +8148,12 @@ export default function DashboardPage() {
               title="핵심 성과"
               icon={LightbulbIcon}
               defaultItems={[
-                "12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성",
-                "US EC $3,327K (94%), 11월 대비 17% 추가 성장",
-                "연말군 US EC $1,625K, 하반기 급성장세"
+                "1월 총매출 $1,213K (YOY 91%), 연초 정상화",
+                "US EC $1,154K (YOY 108%, 비중 95%), 안정적 성장",
+                "TAG가 $2,539K (YOY 115%), 실판 대비 2.1배 달성",
+                "인당매출액 $47K (YOY 91%), 인원 26명 (정규21, 계약5)"
               ]}
-              storageKey="ceo-insights-key-performance-v5"
+              storageKey="ceo-insights-key-performance-v7"
               cardClassName="bg-gradient-to-br from-purple-100 to-purple-50 border-l-4 border-l-purple-500 rounded-none"
               titleClassName="text-purple-700"
             />
@@ -8110,13 +8161,13 @@ export default function DashboardPage() {
               title="주요 리스크"
               icon={AlertTriangleIcon}
               defaultItems={[
-                "할인율 급등: 57.1%로 전년 대비 +17.6%p, US EC 56.8% (전년 대비 +18.7%p)",
-                "US EC $3.3M 매출에도 불구, 직접이익 적자 56.8%의 할인율 및 SEM 비용: $840K (25.3%)",
-                "재고 부담: $23,133K YOY 183% (전월대비 $7,943K 소진)",
-                "25SS 잔여 재고 $6,766K",
-                "SEM CPM 단가: 12월 최대 $34, 평균 $24 (vs 평월 $10)"
+                "직접이익 적자 전환: -$21K (-1.8%), 12월 $95K에서 급락",
+                "할인율 고착화: 52.1% (YOY +12.7%p), US EC 51.8%",
+                "재고 부담 지속: $21.1M (YOY 117%), 25FW $12.9M + 25SS $6.6M",
+                "라이선스 중단: 1월 $0K, 수익 다변화 필요",
+                "SEM 광고비 부담: $297K (비중 25.74%)"
               ]}
-              storageKey="ceo-insights-major-risks-v5"
+              storageKey="ceo-insights-major-risks-v7"
               cardClassName="bg-gradient-to-br from-blue-100 to-blue-50 border-l-4 border-l-blue-500 rounded-none"
               titleClassName="text-blue-700"
             />
@@ -8124,12 +8175,12 @@ export default function DashboardPage() {
               title="CEO 전략 방향"
               icon={TargetIcon}
               defaultItems={[
-                "할인율 관리: 재고소진 목적의 할인정책 단속 구분화에 할당",
-                "EC 온라인 수익성 회복: 직접이익률 25% 이상 회복 위해, SEM 광고비 효율성 관점 투자",
-                "단일 아이템 집중: US EC Track Jacket/Pant 매출 비중 당년 70% (매출 YoY 170%)",
-                "CORE 할인 관리: CORE 단종 예정 SKU 소진 위한 12월~1월초 할인율과 반면, 1월 8일 부 CORE 할인율 정책 0%~3%로 관리"
+                "수익성 회복 최우선: 직접이익률 20%+ 목표 (Q1 할인율 45% 이하 관리)",
+                "재고 소진 가속: 25FW/25SS 합산 $19.5M → Q1말 $12M 목표 (할인 전략)",
+                "26SS 신상품 타이밍: 2월 입고, 3월 본격 판매로 신선도 확보",
+                "SEM 효율화: CPM 정상화 시기 집중 투자, 광고비율 20% 이하 유지"
               ]}
-              storageKey="ceo-insights-strategy-v7"
+              storageKey="ceo-insights-strategy-v10"
               cardClassName="bg-gradient-to-br from-green-100 to-green-50 border-l-4 border-l-green-500 rounded-none"
               titleClassName="text-green-700"
             />
@@ -8400,9 +8451,9 @@ export default function DashboardPage() {
                 iconColor="bg-green-500"
                 filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
                 insights={[
-                    {color: "purple", title: "주요 인사이트", content: "• 12월 총매출 $3,535K (YOY 155%), 역대 최고 실적 달성\n• US EC $3,327K (94%), 11월 대비 17% 추가 성장\n• 연말군 US EC $1,625K, 하반기 급성장세"},
-                    {color: "blue", title: "재고 트렌드", content: "• US EC: 연말 특수로 폭발적 성장 (YOY 170%)\n• EU EC: 반등 신호 ($70K, YOY 40%)\n• US홀세일: 연중 최저 수준 ($17K, 비중 0.5%)"},
-                    {color: "green", title: "전략 포인트", content: "• US EC 의존도 94% → 채널 다변화 필요\n• EU EC 반등 모멘텀 활용, 26년 확대 전략 수립\n• US홀세일 재편 검토"}
+                    {color: "purple", title: "주요 인사이트", content: "• 1월 총매출 $1,213K (YOY 91%), 12월 $3,535K 대비 정상화\n• US EC $1,154K (YOY 108%, 비중 95%), EC 채널 집중 심화\n• 라이선스 매출 $0K, 채널 중단 확인"},
+                    {color: "blue", title: "채널 트렌드", content: "• US EC 의존도 심화: 95% (전월 94%)\n• EU EC 소폭 회복: $53K (YOY 60%, 비중 4%)\n• US홀세일: $6K (비중 0%), 사실상 운영 종료\n• 라이선스: 운영 중단"},
+                    {color: "green", title: "전략 포인트", content: "• US EC 단일 채널 의존 리스크 관리 필수\n• EU EC 재활성화 전략 수립 (현 4% → 목표 10%+)\n• 새로운 수익 채널 발굴 긴급 (라이선스 대체)"}
                 ]}
                 csvChartData={chartDataForComponents?.channelSales}
                 chartType="channel"
@@ -8415,9 +8466,9 @@ export default function DashboardPage() {
                 iconColor="bg-orange-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 12월 $1,690K로 전체 50% 차지, 시즌 피크 도달\n• 25SS: $800K로 시즌 마무리 단계 (YOY 869%)\n• CORE: $711K로 급성장 (YOY 266%), 연말 수요 폭발"},
-                    {color: "blue", title: "카테고리", content: "• 25FW 시즌 정점 (비중 50%)\n• CORE 연말 특수 (비중 21%)\n• 25SS 시즌 종료 (비중 23%)\n• 과시즌 소진 완료 단계 (비중 6%)"},
-                    {color: "green", title: "핵심액션", content: "• 26SS 신상품 준비 및 출시 타이밍 최적화\n• 25FW 재고 소진 전략 수립 (할인율 관리)\n• CORE 라인업 강화로 안정적 매출 기반 확보"}
+                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 1월 $704K (YOY 89%, 비중 58%), 연초 안정적 매출 유지\n• 25SS: $350K (YOY 192%, 비중 29%), 시즌 아웃 소진 가속\n• CORE: $54K (YOY 57%, 비중 4%), 12월 $711K 대비 급감"},
+                    {color: "blue", title: "카테고리", content: "• 25FW 주력 시즌 (비중 58%), 1~2월 집중 판매\n• 25SS 소진 단계 (비중 29%), 할인율 관리 필요\n• FW과시즌 재점화 (비중 7%, YOY 629%)\n• CORE 연말 특수 종료 (비중 4%)"},
+                    {color: "green", title: "핵심액션", content: "• 25FW 재고 소진 가속 (현재 재고 $12.9M, 목표 3월말 $8M)\n• 26SS 신상품 2월 출시, 3월 본격 판매 시작\n• CORE 정상 운영 전환 (할인율 0~3% 유지)"}
                 ]}
                 csvChartData={chartDataForComponents?.itemSales}
                 chartType="item"
@@ -8430,9 +8481,9 @@ export default function DashboardPage() {
                 iconColor="bg-purple-500"
                 filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "조기경보", content: "• 총재고 $23,133K로 대폭 감소 (YOY 183%)\n• 25FW: $13,830K (비중 60%), 26년 초 소진 집중 필요\n• 25SS: $6,770K (비중 29%), 시즌 종료 임박"},
-                    {color: "blue", title: "긍정신호", content: "• 11월 대비 재고 25% 감소: $31,076K → $23,133K\n• 25SS 소진 가속: $9,610K → $6,770K (30% 감소)\n• FW과시즌 지속 감소: $1,831K → $1,221K\n• CORE 재고 정상화: $2,113K → $1,033K (51% 감소)"},
-                    {color: "green", title: "핵심액션", content: "• 26SS 신상품 준비 및 출시 타이밍 최적화\n• 25FW 재고 소진 전략 수립 (할인율 관리)\n• CORE 라인업 강화로 안정적 매출 기반 확보"}
+                    {color: "purple", title: "조기경보", content: "• 총재고 $21.1M (YOY 117%), 12월 대비 $2.0M 감소\n• 25FW: $12.9M (비중 61%), Q1 소진 목표 미달 우려\n• 25SS: $6.6M (비중 31%, YOY 75%), 할인 소진 지속 필요"},
+                    {color: "blue", title: "긍정신호", content: "• 12월 → 1월 재고 감소: $23.1M → $21.1M (9% 감소)\n• 25FW 소진 가속: $13.8M → $12.9M (7% 감소)\n• CORE 대폭 감소: $1.0M → $0.6M (43% 감소)\n• FW과시즌 정상화: $1.2M → $0.8M (30% 감소)"},
+                    {color: "green", title: "핵심액션", content: "• 25FW 할인 전략: 2~3월 20~30% 할인으로 $5M 소진\n• 25SS 조기 청산: 3월말까지 50% 할인으로 $4M 소진\n• 26SS 신상품 입고 타이밍 조정 (재고 공간 확보)"}
                 ]}
                 csvChartData={chartDataForComponents?.inventory}
                 chartType="inventory"
