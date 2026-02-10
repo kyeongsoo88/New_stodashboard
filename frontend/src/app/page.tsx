@@ -415,9 +415,9 @@ function DetailedMetricCard({
                             </span>
                             {title.includes("직접이익") && (
                                 <>
-                                    <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0">
-                                        이익율 전년대비
-                                    </span>
+                                <span className="text-[11px] px-1 py-0.5 rounded font-bold text-red-600 bg-red-50 flex-shrink-0">
+                                    이익율 전년대비
+                                </span>
                                     {directProfitPopupData && (
                                         <Dialog>
                                             <DialogTrigger asChild>
@@ -1395,8 +1395,8 @@ function InventoryPlanDialog({ data }: { data: any }) {
                     </Table>
                 </div>
             </div>
-        </div>
-    );
+    </div>
+  );
 }
 
 // CORE 할인 팝업 컴포넌트
@@ -2833,7 +2833,7 @@ function IncomeStatementSection_OLD({ selectedMonth }: { selectedMonth: string }
                           const isSet2Start = currentHeader === 'YTD';
                           const isSet2 = currentHeader === 'YTD' || currentHeader === 'YTD YoY';
                           const isSet2End = currentHeader === 'YTD YoY';
-
+                          
                           let displayValue = isYoYColumn ? value : formatValue(value);
                           let cellColorClass = getValueColor(value);
                           
@@ -3948,6 +3948,564 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 }
 
 const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전자본', '기타자산/부채', '자본', '자산-부채'];
+
+// STO 재무상태표(신규) 컴포넌트
+function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본']));
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/data/sto-balance-sheet-2026-v2.csv?t=${timestamp}`);
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          text = new TextDecoder('utf-16le').decode(bytes);
+        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          text = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          try {
+            text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+          } catch {
+            text = new TextDecoder('euc-kr').decode(bytes);
+          }
+        }
+
+        const lines = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line)
+          .filter((line) => !line.toLowerCase().startsWith('sep='));
+
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+
+        const parsedHeaders = parseCSVLine(lines[0]);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
+        setHeaders(parsedHeaders);
+
+        const parsedRows = lines.slice(1).map((line) => {
+          const values = parseCSVLine(line);
+          return {
+            label: (values[0] || '').trim(),
+            values: values.slice(1),
+          };
+        });
+        setRows(parsedRows);
+      } catch (err) {
+        console.error('Failed to load STO balance sheet CSV:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedMonth]);
+
+  const formatCurrency = (raw: string) => {
+    const value = (raw || '').trim();
+    if (!value || value === '-') return '-';
+    const num = parseFloat(value.replace(/[$,]/g, ''));
+    if (isNaN(num)) return value;
+    const abs = Math.abs(num).toLocaleString();
+    return num < 0 ? `-$${abs}` : `$${abs}`;
+  };
+
+  const isNegative = (raw: string) => {
+    const value = (raw || '').trim();
+    if (!value || value === '-') return false;
+    const num = parseFloat(value.replace(/[$,]/g, ''));
+    return !isNaN(num) && num < 0;
+  };
+
+  const sectionRows = new Set(['자산', '부채', '자본']);
+  const groupRows = new Set(['유동자산', '비유동자산', '유동부채', '비유동부채']);
+  const toggleTargets = ['자산', '유동자산', '비유동자산', '부채', '유동부채', '비유동부채', '자본'];
+  const areAllDetailsExpanded = toggleTargets.every((label) => expandedRows.has(label));
+
+  const toggleAllDetails = () => {
+    setExpandedRows((prev) => {
+      if (toggleTargets.every((label) => prev.has(label))) {
+        return new Set<string>(['자산', '부채', '자본']);
+      }
+      return new Set<string>(toggleTargets);
+    });
+  };
+
+  const toggleRow = (label: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
+
+  const monthFoldTargets = new Set([
+    '26년 2월',
+    '26년 3월',
+    '26년 4월',
+    '26년 5월',
+    '26년 6월',
+    '26년 7월',
+    '26년 8월',
+    '26년 9월',
+    '26년 10월',
+    '26년 11월',
+  ]);
+
+  const visibleHeaderIndices = headers
+    .map((h, idx) => ({ h: (h || '').trim(), idx }))
+    .filter(({ h, idx }) => {
+      if (idx === 0) return true;
+      if (showAllMonths) return true;
+      return !monthFoldTargets.has(h);
+    })
+    .map(({ idx }) => idx);
+
+  const annotatedRows = React.useMemo(() => {
+    let currentTop: string | null = null;
+    let currentMid: string | null = null;
+
+    return rows.map((row, idx) => {
+      const label = row.label;
+      const isSection = sectionRows.has(label);
+      const isGroup = groupRows.has(label);
+      let level = 0;
+      let parentLabel: string | null = null;
+      let topLabel: string | null = null;
+
+      if (isSection) {
+        currentTop = label;
+        currentMid = null;
+        level = 0;
+      } else if (isGroup) {
+        parentLabel = currentTop;
+        topLabel = currentTop;
+        currentMid = label;
+        level = 1;
+      } else if (currentMid) {
+        parentLabel = currentMid;
+        topLabel = currentTop;
+        level = 2;
+      } else if (currentTop) {
+        parentLabel = currentTop;
+        topLabel = currentTop;
+        level = 1;
+      }
+
+      return {
+        ...row,
+        idx,
+        isSection,
+        isGroup,
+        level,
+        parentLabel,
+        topLabel,
+        canToggle: toggleTargets.includes(label),
+      };
+    });
+  }, [rows]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-bold">STO 재무상태표 (단위 : K $)</CardTitle>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAllMonths((prev) => !prev)}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+          >
+            {showAllMonths ? "월 접기" : "월 펼치기"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAllDetails}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+          >
+            {areAllDetailsExpanded ? "상세 접기" : "상세 펼치기"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 overflow-x-auto">
+        <div className="relative max-h-[850px] overflow-auto">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
+              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+                {visibleHeaderIndices.map((index) => {
+                  const header = headers[index];
+                  return (
+                  <TableHead
+                    key={index}
+                    className={cn(
+                      "text-right border-r whitespace-nowrap text-[11px] px-2 h-8",
+                      // 기본 데이터 컬럼 너비 (110px로 통일 및 축소)
+                      "w-[110px] min-w-[110px]",
+                      // 계정과목 (첫 번째 열)
+                      index === 0 && "w-[110px] min-w-[110px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                      // 상세 컬럼 (코멘트용 넓게)
+                      header === '상세' && "w-[300px] min-w-[300px] text-left",
+                      // 헤더 배경색
+                      header === '25년 기말' && "bg-yellow-200 text-black",
+                      header === 'YoY' && "bg-slate-100 text-black"
+                    )}
+                  >
+                    {header}
+                  </TableHead>
+                )})}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {annotatedRows.map((row, rowIndex) => {
+                if (row.parentLabel && !expandedRows.has(row.parentLabel)) return null;
+                if (row.topLabel && row.topLabel !== row.parentLabel && !expandedRows.has(row.topLabel)) return null;
+
+                const isSection = row.isSection;
+                const isGroup = row.isGroup;
+                const rowBg = isSection
+                  ? "bg-slate-50"
+                  : isGroup
+                  ? "bg-slate-50/40"
+                  : "bg-white";
+
+                return (
+                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                    <TableCell
+                      className={cn(
+                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        rowBg,
+                        isSection
+                          ? "font-bold pl-2"
+                          : isGroup
+                          ? "font-semibold pl-6"
+                          : row.level >= 2
+                          ? "pl-10"
+                          : "pl-4"
+                      )}
+                      onClick={() => row.canToggle && toggleRow(row.label)}
+                    >
+                      <div className={cn("flex items-center gap-1", row.canToggle && "cursor-pointer")}>
+                        {row.canToggle ? (
+                          expandedRows.has(row.label) ? (
+                            <ChevronDownIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          ) : (
+                            <ChevronRightIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          )
+                        ) : (
+                          <span className="inline-block h-3 w-3 flex-shrink-0" />
+                        )}
+                        <span>{row.label}</span>
+                      </div>
+                    </TableCell>
+                    {visibleHeaderIndices
+                      .filter((headerIdx) => headerIdx !== 0)
+                      .map((headerIdx) => {
+                      const valueIndex = headerIdx - 1;
+                      const value = row.values[valueIndex] ?? '';
+                      const isDetailCol = headers[headerIdx] === '상세';
+                      const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
+                      return (
+                        <TableCell
+                          key={`${rowIndex}-${headerIdx}`}
+                          className={cn(
+                            "text-right px-2 border-r tabular-nums whitespace-nowrap font-medium",
+                            isDetailCol && "text-left",
+                            !isDetailCol && isNegative(value) && "text-red-600",
+                            isSection && "font-bold"
+                          )}
+                        >
+                          {displayValue}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// STO 운전자본기준 재무상태표 컴포넌트
+function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [showAllMonths, setShowAllMonths] = React.useState(false);
+
+  // 토글 대상 및 상태
+  const toggleTargets = React.useMemo(() => ['운전자본', '현금/차입금', '기타운전자본', '기타자산부채', '자본'], []);
+  // 기본값: 현금/차입금, 기타자산부채, 자본만 펼침 (스크린샷 기준)
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['현금/차입금', '기타자산부채', '자본']));
+
+  const toggleRow = (label: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
+
+  const areAllExpanded = toggleTargets.every(t => expandedRows.has(t));
+  
+  const toggleAllDetails = () => {
+    if (areAllExpanded) {
+      setExpandedRows(new Set());
+    } else {
+      setExpandedRows(new Set(toggleTargets));
+    }
+  };
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/data/sto-working-capital-balance-sheet.csv?t=${timestamp}`);
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          text = new TextDecoder('utf-16le').decode(bytes);
+        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          text = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          try {
+            text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+          } catch {
+            text = new TextDecoder('euc-kr').decode(bytes);
+          }
+        }
+
+        const lines = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line)
+          .filter((line) => !line.toLowerCase().startsWith('sep='));
+
+        if (lines.length < 2) {
+          setLoading(false);
+          return;
+        }
+
+        const parsedHeaders = parseCSVLine(lines[0]);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
+        setHeaders(parsedHeaders);
+
+        const parsedRows = lines.slice(1).map((line) => {
+          const values = parseCSVLine(line);
+          return {
+            label: (values[0] || '').trim(),
+            values: values.slice(1),
+          };
+        });
+        setRows(parsedRows);
+      } catch (err) {
+        console.error('Failed to load STO working capital balance sheet CSV:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedMonth]);
+
+  const formatCurrency = (raw: string) => {
+    const value = (raw || '').trim();
+    if (!value || value === '-') return '-';
+    const num = parseFloat(value.replace(/[$,]/g, ''));
+    if (isNaN(num)) return value;
+    const abs = Math.abs(num).toLocaleString();
+    return num < 0 ? `-$${abs}` : `$${abs}`;
+  };
+
+  const isNegative = (raw: string) => {
+    const value = (raw || '').trim();
+    if (!value || value === '-') return false;
+    const num = parseFloat(value.replace(/[$,]/g, ''));
+    return !isNaN(num) && num < 0;
+  };
+
+  const monthFoldTargets = new Set([
+    '26년 2월', '26년 3월', '26년 4월', '26년 5월', '26년 6월',
+    '26년 7월', '26년 8월', '26년 9월', '26년 10월', '26년 11월'
+  ]);
+
+  const visibleHeaderIndices = headers
+    .map((h, idx) => ({ h: (h || '').trim(), idx }))
+    .filter(({ h, idx }) => {
+      if (idx === 0) return true;
+      if (showAllMonths) return true;
+      return !monthFoldTargets.has(h);
+    })
+    .map(({ idx }) => idx);
+
+  const processedRows = React.useMemo(() => {
+    let currentParent: string | null = null;
+    return rows.map(row => {
+      const isParent = toggleTargets.includes(row.label);
+      if (isParent) {
+        currentParent = row.label;
+      }
+      return {
+        ...row,
+        isParent,
+        parent: isParent ? null : currentParent
+      };
+    });
+  }, [rows, toggleTargets]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden mt-6">
+      <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-bold">STO 운전자본기준 재무상태표 (단위 : K $)</CardTitle>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAllMonths((prev) => !prev)}
+            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+          >
+            {showAllMonths ? "월 접기" : "월 펼치기"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAllDetails}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+          >
+            {areAllExpanded ? "상세 접기" : "상세 펼치기"}
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 overflow-x-auto">
+        <div className="relative max-h-[850px] overflow-auto">
+          <Table>
+            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
+              <TableRow className="bg-slate-100/50 text-xs font-bold hover:bg-slate-100/50">
+                {visibleHeaderIndices.map((index) => {
+                  const header = headers[index];
+                  return (
+                    <TableHead
+                      key={index}
+                      className={cn(
+                        "text-right border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "w-[110px] min-w-[110px]",
+                        index === 0 && "w-[110px] min-w-[110px] text-left pl-4 sticky left-0 z-20 bg-slate-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        header === '상세' && "w-[300px] min-w-[300px] text-left",
+                        header === '25년 기말' && "bg-yellow-200 text-black",
+                        header === 'YoY' && "bg-slate-100 text-black"
+                      )}
+                    >
+                      {header}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {processedRows.map((row, rowIndex) => {
+                if (row.parent && !expandedRows.has(row.parent)) return null;
+
+                const isMain = row.isParent;
+                const isCashDebt = row.label === '현금/차입금';
+                
+                let rowBg = "bg-white";
+                if (isMain) rowBg = "bg-gray-100";
+
+                return (
+                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                    <TableCell
+                      className={cn(
+                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        rowBg,
+                        isMain ? "font-bold pl-2" : "pl-6"
+                      )}
+                      onClick={() => isMain && toggleRow(row.label)}
+                    >
+                      <div className={cn("flex items-center gap-1", isMain && "cursor-pointer")}>
+                        {isMain ? (
+                          expandedRows.has(row.label) ? (
+                            <ChevronDownIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          ) : (
+                            <ChevronRightIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
+                          )
+                        ) : (
+                          <span className="inline-block h-3 w-3 flex-shrink-0" />
+                        )}
+                        <span>{row.label}</span>
+                      </div>
+                    </TableCell>
+                    {visibleHeaderIndices
+                      .filter((headerIdx) => headerIdx !== 0)
+                      .map((headerIdx) => {
+                        const valueIndex = headerIdx - 1;
+                        const value = row.values[valueIndex] ?? '';
+                        const isDetailCol = headers[headerIdx] === '상세';
+                        const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
+                        
+                        return (
+                          <TableCell
+                            key={`${rowIndex}-${headerIdx}`}
+                            className={cn(
+                              "text-right px-2 border-r tabular-nums whitespace-nowrap font-medium",
+                              isDetailCol && "text-left",
+                              !isDetailCol && isNegative(value) && "text-red-600",
+                              isMain && "font-bold"
+                            )}
+                          >
+                            {displayValue}
+                          </TableCell>
+                        );
+                      })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // 재무상태표 CSV 파싱 및 표시 컴포넌트
 function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
@@ -7461,7 +8019,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <span className="text-sm text-white">조회 기준:</span>
           <Select value={currentSelectedMonth} onValueChange={handleMonthChange}>
-              <SelectTrigger className="w-[160px] bg-white">
+            <SelectTrigger className="w-[160px] bg-white">
               <SelectValue placeholder="2026년 01월" />
             </SelectTrigger>
             <SelectContent>
@@ -7514,7 +8072,12 @@ export default function DashboardPage() {
         )}
         
         {/* 재무상태표 탭 콘텐츠 */}
-        {activeTab === "재무상태표" && <BalanceSheetSection selectedMonth={currentSelectedMonth} />}
+        {activeTab === "재무상태표" && (
+          <div className="space-y-6">
+            <STOBalanceSheetSection selectedMonth={currentSelectedMonth} />
+            <STOWorkingCapitalBalanceSheetSection selectedMonth={currentSelectedMonth} />
+          </div>
+        )}
         
         {/* 현금흐름표 탭 콘텐츠 */}
         {activeTab === "현금흐름표" && <CashFlowSection selectedMonth={currentSelectedMonth} />}
