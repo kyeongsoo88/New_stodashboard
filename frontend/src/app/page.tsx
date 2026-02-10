@@ -1052,85 +1052,163 @@ function ShippingCostDialog({ data }: { data: any }) {
 
 // SEM광고비 분석 팝업 컴포넌트
 function SEMAdAnalysisDialog({ data }: { data: any }) {
-    if (!data) {
-        return <div>데이터를 불러오는 중...</div>;
+    const [chartData, setChartData] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/data/sem-weekly-data.csv?t=${timestamp}`);
+                const buffer = await response.arrayBuffer();
+                const decoder = new TextDecoder('utf-8');
+                const text = decoder.decode(buffer);
+                
+                const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+                if (lines.length < 2) return;
+
+                const headers = lines[0].split(',').map(h => h.trim().replace(/^\uFEFF/, ''));
+                const parsedData = lines.slice(1).map(line => {
+                    // 따옴표로 감싸진 값 처리 (예: "100,425")
+                    const values: string[] = [];
+                    let inQuotes = false;
+                    let currentValue = '';
+                    
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            values.push(currentValue);
+                            currentValue = '';
+                        } else {
+                            currentValue += char;
+                        }
+                    }
+                    values.push(currentValue);
+
+                    const week = values[0];
+                    const adSpend = parseFloat(values[1].replace(/[,"]/g, '')) || 0;
+                    const salesInc = parseFloat(values[2].replace(/[,"]/g, '')) || 0;
+                    const salesExc = parseFloat(values[3].replace(/[,"]/g, '')) || 0;
+                    const ratioInc = parseFloat(values[4].replace(/[%"]/g, '')) || 0;
+                    const ratioExc = parseFloat(values[5].replace(/[%"]/g, '')) || 0;
+
+                    return {
+                        week,
+                        adSpend,
+                        salesInc,
+                        salesExc,
+                        ratioInc,
+                        ratioExc
+                    };
+                });
+                
+                setChartData(parsedData);
+            } catch (error) {
+                console.error('Error fetching SEM weekly data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return <div className="p-8 text-center">데이터를 불러오는 중...</div>;
     }
-    
-    const { chartData, textData, cumulative } = data;
 
     return (
-        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+        <div className="space-y-4 p-4">
             <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">US EC SEM광고비 분석</h3>
-                <div className="space-y-2 text-sm">
-                    <div className="font-bold text-blue-700 bg-blue-100 px-3 py-2 rounded-md inline-block">{textData.yoyText}</div>
-                    <div className="text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
-                        {textData.desc1}
-                    </div>
-                    <div className="text-gray-700 bg-gray-50 px-3 py-2 rounded-md">
-                        {textData.desc2}
-                    </div>
+                <h3 className="text-lg font-bold mb-3 text-slate-800">주차별 SEM 광고비율 분석</h3>
+                <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                            <XAxis 
+                                dataKey="week" 
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6b7280', fontSize: 12 }}
+                                dy={10}
+                            />
+                            <YAxis 
+                                yAxisId="left"
+                                orientation="left"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#6b7280', fontSize: 12 }}
+                                unit="%"
+                                domain={[0, 'auto']}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                                formatter={(value: any, name: string) => {
+                                    if (name.includes('비율')) return [`${value}%`, name];
+                                    return [`$${value.toLocaleString()}`, name];
+                                }}
+                            />
+                            <Legend 
+                                wrapperStyle={{ paddingTop: '20px' }}
+                                iconType="circle"
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="ratioInc"
+                                name="반품 포함 SEM 광고비율"
+                                stroke="#3b82f6"
+                                strokeWidth={3}
+                                dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="ratioExc"
+                                name="반품 제외 SEM 광고비율"
+                                stroke="#f59e0b"
+                                strokeWidth={3}
+                                dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }}
+                                activeDot={{ r: 6 }}
+                            />
+                        </ComposedChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
             
-            <div className="h-[350px] bg-white p-4 rounded-lg shadow-sm">
-                <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis 
-                            dataKey="month" 
-                            stroke="#6b7280" 
-                            interval={0}
-                            angle={-45}
-                            textAnchor="end"
-                            height={60}
-                            tickFormatter={(value) => {
-                                // "25.1월" 형식에서 "1월"만 추출
-                                if (typeof value === 'string' && value.includes('.')) {
-                                    return value.split('.')[1];
-                                }
-                                return value;
-                            }}
-                        />
-                        <YAxis yAxisId="left" domain={[0, 1800]} stroke="#6b7280" />
-                        <YAxis yAxisId="right" orientation="right" domain={[0, 28]} stroke="#6b7280" />
-                        <Tooltip 
-                            contentStyle={{ 
-                                backgroundColor: 'white', 
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                            }} 
-                        />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                        <Bar yAxisId="left" dataKey="sales" fill="#60a5fa" name="US EC 매출" radius={[4, 4, 0, 0]} />
-                        <Bar yAxisId="left" dataKey="adSpend" fill="#fbbf24" name="SEM광고비" radius={[4, 4, 0, 0]} />
-                        <Line yAxisId="right" type="monotone" dataKey="ratio2025" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25년 광고비율 (%)" />
-                        <Line yAxisId="right" type="monotone" dataKey="ratio2024" stroke="#a855f7" strokeWidth={2} dot={{ r: 4, fill: "#a855f7" }} name="24년 광고비율 (%)" />
-                    </ComposedChart>
-                </ResponsiveContainer>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-                <Card className="bg-gradient-to-br from-blue-100 to-blue-200 border-blue-300 shadow-md">
+            <div className="grid grid-cols-2 gap-4">
+                <Card className="bg-blue-50 border-blue-100">
                     <CardContent className="p-4">
-                        <div className="text-xs text-blue-800 mb-1 font-medium">누적 US EC 매출</div>
-                        <div className="text-lg font-bold text-blue-900">$19,502K</div>
-                        <div className="text-xs text-blue-700 mt-1">누적 기준 YoY 128%</div>
+                        <div className="text-sm text-blue-600 font-bold mb-2">반품 포함 매출 기준</div>
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-xs text-blue-500 mb-1">평균 광고비율</p>
+                                <p className="text-2xl font-bold text-blue-700">
+                                    {(chartData.reduce((acc, curr) => acc + curr.ratioInc, 0) / chartData.length).toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-gradient-to-br from-orange-100 to-orange-200 border-orange-300 shadow-md">
+                <Card className="bg-amber-50 border-amber-100">
                     <CardContent className="p-4">
-                        <div className="text-xs text-orange-800 mb-1 font-medium">누적 SEM비용</div>
-                        <div className="text-lg font-bold text-orange-900">${cumulative.adSpend.toLocaleString()}K</div>
-                        <div className="text-xs text-orange-700 mt-1">누적 기준 SEM YoY 127%</div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br from-pink-100 to-pink-200 border-pink-300 shadow-md">
-                    <CardContent className="p-4">
-                        <div className="text-xs text-pink-800 mb-1 font-medium">평균 광고비율</div>
-                        <div className="text-lg font-bold text-pink-900">20.5%</div>
-                        <div className="text-xs text-pink-700 mt-1">(전년대비 : -0.1%p)</div>
+                        <div className="text-sm text-amber-600 font-bold mb-2">반품 제외 매출 기준</div>
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <p className="text-xs text-amber-500 mb-1">평균 광고비율</p>
+                                <p className="text-2xl font-bold text-amber-700">
+                                    {(chartData.reduce((acc, curr) => acc + curr.ratioExc, 0) / chartData.length).toFixed(1)}%
+                                </p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -7918,41 +7996,18 @@ export default function DashboardPage() {
         return dashboardData[key][csvMonthKey];
       };
       
-      // SEM광고비 팝업 데이터
-      const semChartData = months.map((month, idx) => {
-        const sales = parseFloat(getValue('팝업_SEM광고비_sales', month, '0').replace(/[,%]/g, '')) || 0;
-        const adSpend = parseFloat(getValue('팝업_SEM광고비_adSpend', month, '0').replace(/[,%]/g, '')) || 0;
-        const ratio2025 = parseFloat(getValue('팝업_SEM광고비_ratio2025', month, '0').replace(/[,%]/g, '')) || 0;
-        const ratio2024 = parseFloat(getValue('팝업_SEM광고비_ratio2024', month, '0').replace(/[,%]/g, '')) || 0;
-        
-        // X축 라벨 중복 방지를 위해 연도 포함 (예: 25.1월)
-        const yearPart = month.substring(2, 4);
-        const monthPart = parseInt(month.substring(5, 7));
-        const uniqueLabel = `${yearPart}.${monthPart}월`;
-
-        return {
-          month: uniqueLabel,
-          sales,
-          adSpend,
-          ratio2025,
-          ratio2024
-        };
-      });
-      
-      const latestMonthForSem = months[months.length - 1];
-      const latestMonthNumber = latestMonthForSem.split('-')[1];
+      // SEM광고비 팝업 데이터 - 초기화
+      const semChartData: any[] = [];
       const semTextData = {
-        yoyText: getValue('팝업_SEM광고비_YOY_텍스트', latestMonthForSem, "25.11월 전년대비 +1.0%p 증가 (당년 11월 15.0% vs 전년 14.0%)"),
-        desc1: getValue('팝업_SEM광고비_설명1', latestMonthForSem, "9월, 10월 SEM채널 Test 완료 후, 11월 효율 높은 채널에 집중하여, 비용율 16.1% 평균 이하로 관리"),
-        desc2: getValue('팝업_SEM광고비_설명2', latestMonthForSem, "")
+        yoyText: '',
+        desc1: '',
+        desc2: ''
       };
-    
-    // SEM광고비 누적 데이터 계산
-    const semCumulativeSales = semChartData.reduce((sum, d) => sum + d.sales, 0);
-    const semCumulativeAdSpend = semChartData.reduce((sum, d) => sum + d.adSpend, 0);
-    const semAvgRatio = semChartData.length > 0 ? (semCumulativeAdSpend / semCumulativeSales * 100).toFixed(0) : '0';
-    
-    // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
+      const semCumulativeSales = 0;
+      const semCumulativeAdSpend = 0;
+      const semAvgRatio = '0';
+      
+      // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
