@@ -208,8 +208,13 @@ function EditableInsightCard({
                                 size="sm"
                                 className="h-6 w-6 p-0 text-green-600 hover:text-green-700"
                                 onClick={saveEdit}
+                                disabled={isSaving}
                             >
-                                <SaveIcon className="h-3 w-3" />
+                                {isSaving ? (
+                                    <div className="h-3 w-3 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <SaveIcon className="h-3 w-3" />
+                                )}
                             </Button>
                             <Button
                                 variant="ghost"
