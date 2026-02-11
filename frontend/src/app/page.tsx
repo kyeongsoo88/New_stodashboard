@@ -151,11 +151,13 @@ function EditableInsightCard({
 
     // Redis에서 데이터 불러오기
     React.useEffect(() => {
+        let isMounted = true;
         getInsightData(storageKey).then((data) => {
-            if (data && Array.isArray(data)) {
+            if (isMounted && data && Array.isArray(data)) {
                 setItems(data);
             }
         });
+        return () => { isMounted = false; };
     }, [storageKey]);
 
     const startEdit = () => {
