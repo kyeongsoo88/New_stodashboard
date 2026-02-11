@@ -1,7 +1,5 @@
 "use client"
 
-import { getInsightData, saveInsightData } from "./serverActions"
-
 // Force refresh: Fix chart keys and XAxis labels
 
 
@@ -152,11 +150,18 @@ function EditableInsightCard({
     // Redis에서 데이터 불러오기
     React.useEffect(() => {
         let isMounted = true;
-        getInsightData(storageKey).then((data) => {
-            if (isMounted && data && Array.isArray(data)) {
-                setItems(data);
-            }
-        });
+        
+        fetch(`/api/insights?key=${encodeURIComponent(storageKey)}`)
+            .then(res => res.json())
+            .then(result => {
+                if (isMounted && result.data && Array.isArray(result.data)) {
+                    setItems(result.data);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load insights:', err);
+            });
+        
         return () => { isMounted = false; };
     }, [storageKey]);
 
@@ -172,9 +177,26 @@ function EditableInsightCard({
         setItems(newItems);
         setIsEditing(false);
         
-        // Save to Redis
+        // Save to Redis via API
         startTransition(async () => {
-            await saveInsightData(storageKey, newItems);
+            try {
+                const response = await fetch('/api/insights', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        key: storageKey,
+                        items: newItems,
+                    }),
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to save insights');
+                }
+            } catch (error) {
+                console.error('Error saving insights:', error);
+            }
         });
     };
 
