@@ -1,5 +1,7 @@
 "use client"
 
+import { getInsightData, saveInsightData } from "@/app/actions"
+
 // Force refresh: Fix chart keys and XAxis labels
 
 
@@ -145,17 +147,15 @@ function EditableInsightCard({
     const [items, setItems] = React.useState<string[]>(defaultItems);
     const [isEditing, setIsEditing] = React.useState(false);
     const [editText, setEditText] = React.useState('');
+    const [isSaving, startTransition] = React.useTransition();
 
-    // 클라이언트에서만 localStorage 읽기 (Hydration 에러 방지)
+    // Redis에서 데이터 불러오기
     React.useEffect(() => {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                try {
-                setItems(JSON.parse(saved));
-                } catch {
-                // 파싱 실패 시 defaultItems 사용
+        getInsightData(storageKey).then((data) => {
+            if (data && Array.isArray(data)) {
+                setItems(data);
             }
-        }
+        });
     }, [storageKey]);
 
     const startEdit = () => {
@@ -163,13 +163,17 @@ function EditableInsightCard({
         setIsEditing(true);
     };
 
-    const saveEdit = () => {
+    const saveEdit = async () => {
         const newItems = editText.split('\n').filter(line => line.trim() !== '');
+        
+        // Optimistic update
         setItems(newItems);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(storageKey, JSON.stringify(newItems));
-        }
         setIsEditing(false);
+        
+        // Save to Redis
+        startTransition(async () => {
+            await saveInsightData(storageKey, newItems);
+        });
     };
 
     const cancelEdit = () => {
@@ -177,18 +181,6 @@ function EditableInsightCard({
         setIsEditing(false);
     };
 
-    React.useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-                try {
-                    setItems(JSON.parse(saved));
-                } catch {
-                    // Ignore parse errors
-                }
-            }
-        }
-    }, [storageKey]);
 
     return (
         <Card className={cardClassName}>
