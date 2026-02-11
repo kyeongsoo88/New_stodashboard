@@ -5639,7 +5639,7 @@ function BalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       )}
 
       {/* STE 재무상태표 섹션 */}
-      <STEBalanceSheetSection />
+      <STEBalanceSheetSection selectedMonth={selectedMonth} />
     </div>
   );
 }
