@@ -7894,7 +7894,8 @@ export default function DashboardPage() {
         '2025-09': '25-Sep',
         '2025-10': '25-Oct',
         '2025-11': '25-Nov',
-        '2025-12': '25-Dec'
+        '2025-12': '25-Dec',
+        '2026-01': '26-Jan'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
