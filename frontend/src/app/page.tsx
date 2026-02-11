@@ -1,6 +1,6 @@
 "use client"
 
-import { getInsightData, saveInsightData } from "@/app/actions"
+import { getInsightData, saveInsightData } from "./actions"
 
 // Force refresh: Fix chart keys and XAxis labels
 
