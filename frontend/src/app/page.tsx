@@ -4143,7 +4143,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     const num = parseFloat(value.replace(/[$,]/g, ''));
     if (isNaN(num)) return value;
     const abs = Math.abs(num).toLocaleString();
-    return num < 0 ? `-$${abs}` : `$${abs}`;
+    return num < 0 ? `-${abs}` : `${abs}`;
   };
 
   const isNegative = (raw: string) => {
@@ -4473,7 +4473,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
     const num = parseFloat(value.replace(/[$,]/g, ''));
     if (isNaN(num)) return value;
     const abs = Math.abs(num).toLocaleString();
-    return num < 0 ? `-$${abs}` : `$${abs}`;
+    return num < 0 ? `-${abs}` : `${abs}`;
   };
 
   const isNegative = (raw: string) => {
