@@ -3027,7 +3027,7 @@ function IncomeStatementSection_OLD({ selectedMonth }: { selectedMonth: string }
 }
 
 // STE 손익계산서 컴포넌트
-function STEIncomeStatementSection() {
+function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }) {
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
@@ -8553,7 +8553,7 @@ export default function DashboardPage() {
         {activeTab === "손익계산서" && (
           <>
             <STOIncomeStatementSection selectedMonth={currentSelectedMonth} />
-            <STEIncomeStatementSection />
+            <STEIncomeStatementSection selectedMonth={currentSelectedMonth} />
           </>
         )}
         
