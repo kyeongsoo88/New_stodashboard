@@ -1322,7 +1322,32 @@ function DetailedExpenseCard({
                 <div className="text-2xl font-bold tabular-nums w-full">{value}</div>
                 <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
-                    <span className={cn("text-sm", diffColor)}>({yoyDiff}){title === "운반비" ? " 3개월 누적율 6.1%" : ""}</span>
+                    {title === "보관료" ? (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <span className={cn(
+                                    "text-sm cursor-pointer px-2 py-0.5 rounded-md transition-all",
+                                    "bg-blue-50 hover:bg-blue-100 border border-blue-200",
+                                    "text-blue-700 font-medium",
+                                    diffColor
+                                )}>
+                                    ({yoyDiff})
+                                </span>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>보관료 상세 정보</DialogTitle>
+                                </DialogHeader>
+                                <div className="text-sm text-gray-700 leading-relaxed">
+                                    재고 대비 변동비 성격, 전년 재고와 큰 차이 없으나 +$49K 비용증가, 과다청구 없는지 3PL과 Argue예정.
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    ) : (
+                        <span className={cn("text-sm", diffColor)}>
+                            ({yoyDiff}){title === "운반비" && " 3개월 누적율 6.1%"}
+                        </span>
+                    )}
                 </div>
                 <div className="text-sm space-y-1 text-gray-600">
                     {details}
