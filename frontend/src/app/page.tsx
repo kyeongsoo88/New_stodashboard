@@ -8480,11 +8480,11 @@ export default function DashboardPage() {
   
   const tabs = [
     { id: "대시보드", label: "대시보드", icon: BarChart3Icon },
+    { id: "당월 추세", label: "당월 추세", icon: TrendingUpIcon },
     { id: "손익계산서", label: "손익계산서", icon: TrendingUpIcon },
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
-    { id: "당월 추세", label: "당월 추세", icon: TrendingUpIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
