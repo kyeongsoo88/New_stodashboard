@@ -16,9 +16,13 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon, TagIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon, TagIcon, CalendarIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { format } from "date-fns"
+import { ko } from "date-fns/locale"
 
 // Simple Tooltip Component
 const SimpleTooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
@@ -3268,6 +3272,441 @@ function STEIncomeStatementSection() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// 당월 추세 컴포넌트
+function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
+  const [loading, setLoading] = React.useState(true);
+  const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 1, 1)); // 2026-02-01
+  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 1, 10)); // 2026-02-10
+  
+  const [data2025, setData2025] = React.useState<any[]>([]);
+  const [data2026, setData2026] = React.useState<any[]>([]);
+  
+  // 메트릭 데이터
+  const [metrics, setMetrics] = React.useState({
+    periodRevenue: 0,
+    periodYoY: 0,
+    periodDiscount: 0,
+    discountCompare: 0,
+    monthlyEstimate: 0,
+    estimateGrowth: 0
+  });
+
+  // Season별, Item별 집계 데이터
+  const [seasonData, setSeasonData] = React.useState<any[]>([]);
+  const [itemData, setItemData] = React.useState<any[]>([]);
+
+  // CSV 데이터 로드
+  React.useEffect(() => {
+    const loadCSVData = async () => {
+      setLoading(true);
+      try {
+        const timestamp = new Date().getTime();
+        const [res2025, res2026] = await Promise.all([
+          fetch(`/data/2025daily.csv?t=${timestamp}`).then(r => r.text()),
+          fetch(`/data/2026daily.csv?t=${timestamp}`).then(r => r.text())
+        ]);
+
+        // CSV 파싱
+        const parse = (csvText: string) => {
+          const lines = csvText.split('\n').filter(line => line.trim());
+          const headers = lines[0].split(',');
+          return lines.slice(1).map(line => {
+            const values = line.split(',');
+            return {
+              date: values[0],
+              season: values[1],
+              item: values[2],
+              msrp: parseFloat(values[3]) || 0,
+              netsale: parseFloat(values[4]) || 0,
+              cogs: parseFloat(values[5]) || 0,
+              discount: parseFloat(values[6]?.replace('%', '')) || 0
+            };
+          });
+        };
+
+        const parsed2025 = parse(res2025);
+        const parsed2026 = parse(res2026);
+        
+        setData2025(parsed2025);
+        setData2026(parsed2026);
+      } catch (error) {
+        console.error('CSV 로드 실패:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCSVData();
+  }, []);
+
+  // 날짜 범위 변경 시 메트릭 계산
+  React.useEffect(() => {
+    if (data2025.length === 0 || data2026.length === 0) return;
+
+    const formatDateStr = (date: Date) => format(date, 'yyyy-MM-dd');
+    const start = formatDateStr(startDate);
+    const end = formatDateStr(endDate);
+    
+    // 2026년 시작일의 연도를 2025로 변경 (전년 동기간)
+    const start2025 = start.replace('2026', '2025');
+    const end2025 = end.replace('2026', '2025');
+
+    // 2026년 데이터 필터링
+    const filtered2026 = data2026.filter(d => d.date >= start && d.date <= end);
+    const filtered2025 = data2025.filter(d => d.date >= start2025 && d.date <= end2025);
+
+    // 기간매출 계산
+    const revenue2026 = filtered2026.reduce((sum, d) => sum + d.netsale, 0);
+    const revenue2025 = filtered2025.reduce((sum, d) => sum + d.netsale, 0);
+    
+    // 기간 YoY 계산
+    const yoy = revenue2025 > 0 ? (revenue2026 / revenue2025) * 100 : 0;
+
+    // 기간 할인율 계산
+    const totalMSRP2026 = filtered2026.reduce((sum, d) => sum + d.msrp, 0);
+    const totalMSRP2025 = filtered2025.reduce((sum, d) => sum + d.msrp, 0);
+    const discount2026 = totalMSRP2026 > 0 ? ((totalMSRP2026 - revenue2026) / totalMSRP2026) * 100 : 0;
+    const discount2025 = totalMSRP2025 > 0 ? ((totalMSRP2025 - revenue2025) / totalMSRP2025) * 100 : 0;
+    const discountCompare = discount2026 - discount2025;
+
+    // 이번달 예상 매출 계산
+    const currentMonth = startDate.getMonth(); // 예: 1 (2월)
+    const currentYear = startDate.getFullYear(); // 2026
+    
+    // 2026년 선택된 기간까지의 매출 (예: 2026-02-01 ~ 2026-02-10)
+    const revenue2026Period = revenue2026;
+    
+    // 2025년 동일 기간 매출 (예: 2025-02-01 ~ 2025-02-10)
+    const revenue2025Period = revenue2025;
+    
+    // 2025년 해당 월 전체 매출 (예: 2025-02-01 ~ 2025-02-28)
+    const lastYearMonth = `${currentYear - 1}-${String(currentMonth + 1).padStart(2, '0')}`;
+    const lastYearMonthData = data2025.filter(d => d.date.startsWith(lastYearMonth));
+    const lastYearMonthRevenue = lastYearMonthData.reduce((sum, d) => sum + d.netsale, 0);
+    
+    // 전년 동기간 진척율 계산 (예: 321,794 / 869,542 = 37%)
+    const progressRate = lastYearMonthRevenue > 0 
+      ? revenue2025Period / lastYearMonthRevenue 
+      : 0;
+    
+    // 2026년 이번달 예상 매출 = 현재까지 매출 / 전년 진척율
+    // 예: 382,268 / 0.37 = 1,033,156
+    const estimatedRevenue = progressRate > 0 
+      ? revenue2026Period / progressRate 
+      : 0;
+    
+    // 전년 동월 대비 비율 (YoY)
+    const estimateYoY = lastYearMonthRevenue > 0 
+      ? (estimatedRevenue / lastYearMonthRevenue) * 100 
+      : 0;
+
+    setMetrics({
+      periodRevenue: Math.round(revenue2026),
+      periodYoY: yoy,
+      periodDiscount: discount2026,
+      discountCompare: discountCompare,
+      monthlyEstimate: Math.round(estimatedRevenue),
+      estimateGrowth: estimateYoY
+    });
+
+    // Season별 집계
+    const seasonMap = new Map<string, { netsale: number; msrp: number; cogs: number; count: number }>();
+    filtered2026.forEach(d => {
+      const existing = seasonMap.get(d.season) || { netsale: 0, msrp: 0, cogs: 0, count: 0 };
+      seasonMap.set(d.season, {
+        netsale: existing.netsale + d.netsale,
+        msrp: existing.msrp + d.msrp,
+        cogs: existing.cogs + d.cogs,
+        count: existing.count + 1
+      });
+    });
+
+    // Season별 전년 데이터 (시즌 시프트 로직 적용)
+    // 2026년의 F25는 2025년의 F24와 비교해야 함 (F24 -> F25, S24 -> S25)
+    // 따라서 2025년 데이터의 시즌 이름을 +1 해서 저장
+    const seasonMap2025 = new Map<string, number>();
+    filtered2025.forEach(d => {
+      let mappedSeason = d.season;
+      
+      // CORE는 그대로 유지
+      if (d.season !== 'CORE') {
+        // 시즌 이름에서 숫자 추출 (예: F24 -> 24)
+        const match = d.season.match(/([A-Z]+)(\d+)/);
+        if (match) {
+          const prefix = match[1]; // F or S
+          const year = parseInt(match[2]); // 24
+          // 숫자를 1 증가시켜서 2026년 시즌과 매칭 (예: F24 -> F25)
+          mappedSeason = `${prefix}${year + 1}`;
+        }
+      }
+      
+      seasonMap2025.set(mappedSeason, (seasonMap2025.get(mappedSeason) || 0) + d.netsale);
+    });
+
+    const seasonAggregated = Array.from(seasonMap.entries()).map(([season, data]) => {
+      const revenue2025 = seasonMap2025.get(season) || 0;
+      const yoy = revenue2025 > 0 ? (data.netsale / revenue2025) * 100 : 0;
+      const discount = data.msrp > 0 ? ((data.msrp - data.netsale) / data.msrp) * 100 : 0;
+      const margin = data.netsale > 0 ? ((data.netsale - data.cogs) / data.netsale) * 100 : 0;
+      
+      return {
+        name: season,
+        value: Math.round(data.netsale),
+        percent: revenue2026 > 0 ? (data.netsale / revenue2026) * 100 : 0,
+        discount: discount,
+        margin: margin,
+        yoy: yoy
+      };
+    }).sort((a, b) => b.value - a.value);
+
+    setSeasonData(seasonAggregated);
+
+    // Item별 집계
+    const itemMap = new Map<string, { netsale: number; msrp: number; cogs: number; count: number }>();
+    filtered2026.forEach(d => {
+      const existing = itemMap.get(d.item) || { netsale: 0, msrp: 0, cogs: 0, count: 0 };
+      itemMap.set(d.item, {
+        netsale: existing.netsale + d.netsale,
+        msrp: existing.msrp + d.msrp,
+        cogs: existing.cogs + d.cogs,
+        count: existing.count + 1
+      });
+    });
+
+    // Item별 전년 데이터
+    const itemMap2025 = new Map<string, number>();
+    filtered2025.forEach(d => {
+      itemMap2025.set(d.item, (itemMap2025.get(d.item) || 0) + d.netsale);
+    });
+
+    const itemAggregated = Array.from(itemMap.entries()).map(([item, data]) => {
+      const revenue2025 = itemMap2025.get(item) || 0;
+      const yoy = revenue2025 > 0 ? (data.netsale / revenue2025) * 100 : 0;
+      const discount = data.msrp > 0 ? ((data.msrp - data.netsale) / data.msrp) * 100 : 0;
+      const margin = data.netsale > 0 ? ((data.netsale - data.cogs) / data.netsale) * 100 : 0;
+      
+      return {
+        name: item,
+        value: Math.round(data.netsale),
+        percent: revenue2026 > 0 ? (data.netsale / revenue2026) * 100 : 0,
+        discount: discount,
+        margin: margin,
+        yoy: yoy
+      };
+    }).sort((a, b) => b.value - a.value);
+
+    setItemData(itemAggregated);
+
+  }, [data2025, data2026, startDate, endDate]);
+
+  if (loading) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
+      </Card>
+    );
+  }
+
+  const formatDateStr = (date: Date) => format(date, 'yyyy-MM-dd');
+
+  return (
+    <div className="space-y-6">
+      {/* 기간 선택 헤더 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold">당월 추세 분석</CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-600">기간(2026)</label>
+                
+                {/* 시작일 Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[150px] justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, 'yyyy-MM-dd', { locale: ko }) : "날짜 선택"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => date && setStartDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                <span className="text-gray-500">~</span>
+                
+                {/* 종료일 Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[150px] justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate ? format(endDate, 'yyyy-MM-dd', { locale: ko }) : "날짜 선택"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => date && setEndDate(date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* 4개의 메트릭 카드 */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* 기간매출 */}
+        <Card className="border-t-4 border-t-blue-500">
+          <CardContent className="pt-6">
+            <div className="text-sm text-gray-600 mb-2">기간매출</div>
+            <div className="text-3xl font-bold mb-1">${metrics.periodRevenue.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
+          </CardContent>
+        </Card>
+
+        {/* 기간 YoY */}
+        <Card className="border-t-4 border-t-green-500">
+          <CardContent className="pt-6">
+            <div className="text-sm text-gray-600 mb-2">기간 YoY</div>
+            <div className="text-3xl font-bold mb-1">{metrics.periodYoY.toFixed(1)}%</div>
+            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
+          </CardContent>
+        </Card>
+
+        {/* 기간 할인율 */}
+        <Card className="border-t-4 border-t-purple-500">
+          <CardContent className="pt-6">
+            <div className="text-sm text-gray-600 mb-2">기간 할인율</div>
+            <div className="text-3xl font-bold mb-1">
+              {metrics.periodDiscount.toFixed(1)}% 
+              <span className="text-sm text-gray-600 ml-2">(전년대비: {metrics.discountCompare >= 0 ? '+' : ''}{metrics.discountCompare.toFixed(1)}%)</span>
+            </div>
+            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
+          </CardContent>
+        </Card>
+
+        {/* 이번달 예상 매출 */}
+        <Card className="border-t-4 border-t-orange-500">
+          <CardContent className="pt-6">
+            <div className="text-sm text-gray-600 mb-2">이번달 예상 매출</div>
+            <div className="text-3xl font-bold mb-1">${metrics.monthlyEstimate.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">YoY: {metrics.estimateGrowth.toFixed(1)}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 2개의 트리맵 차트 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Season별 매출 구성 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Season별 매출 구성</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[500px] overflow-y-auto pr-2">
+              {seasonData.length > 0 ? (
+                <div className="space-y-2">
+                  {seasonData.map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-sm">{item.name}</span>
+                          <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
+                        </div>
+                        <div className="text-xs text-gray-600 mb-1">
+                          할인율: {item.discount.toFixed(1)}% | 전년대비: {item.yoy.toFixed(0)}% | YOY: {item.yoy.toFixed(0)}%
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                          <div 
+                            className="bg-blue-500 h-4 rounded-full flex items-center justify-end pr-2"
+                            style={{ width: `${Math.min(item.percent, 100)}%` }}
+                          >
+                            {item.percent >= 5 && (
+                              <span className="text-xs text-white font-medium">{item.percent.toFixed(1)}%</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  데이터가 없습니다
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Item별 매출 구성 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Item별 매출 구성</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[500px] overflow-y-auto pr-2">
+              {itemData.length > 0 ? (
+                <div className="space-y-2">
+                  {itemData.map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-sm">{item.name}</span>
+                          <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
+                        </div>
+                        <div className="text-xs text-gray-600 mb-1">
+                          할인율: {item.discount.toFixed(1)}% | 전년대비: {item.yoy.toFixed(0)}% | YOY: {item.yoy.toFixed(0)}%
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                          <div 
+                            className="bg-green-500 h-4 rounded-full flex items-center justify-end pr-2"
+                            style={{ width: `${Math.min(item.percent, 100)}%` }}
+                          >
+                            {item.percent >= 5 && (
+                              <span className="text-xs text-white font-medium">{item.percent.toFixed(1)}%</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  데이터가 없습니다
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 
@@ -6791,6 +7230,7 @@ export default function DashboardPage() {
     "재무상태표": "2026-01",
     "현금흐름표": "2026-01",
     "영업비 분석": "2026-01",
+    "당월 추세": "2026-01",
   });
   
   // CSV 데이터 로딩 상태
@@ -8044,6 +8484,7 @@ export default function DashboardPage() {
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
+    { id: "당월 추세", label: "당월 추세", icon: TrendingUpIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
@@ -8130,6 +8571,9 @@ export default function DashboardPage() {
         
         {/* 영업비 분석 탭 콘텐츠 */}
         {activeTab === "영업비 분석" && <OperatingExpenseSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 당월 추세 탭 콘텐츠 */}
+        {activeTab === "당월 추세" && <MonthlyTrendSection selectedMonth={currentSelectedMonth} />}
         
         {/* 대시보드 탭 콘텐츠 */}
         {activeTab === "대시보드" && (
