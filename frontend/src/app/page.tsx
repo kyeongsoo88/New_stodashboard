@@ -1322,7 +1322,7 @@ function DetailedExpenseCard({
                 <div className="text-2xl font-bold tabular-nums w-full">{value}</div>
                 <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
-                    <span className={cn("text-sm", diffColor)}>({yoyDiff})</span>
+                    <span className={cn("text-sm", diffColor)}>({yoyDiff}){title === "운반비" ? " 3개월 누적율 6.1%" : ""}</span>
                 </div>
                 <div className="text-sm space-y-1 text-gray-600">
                     {details}
@@ -3609,7 +3609,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     const val26 = viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     const val25 = viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     const diff = val26 - val25;
-    const diffRate = val25 > 0 ? (diff / val25 * 100) : 0;
+    const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
     const detail = detailNotes[cat.name] || '';
     
     return {
@@ -3657,7 +3657,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       const val26 = viewMode === "YTD" ? get26YTDValue(dataKey, selectedMonthLocal) : get26MonthValue(dataKey, selectedMonthLocal);
       const val25 = viewMode === "YTD" ? get25YTDValue(dataKey, selectedMonthLocal) : get25MonthValue(dataKey, selectedMonthLocal);
       const diff = val26 - val25;
-      const diffRate = val25 > 0 ? (diff / val25 * 100) : 0;
+      const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
       const detailKey = `${categoryName}||${sub.name}`;
       const detail = detailNotes[detailKey] || '';
       
@@ -3938,8 +3938,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       <TableCell className={cn("text-right font-medium w-[90px]", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
                         {row.diff >= 0 ? '+' : ''}${row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                       </TableCell>
-                      <TableCell className={cn("text-right font-medium w-[90px]", row.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
-                        {row.diffRate >= 0 ? '+' : ''}{row.diffRate.toFixed(1)}%
+                      <TableCell className={cn("text-right font-medium w-[90px]", row.diffRate > 100 ? "text-red-600" : row.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                        {row.diffRate.toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-left w-[280px]">{row.detail}</TableCell>
                     </TableRow>
@@ -3957,8 +3957,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                         <TableCell className={cn("text-right font-medium w-[90px]", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                           {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                         </TableCell>
-                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
-                          {subRow.diffRate >= 0 ? '+' : ''}{subRow.diffRate.toFixed(1)}%
+                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diffRate > 100 ? "text-red-600" : subRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                          {subRow.diffRate.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-left w-[280px]">{subRow.detail}</TableCell>
                       </TableRow>
@@ -3972,8 +3972,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                     {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                   </TableCell>
-                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diffRate >= 0 ? "text-red-600" : "text-green-600")}>
-                    {totalRow.diffRate >= 0 ? '+' : ''}{totalRow.diffRate.toFixed(1)}%
+                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diffRate > 100 ? "text-red-600" : totalRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                    {totalRow.diffRate.toFixed(1)}%
                   </TableCell>
                   <TableCell className="text-left font-bold w-[280px]">{totalRow.detail}</TableCell>
                 </TableRow>
