@@ -3647,7 +3647,7 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
                           <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
                         </div>
                         <div className="text-xs text-gray-600 mb-1">
-                          할인율: {item.discount.toFixed(1)}% | 전년대비: {item.yoy.toFixed(0)}% | YOY: {item.yoy.toFixed(0)}%
+                          할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-4">
                           <div 
@@ -3689,7 +3689,7 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
                           <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
                         </div>
                         <div className="text-xs text-gray-600 mb-1">
-                          할인율: {item.discount.toFixed(1)}% | 전년대비: {item.yoy.toFixed(0)}% | YOY: {item.yoy.toFixed(0)}%
+                          할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-4">
                           <div 
