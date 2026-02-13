@@ -1342,8 +1342,16 @@ function DetailedExpenseCard({
                                 <DialogHeader>
                                     <DialogTitle>보관료 상세 정보</DialogTitle>
                                 </DialogHeader>
-                                <div className="text-sm text-gray-700 leading-relaxed">
-                                    재고 대비 변동비 성격, 전년 재고와 큰 차이 없으나 +$49K 비용증가, 과다청구 없는지 3PL과 Argue예정.
+                                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                                    <p>
+                                        올해 1월 스토리지 면적이 전년 동월 대비 약 43,000 sq ft → 73,000 sq ft로 3만 sq ft 증가했으나, 보관 유닛 수는 전년과 거의 동일함.
+                                    </p>
+                                    <p>
+                                        Bergen은 연말 아웃바운드 집중으로 1월 재고 통합을 못 해 bin에 소량 유닛만 남아 면적이 과다 산정되었다고 인정. Bergen은 1월 30일 재고 스냅샷 기준 과다 청구 여부 조사중 2월 청구서에 크레딧으로 조정 예정.
+                                    </p>
+                                    <p>
+                                        <span className="font-bold">향후 F-Up :</span> 재발 방지를 위해 면적 기반 과금 대신 카테고리별 차등 유닛 단가를 적용한 유닛 기반 과금 방식을 Bergen이 재제안함. 유닛 기반 과금은 consolidation 리스크를 Bergen이 부담하게 하고, 스토리지 비용 예측성과 예산 관리 측면에서 유리함.
+                                    </p>
                                 </div>
                             </DialogContent>
                         </Dialog>
