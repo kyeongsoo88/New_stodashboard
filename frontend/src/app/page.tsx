@@ -239,7 +239,7 @@ function EditableInsightCard({
                                 {isSaving ? (
                                     <div className="h-3 w-3 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                    <SaveIcon className="h-3 w-3" />
+                                <SaveIcon className="h-3 w-3" />
                                 )}
                             </Button>
                             <Button
@@ -1149,7 +1149,7 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
             <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="text-lg font-bold mb-3 text-slate-800">주차별 SEM 광고비율 분석</h3>
                 <div className="h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                             <XAxis 
@@ -1168,18 +1168,18 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
                                 unit="%"
                                 domain={[0, 'auto']}
                             />
-                            <Tooltip
-                                contentStyle={{
+                        <Tooltip 
+                            contentStyle={{ 
                                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                     border: 'none',
-                                    borderRadius: '8px',
+                                borderRadius: '8px',
                                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                 }}
                                 formatter={(value: any, name: string) => {
                                     if (name.includes('비율')) return [`${value}%`, name];
                                     return [`$${value.toLocaleString()}`, name];
-                                }}
-                            />
+                            }} 
+                        />
                             <Legend 
                                 wrapperStyle={{ paddingTop: '20px' }}
                                 iconType="circle"
@@ -1204,11 +1204,11 @@ function SEMAdAnalysisDialog({ data }: { data: any }) {
                                 dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }}
                                 activeDot={{ r: 6 }}
                             />
-                        </ComposedChart>
-                    </ResponsiveContainer>
+                    </ComposedChart>
+                </ResponsiveContainer>
                 </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
                 <Card className="bg-blue-50 border-blue-100">
                     <CardContent className="p-4">
@@ -8389,8 +8389,8 @@ export default function DashboardPage() {
       const semCumulativeSales = 0;
       const semCumulativeAdSpend = 0;
       const semAvgRatio = '0';
-      
-      // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
+    
+    // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
