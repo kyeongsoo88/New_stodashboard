@@ -2414,36 +2414,19 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[800px] overflow-auto">
           <Table>
-            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
-                <TableHead className="w-[140px] text-left border-r pl-4 sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+            <TableHeader className="sticky top-0 z-10 shadow-sm">
+              <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
+                <TableHead className="w-[140px] text-left border border-gray-300 pl-4 sticky left-0 z-20 text-white font-bold" style={{ backgroundColor: '#2E5C8A' }}>
                   {headers[0]}
                 </TableHead>
                 {headers.slice(1).map((h, i) => {
                   if (!isColumnVisible(i)) return null;
 
-                  let bgColor = "bg-slate-100";
-                  let textColor = "text-slate-700";
-                  
-                  // 색상 로직: 실적(노란색), F(일반), Total(강조)
-                  if (h.includes("실적")) {
-                    bgColor = "bg-gray-100";
-                  } else if (h === "YoY") {
-                    bgColor = "bg-gray-100";
-                    textColor = "text-black";
-                  } else if (h.includes("Total") || h === "26년" || h === "연간 YoY") {
-                    bgColor = "bg-gray-100";
-                    textColor = "text-black";
-                  }
-
                   return (
                     <TableHead 
                       key={i} 
-                      className={cn(
-                        "text-center min-w-[80px] border-r whitespace-nowrap text-[11px] px-1 h-8",
-                        bgColor,
-                        textColor
-                      )}
+                      className="text-center min-w-[80px] border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
+                      style={{ backgroundColor: '#2E5C8A' }}
                     >
                       {h}
                     </TableHead>
@@ -2458,36 +2441,36 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 if (row.isSubItem && !allExpanded) return null;
 
                 let rowBg = "bg-white";
-                let textStyle = "text-slate-600";
+                let textStyle = "text-gray-900";
                 let labelStyle = "font-normal pl-8"; // 서브 아이템 들여쓰기
 
-                // 스타일링
+                // 스타일링 - 교대로 배경색 적용
                 if (row.isMainCategory) {
-                  rowBg = "bg-slate-50";
-                  textStyle = "font-bold text-slate-900";
+                  rowBg = "bg-white";
+                  textStyle = "font-bold text-gray-900";
                   labelStyle = "font-bold pl-4";
                   
                   // 주요 이익 항목 강조
                   if (row.label === "Gross Profit" || row.label === "Direct Profit" || row.label === "Operating Profit") {
-                    rowBg = "bg-blue-50";
-                    textStyle = "font-bold text-blue-900";
+                    rowBg = "bg-white";
+                    textStyle = "font-bold text-gray-900";
                   }
                 } else if (row.isRatioRow) {
                   if (row.label === "Discount Rate") {
-                    rowBg = "bg-orange-50";
-                    textStyle = "text-orange-900 font-medium";
-                    labelStyle = "font-medium pl-4";
+                    rowBg = "bg-white";
+                    textStyle = "text-gray-900 font-normal";
+                    labelStyle = "font-normal pl-4";
                   } else {
-                    // (%) 행 - 가운데 정렬
-                    rowBg = "bg-blue-50/50";
-                    textStyle = "text-blue-800 font-medium";
-                    labelStyle = "text-center font-medium italic text-xs px-0"; // 가운데 정렬, 패딩 제거
+                    // (%) 행
+                    rowBg = "bg-white";
+                    textStyle = "text-gray-900 font-normal";
+                    labelStyle = "text-center font-normal text-xs px-0";
                   }
                 }
 
                 return (
-                  <TableRow key={idx} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
-                    <TableCell className={cn("border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]", rowBg, labelStyle)}>
+                  <TableRow key={idx} className={cn("text-xs hover:bg-gray-50", rowBg)}>
+                    <TableCell className={cn("border border-gray-300 sticky left-0 z-10", rowBg, labelStyle, textStyle)}>
                       {row.label}
                     </TableCell>
                     {row.values.map((val: string, vIdx: number) => {
@@ -2498,22 +2481,19 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                       // 값에 따른 색상 처리 (음수: 빨강)
                       const isNegative = val.includes("-") || val.startsWith("(");
                       if (isNegative) {
-                        cellTextColor = "text-red-600";
-                      } else if (row.label === 'Discount Rate' || row.label === '(%)') {
-                         // 비율 행은 기본 색상 유지 또는 파랑
-                         if (!isNegative && row.label === '(%)') cellTextColor = "text-blue-600";
+                        cellTextColor = "text-red-600 font-normal";
                       }
 
-                      // YoY 컬럼 (3번째 값, 인덱스 2) 강조
+                      // YoY 컬럼 강조
                       const isYoYCol = vIdx === 2 || headers[vIdx+1] === "Total YoY" || headers[vIdx+1] === "연간 YoY";
                       
                       return (
                         <TableCell 
                           key={vIdx} 
                           className={cn(
-                            "text-right px-2 border-r tabular-nums whitespace-nowrap",
+                            "text-right px-2 border border-gray-300 tabular-nums whitespace-nowrap",
                             cellTextColor,
-                            isYoYCol && "font-bold"
+                            isYoYCol && !isNegative && "font-normal"
                           )}
                         >
                           {formatNumber(val)}
@@ -3187,24 +3167,20 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
           <Table className="w-full table-fixed">
-            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-gray-100 text-xs font-bold hover:bg-gray-100">
+            <TableHeader className="sticky top-0 z-10 shadow-sm">
+              <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
-                  // STO와 동일한 헤더 스타일링 로직 적용
-                  let bgColor = "bg-gray-100";
-                  let textColor = "text-black";
 
                   return (
                     <TableHead
                       key={index}
                       className={cn(
-                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
                         "min-w-[80px]",
-                        index === 0 && "w-[12%] min-w-[120px] text-left pl-4 sticky left-0 z-20 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                        bgColor,
-                        textColor
+                        index === 0 && "w-[12%] min-w-[120px] text-left pl-4 sticky left-0 z-20"
                       )}
+                      style={{ backgroundColor: '#2E5C8A' }}
                     >
                       {header}
                     </TableHead>
@@ -3221,22 +3197,22 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                 
                 // 배경색 로직
                 let rowBg = "bg-white";
-                if (isParent) rowBg = "bg-slate-50";
+                if (isParent) rowBg = "bg-white";
                 
-                // 영업이익 등 특정 행 배경색 제거 (흰색 유지)
+                // 영업이익 등 특정 행 배경색
                 if (label === "영업이익") rowBg = "bg-white";
                 if (label === "감가비 조정 후 영업이익") rowBg = "bg-white";
 
                 const isBold = isParent || label === "영업이익" || label === "감가비 조정 후 영업이익";
 
                 return (
-                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                  <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell
                       className={cn(
-                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "border border-gray-300 sticky left-0 z-10",
                         "min-w-[120px] truncate",
                         rowBg,
-                        isBold ? "font-bold" : "",
+                        isBold ? "font-bold text-gray-900" : "text-gray-900",
                         isParent ? "pl-2" : "pl-6"
                       )}
                       onClick={() => isParent && toggleRow(label)}
@@ -3263,9 +3239,9 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                           <TableCell
                             key={`${rowIndex}-${headerIdx}`}
                             className={cn(
-                              "text-right px-2 border-r tabular-nums font-medium min-w-[80px] whitespace-nowrap truncate",
-                              isNegative(value) && "text-red-600",
-                              isBold && "font-bold"
+                              "text-right px-2 border border-gray-300 tabular-nums min-w-[80px] whitespace-nowrap truncate",
+                              isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
+                              isBold && !isNegative(value) && "font-bold"
                             )}
                           >
                             {formatCurrency(value)}
@@ -4664,25 +4640,23 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
           <Table className="w-full table-fixed">
-            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
+            <TableHeader className="sticky top-0 z-10 shadow-sm">
+              <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
                   return (
                   <TableHead
                     key={index}
                       className={cn(
-                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
                         // 기본 데이터 컬럼 너비
                         "min-w-[80px]",
                         // 계정과목 (첫 번째 열): 12% 비중, 최소 120px
-                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20",
                         // 상세 컬럼 (코멘트용 넓게): 25% 비중, 최소 300px
-                        header === '상세' && "w-[25%] min-w-[300px] text-center",
-                      // 헤더 배경색
-                      header === '25년 기말' && "bg-gray-100 text-black",
-                      header === 'YoY' && "bg-gray-100 text-black"
+                        header === '상세' && "w-[25%] min-w-[300px] text-center"
                     )}
+                    style={{ backgroundColor: '#2E5C8A' }}
                   >
                     {header}
                   </TableHead>
@@ -4697,25 +4671,25 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                 const isSection = row.isSection;
                 const isGroup = row.isGroup;
                 const rowBg = isSection
-                  ? "bg-slate-50"
+                  ? "bg-white"
                   : isGroup
-                  ? "bg-slate-50/40"
+                  ? "bg-white"
                   : "bg-white";
 
                 return (
-                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                  <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell
                       className={cn(
-                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "border border-gray-300 sticky left-0 z-10",
                         "min-w-[120px] truncate",
                         rowBg,
                         isSection
-                          ? "font-bold pl-2"
+                          ? "font-bold pl-2 text-gray-900"
                           : isGroup
-                          ? "font-semibold pl-6"
+                          ? "font-semibold pl-6 text-gray-900"
                           : row.level >= 2
-                          ? "pl-10"
-                          : "pl-4"
+                          ? "pl-10 text-gray-900"
+                          : "pl-4 text-gray-900"
                       )}
                       onClick={() => row.canToggle && toggleRow(row.label)}
                     >
@@ -4743,13 +4717,13 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         <TableCell
                           key={`${rowIndex}-${headerIdx}`}
                           className={cn(
-                            "text-right px-2 border-r tabular-nums font-medium",
+                            "text-right px-2 border border-gray-300 tabular-nums",
                             // 일반 컬럼: 최소 너비, 말줄임
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                             // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                            !isDetailCol && isNegative(value) && "text-red-600",
-                            isSection && "font-bold"
+                            !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
+                            isSection && !isNegative(value) && "font-bold"
                           )}
                         >
                           {displayValue}
@@ -4934,21 +4908,20 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
           <Table className="w-full table-fixed">
-            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
+            <TableHeader className="sticky top-0 z-10 shadow-sm">
+              <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
                   return (
                     <TableHead
                       key={index}
                       className={cn(
-                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
                         "min-w-[80px]",
-                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                        header === '상세' && "w-[25%] min-w-[300px] text-center",
-                        header === '25년 기말' && "bg-gray-100 text-black",
-                        header === 'YoY' && "bg-gray-100 text-black"
+                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20",
+                        header === '상세' && "w-[25%] min-w-[300px] text-center"
                       )}
+                      style={{ backgroundColor: '#2E5C8A' }}
                     >
                       {header}
                     </TableHead>
@@ -4964,16 +4937,16 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                 const isCashDebt = row.label === '현금/차입금';
                 
                 let rowBg = "bg-white";
-                if (isMain) rowBg = "bg-gray-100";
+                if (isMain) rowBg = "bg-white";
 
                 return (
-                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                  <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell
                       className={cn(
-                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "border border-gray-300 sticky left-0 z-10",
                         "min-w-[120px] truncate",
                         rowBg,
-                        isMain ? "font-bold pl-2" : "pl-6"
+                        isMain ? "font-bold pl-2 text-gray-900" : "pl-6 text-gray-900"
                       )}
                       onClick={() => isMain && toggleRow(row.label)}
                     >
@@ -5002,13 +4975,13 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                           <TableCell
                             key={`${rowIndex}-${headerIdx}`}
                             className={cn(
-                              "text-right px-2 border-r tabular-nums font-medium",
+                              "text-right px-2 border border-gray-300 tabular-nums",
                               // 일반 컬럼: 최소 너비, 말줄임
                               !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                               // 상세 컬럼: 최소 너비, 줄바꿈 허용
                               isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                              !isDetailCol && isNegative(value) && "text-red-600",
-                              isMain && "font-bold"
+                              !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
+                              isMain && !isNegative(value) && "font-bold"
                             )}
                           >
                             {displayValue}
@@ -5231,25 +5204,23 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[850px] overflow-auto">
           <Table className="w-full table-fixed">
-            <TableHeader className="sticky top-0 z-10 bg-white shadow-sm">
-              <TableRow className="bg-gray-100/50 text-xs font-bold hover:bg-gray-100/50">
+            <TableHeader className="sticky top-0 z-10 shadow-sm">
+              <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
                   return (
                   <TableHead
                     key={index}
                       className={cn(
-                        "text-center border-r whitespace-nowrap text-[11px] px-2 h-8",
+                        "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
                         // 기본 데이터 컬럼 너비
                         "min-w-[80px]",
                         // 계정과목 (첫 번째 열): 12% 비중, 최소 120px
-                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20 bg-gray-100 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                        index === 0 && "w-[12%] min-w-[120px] text-center sticky left-0 z-20",
                         // 상세 컬럼 (코멘트용 넓게): 25% 비중, 최소 300px
-                        header === '상세' && "w-[25%] min-w-[300px] text-center",
-                      // 헤더 배경색
-                      header === '25년 기말' && "bg-gray-100 text-black",
-                      header === 'YoY' && "bg-gray-100 text-black"
+                        header === '상세' && "w-[25%] min-w-[300px] text-center"
                     )}
+                    style={{ backgroundColor: '#2E5C8A' }}
                   >
                     {header}
                   </TableHead>
@@ -5264,25 +5235,25 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                 const isSection = row.isSection;
                 const isGroup = row.isGroup;
                 const rowBg = isSection
-                  ? "bg-slate-50"
+                  ? "bg-white"
                   : isGroup
-                  ? "bg-slate-50/40"
+                  ? "bg-white"
                   : "bg-white";
 
                 return (
-                  <TableRow key={rowIndex} className={cn("text-xs border-b hover:bg-slate-100/50", rowBg)}>
+                  <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell
                       className={cn(
-                        "border-r sticky left-0 z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.05)]",
+                        "border border-gray-300 sticky left-0 z-10",
                         "min-w-[120px] truncate",
                         rowBg,
                         isSection
-                          ? "font-bold pl-2"
+                          ? "font-bold pl-2 text-gray-900"
                           : isGroup
-                          ? "font-semibold pl-6"
+                          ? "font-semibold pl-6 text-gray-900"
                           : row.level >= 2
-                          ? "pl-10"
-                          : "pl-4"
+                          ? "pl-10 text-gray-900"
+                          : "pl-4 text-gray-900"
                       )}
                       onClick={() => row.canToggle && toggleRow(row.label)}
                     >
@@ -5310,13 +5281,13 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         <TableCell
                           key={`${rowIndex}-${headerIdx}`}
                           className={cn(
-                            "text-right px-2 border-r tabular-nums font-medium",
+                            "text-right px-2 border border-gray-300 tabular-nums",
                             // 일반 컬럼: 최소 너비, 말줄임
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                             // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                            !isDetailCol && isNegative(value) && "text-red-600",
-                            isSection && "font-bold"
+                            !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
+                            isSection && !isNegative(value) && "font-bold"
                           )}
                         >
                           {displayValue}
@@ -6493,8 +6464,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
         {expanded && (
             <div className="overflow-x-auto">
                 <Table>
-                    <TableHeader className="bg-gray-100">
-                        <TableRow>
+                    <TableHeader className="sticky top-0 z-10 shadow-sm">
+                        <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                             {headers.map((h, i) => {
                                 if (!isMonthColumnVisible(h, i, headers)) return null;
                                 
@@ -6502,12 +6473,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     <TableHead 
                                         key={i} 
                                         className={cn(
-                                            "text-xs font-bold text-slate-700 h-9 px-2 whitespace-nowrap border-b border-slate-200",
-                                            i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10 bg-gray-100" : "text-right min-w-[80px]",
-                                            // 헤더 색상 로직
-                                            h.includes('Total') || h.includes('합계') || h === 'Base' || h === 'End' || h.includes('기초') || h.includes('기말') 
-                                                ? "bg-gray-100" : ""
+                                            "text-xs font-bold text-white h-10 px-2 whitespace-nowrap border border-gray-300",
+                                            i === 0 ? "text-left w-[280px] pl-6 sticky left-0 z-10" : "text-center min-w-[80px]"
                                         )}
+                                        style={{ backgroundColor: '#2E5C8A' }}
                                     >
                                         {h === 'Category' || h === '계정과목'
                                           ? '계정과목'
@@ -6531,35 +6500,41 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             const isTotalRow = row.label.includes('합계') || row.label === '기말잔액' || row.label === '기초잔액';
                             
                             // 행 스타일
-                            let rowClass = "hover:bg-slate-50/80 border-b border-slate-100 last:border-0";
-                            if (isFlowParent) rowClass += " bg-slate-50/50";
-                            if (isNetCash) rowClass += " bg-gray-100 border-t-2 border-gray-200";
-                            if (tableType === 'balance') rowClass += " odd:bg-white even:bg-slate-50/30";
+                            let rowClass = "hover:bg-gray-50";
+                            let rowBg = "bg-white";
+                            if (isFlowParent) {
+                                rowClass += "";
+                                rowBg = "bg-white";
+                            }
+                            if (isNetCash) {
+                                rowClass += "";
+                                rowBg = "bg-white";
+                            }
+                            if (tableType === 'balance' && isTotalRow) rowBg = "bg-white";
 
                             // 라벨 스타일
                             // 부모 행 스타일을 우선 적용해 아이콘이 항상 텍스트 왼쪽에 오도록 유지
-                            let labelClass = "text-xs font-bold text-slate-700";
+                            let labelClass = "text-xs font-bold text-gray-900";
                             if (isFlowParent) {
                                 labelClass = cn(
-                                    "text-xs font-bold text-slate-900 cursor-pointer flex items-center gap-1 whitespace-nowrap",
+                                    "text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1 whitespace-nowrap",
                                     isFlowSub && "pl-8"
                                 );
                             } else if (isFlowSub) {
-                                labelClass = "text-xs font-bold text-slate-700 pl-8";
+                                labelClass = "text-xs font-bold text-gray-900 pl-8";
                             }
                             if (isMaterialOutflow) {
                                 // 비용지출과 같은 열 시작점에 맞추기 위해 아이콘 자리만큼 공간 확보
-                                labelClass = "text-xs font-bold text-slate-900 pl-8 flex items-center gap-1 whitespace-nowrap";
+                                labelClass = "text-xs font-bold text-gray-900 pl-8 flex items-center gap-1 whitespace-nowrap";
                             }
-                            if (isNetCash) labelClass = "text-xs font-bold text-slate-900";
+                            if (isNetCash) labelClass = "text-xs font-bold text-gray-900";
                             
                             return (
-                                <TableRow key={rIdx} className={rowClass}>
+                                <TableRow key={rIdx} className={cn("text-xs", rowClass, rowBg)}>
                                     <TableCell 
                                         className={cn(
-                                            "sticky left-0 z-10 bg-white border-r border-slate-100 py-2", 
-                                            isFlowParent && "bg-slate-50/50",
-                                            isNetCash && "bg-gray-100",
+                                            "sticky left-0 z-10 border border-gray-300 py-2", 
+                                            rowBg,
                                             "pl-4"
                                         )}
                                         onClick={() => isFlowParent && toggleRow(row.label)}
@@ -6588,9 +6563,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums font-bold";
-                                        if (isNegative) cellClass += " text-red-600";
-                                        else cellClass += " text-slate-700";
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300";
+                                        if (isNegative) cellClass += " text-red-600 font-normal";
+                                        else cellClass += " text-gray-900";
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
