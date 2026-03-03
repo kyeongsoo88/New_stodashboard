@@ -7208,12 +7208,12 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-01",
-    "손익계산서": "2026-01",
-    "재무상태표": "2026-01",
-    "현금흐름표": "2026-01",
-    "영업비 분석": "2026-01",
-    "당월 추세": "2026-01",
+    "대시보드": "2026-02",
+    "손익계산서": "2026-02",
+    "재무상태표": "2026-02",
+    "현금흐름표": "2026-02",
+    "영업비 분석": "2026-02",
+    "당월 추세": "2026-02",
   });
   
   // CSV 데이터 로딩 상태
@@ -8505,6 +8505,7 @@ export default function DashboardPage() {
               <SelectItem value="2025-11">2025년 11월</SelectItem>
               <SelectItem value="2025-12">2025년 12월</SelectItem>
               <SelectItem value="2026-01">2026년 01월</SelectItem>
+              <SelectItem value="2026-02">2026년 02월</SelectItem>
             </SelectContent>
           </Select>
         </div>
