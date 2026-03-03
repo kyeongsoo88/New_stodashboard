@@ -7268,7 +7268,7 @@ export default function DashboardPage() {
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan)과 코드 형식(2025-01, 2025-02, ..., 2026-01) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan, 26-Feb)과 코드 형식(2025-01, 2025-02, ..., 2026-01, 2026-02) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -7282,7 +7282,8 @@ export default function DashboardPage() {
       '2025-10': '25-Oct',
       '2025-11': '25-Nov',
       '2025-12': '25-Dec',
-      '2026-01': '26-Jan'
+      '2026-01': '26-Jan',
+      '2026-02': '26-Feb'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -7311,7 +7312,8 @@ export default function DashboardPage() {
       '2025-10': '25-Oct',
       '2025-11': '25-Nov',
       '2025-12': '25-Dec',
-      '2026-01': '26-Jan'
+      '2026-01': '26-Jan',
+      '2026-02': '26-Feb'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -8351,7 +8353,8 @@ export default function DashboardPage() {
         '2025-10': '25-Oct',
         '2025-11': '25-Nov',
         '2025-12': '25-Dec',
-        '2026-01': '26-Jan'
+        '2026-01': '26-Jan',
+        '2026-02': '26-Feb'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
