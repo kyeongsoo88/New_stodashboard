@@ -1831,10 +1831,10 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(13).fill(0);
+              const values = csvChartData[dataKey] || Array(14).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(13).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(14).fill(100);
               
               return { name: opt, values, yoyValues };
           });
@@ -1868,9 +1868,17 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(13).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.1월)
-        const monthItem: any = { name: i < 12 ? `25.${i+1}월` : `26.${i-11}월` };
+      return Array(14).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, 26.2월)
+        let monthLabel;
+        if (i < 12) {
+          monthLabel = `25.${i+1}월`;
+        } else if (i === 12) {
+          monthLabel = `26.1월`;
+        } else {
+          monthLabel = `26.2월`;
+        }
+        const monthItem: any = { name: monthLabel };
           let totalTarget = 0;
           
           allSeriesData.forEach(series => {
@@ -8224,7 +8232,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
     
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -8327,8 +8335,8 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월'];
       
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
