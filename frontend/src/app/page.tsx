@@ -1450,6 +1450,8 @@ function InventoryPlanDialog({ data }: { data: any }) {
         return <div>데이터를 불러오는 중...</div>;
     }
     
+    const [growthRate, setGrowthRate] = React.useState(139);
+    
     const { chartData, tableData } = data;
     const lineColors: Record<string, string> = {
         fw25: "#ef4444",   // 25FW
@@ -1499,6 +1501,39 @@ function InventoryPlanDialog({ data }: { data: any }) {
 
     return (
         <div className="space-y-4 bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
+            {/* 성장률 설정 슬라이더 */}
+            <div className="bg-blue-700 p-3 rounded-lg shadow-md">
+                <div className="flex items-center gap-4">
+                    <span className="text-white text-sm font-semibold whitespace-nowrap">성장률 설정</span>
+                    <span className="text-white text-xs">100%</span>
+                    <Slider 
+                        value={[growthRate]} 
+                        onValueChange={(val) => setGrowthRate(val[0])} 
+                        min={100}
+                        max={200} 
+                        step={1} 
+                        className="flex-1" 
+                    />
+                    <span className="text-white text-xs">200%</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-white text-lg font-bold">{growthRate}%</span>
+                        <Input 
+                            type="number" 
+                            value={growthRate} 
+                            onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (val >= 100 && val <= 200) {
+                                    setGrowthRate(val);
+                                }
+                            }} 
+                            min={100}
+                            max={200}
+                            className="w-[70px] h-8 text-sm text-right px-2 bg-white" 
+                        />
+                    </div>
+                </div>
+            </div>
+            
             <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="text-lg font-bold mb-3 text-slate-800">시즌별 재고 25년 연말 시뮬레이션</h3>
                 
@@ -6138,6 +6173,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   
   const [loading, setLoading] = React.useState(true);
   
+  // 성장률 설정 상태
+  const [growthRate, setGrowthRate] = React.useState(139);
+  
   // 섹션별 접기/펼치기 상태
   const [isCashFlowExpanded, setIsCashFlowExpanded] = React.useState(true);
   const [isBalanceExpanded, setIsBalanceExpanded] = React.useState(true);
@@ -6442,6 +6480,39 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 <h3 className="text-lg font-bold text-slate-800">{title}</h3>
             </div>
             <div className="flex items-center gap-2">
+                {/* 성장률 설정 슬라이더 - 현금흐름표에만 표시 */}
+                {tableType === 'flow' && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ backgroundColor: '#2E5C8A' }}>
+                        <span className="text-white text-xs font-semibold whitespace-nowrap">성장률 설정</span>
+                        <span className="text-white text-[10px]">100%</span>
+                        <Slider 
+                            value={[growthRate]} 
+                            onValueChange={(val) => setGrowthRate(val[0])} 
+                            min={100}
+                            max={200} 
+                            step={1} 
+                            className="w-[120px]" 
+                        />
+                        <span className="text-white text-[10px]">200%</span>
+                        <div className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1">
+                            <Input 
+                                type="number" 
+                                value={growthRate} 
+                                onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    if (val >= 100 && val <= 200) {
+                                        setGrowthRate(val);
+                                    }
+                                }} 
+                                min={100}
+                                max={200}
+                                className="w-[50px] h-6 text-sm font-bold text-right px-1 bg-transparent border-0 focus:outline-none focus:ring-0" 
+                            />
+                            <span className="text-sm font-bold text-gray-900">%</span>
+                        </div>
+                    </div>
+                )}
+                
                 <Button 
                     variant="outline" 
                     size="sm" 
