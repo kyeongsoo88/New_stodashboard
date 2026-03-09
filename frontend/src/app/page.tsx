@@ -1626,25 +1626,26 @@ function CoreDiscountDialog({ data }: { data: any }) {
                 const collectedComments: string[] = [];
                 
                 const parsedData = lines.slice(startIndex + 1).map(line => {
-                    const values = line.split(',');
-                    const dateStr = values[0]; 
-                    const discountStr = values[1]; 
-                    const salesStr = values[2]; 
+                    // CSV 파싱: 따옴표로 감싸진 값 처리
+                    const csvRegex = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
+                    const values: string[] = [];
+                    let match;
+                    
+                    while ((match = csvRegex.exec(line)) !== null) {
+                        let value = match[1];
+                        // 따옴표 제거 및 이스케이프 처리
+                        if (value.startsWith('"') && value.endsWith('"')) {
+                            value = value.slice(1, -1).replace(/""/g, '"');
+                        }
+                        values.push(value);
+                    }
+                    
+                    const dateStr = values[0] || ''; 
+                    const discountStr = values[1] || '0%'; 
+                    const salesStr = values[2] || '0'; 
                     
                     // 코멘트가 쉼표를 포함하는 경우 처리
-                    // date, discount, sales 이후의 모든 부분을 합침
-                    let comment = values.slice(3).join(',');
-                    
-                    // 따옴표 제거 (CSV에서 쉼표 포함 문자열은 따옴표로 감싸짐)
-                    if (comment) {
-                        comment = comment.trim();
-                        // 앞뒤 따옴표 제거
-                        if (comment.startsWith('"') && comment.endsWith('"')) {
-                            comment = comment.slice(1, -1);
-                        }
-                        // 이스케이프된 따옴표 처리 ("" -> ")
-                        comment = comment.replace(/""/g, '"');
-                    }
+                    let comment = values.slice(3).join(',').trim();
 
                     if (comment && comment !== '') {
                         collectedComments.push(comment);
@@ -1653,11 +1654,14 @@ function CoreDiscountDialog({ data }: { data: any }) {
                     const dateParts = dateStr.split('-');
                     const formattedDate = `${dateParts[1]}.${dateParts[2]}`; 
                     
+                    // sales 값에서 쉼표 제거 후 숫자로 변환
+                    const salesValue = parseFloat(salesStr.replace(/,/g, '').replace(/"/g, '')) || 0;
+                    
                     return {
                         date: formattedDate,
                         fullDate: dateStr,
-                        discount: parseFloat(discountStr.replace('%', '')),
-                        sales: parseFloat(salesStr)
+                        discount: parseFloat(discountStr.replace('%', '')) || 0,
+                        sales: salesValue
                     };
                 });
                 
@@ -1783,7 +1787,7 @@ function CoreDiscountDialog({ data }: { data: any }) {
             )}
 
             <div className="mt-4 text-xs text-gray-500 text-center">
-                * 2026년 1월 1일 ~ 2월 8일 데이터 기준
+                * 2026년 1월 1일 ~ 2월 28일 데이터 기준
             </div>
     </div>
   );
