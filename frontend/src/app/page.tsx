@@ -7458,6 +7458,12 @@ export default function DashboardPage() {
         ],
         itemDetails: [
           {
+            name: "26SS",
+            value: formatNumber(getDataValue('카드_실판매출_아이템_26SS_값', month, '0')),
+            yoy: getDataValue('카드_실판매출_아이템_26SS_YOY', month, '0%'),
+            percent: formatPercent(getDataValue('카드_실판매출_아이템_26SS_비중', month, '0%'))
+          },
+          {
             name: "25FW",
             value: formatNumber(getDataValue('카드_실판매출_아이템_25FW_값', month, '12500')),
             yoy: getDataValue('카드_실판매출_아이템_25FW_YOY', month, '108%'),
@@ -7649,6 +7655,12 @@ export default function DashboardPage() {
           }
         ],
         itemDetails: [
+          {
+            name: "26SS",
+            value: getDataValue('카드_할인율_아이템_26SS_값', month, '0.0%'),
+            yoy: getDataValue('카드_할인율_아이템_26SS_YOY', month, '0.0%p'),
+            percent: ""
+          },
           {
             name: "25FW",
             value: getDataValue('카드_할인율_아이템_25FW_값', month, '4.8%'),
@@ -8337,7 +8349,7 @@ export default function DashboardPage() {
     
     // 아이템별 매출 추세 데이터
     const itemSalesData: Record<string, number[]> = {};
-    const itemNames = ['25FW', '25SS', 'FW과시즌', 'SS과시즌', 'CORE'];
+    const itemNames = ['26SS', '25FW', '25SS', 'FW과시즌', 'SS과시즌', 'CORE'];
     itemNames.forEach(item => {
       const dataKey = `차트_아이템별매출추세_${item}`;
       itemSalesData[dataKey] = months.map(month => {
@@ -8970,11 +8982,11 @@ export default function DashboardPage() {
                 title="2025-26년 월별 아이템별 매출 추세"
                 unit="K $"
                 iconColor="bg-orange-500"
-                filterOptions={["25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                filterOptions={["26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
-                    {color: "purple", title: "시즌 트렌드", content: "• 25FW: 1월 $704K (YOY 89%, 비중 58%), 연초 안정적 매출 유지\n• 25SS: $350K (YOY 192%, 비중 29%), 시즌 아웃 소진 가속\n• CORE: $54K (YOY 57%, 비중 4%), 12월 $711K 대비 급감"},
-                    {color: "blue", title: "카테고리", content: "• 25FW 주력 시즌 (비중 58%), 1~2월 집중 판매\n• 25SS 소진 단계 (비중 29%), 할인율 관리 필요\n• FW과시즌 재점화 (비중 7%, YOY 629%)\n• CORE 연말 특수 종료 (비중 4%)"},
-                    {color: "green", title: "핵심액션", content: "• 25FW 재고 소진 가속 (현재 재고 $12.9M, 목표 3월말 $8M)\n• 26SS 신상품 2월 출시, 3월 본격 판매 시작\n• CORE 정상 운영 전환 (할인율 0~3% 유지)"}
+                    {color: "purple", title: "시즌 트렌드", content: "• 26SS: 2월 $290K, 신상품 출시로 빠른 성장\n• 25FW: 1월 $704K (YOY 89%, 비중 58%), 연초 안정적 매출 유지\n• 25SS: $350K (YOY 192%, 비중 29%), 시즌 아웃 소진 가속"},
+                    {color: "blue", title: "카테고리", content: "• 26SS 신상품 본격 판매 시작 (비중 27%)\n• 25FW 주력 시즌 소진 단계 (비중 61%)\n• 25SS 조기 청산 진행 (비중 11%, YOY 112%)\n• CORE 정상 운영 전환 (비중 4%)"},
+                    {color: "green", title: "핵심액션", content: "• 26SS 재고 확보 및 마케팅 집중\n• 25FW 재고 소진 가속 (현재 재고 $12.9M)\n• 25SS 할인율 관리하며 조기 청산\n• CORE 정상 운영 유지 (할인율 0~3%)"}
                 ]}
                 csvChartData={chartDataForComponents?.itemSales}
                 chartType="item"
