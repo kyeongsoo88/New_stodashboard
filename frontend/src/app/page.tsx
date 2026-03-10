@@ -6279,10 +6279,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 25년(합계), 26년 1월, 2월, ..., 12월, 26년(계획), 26년(합계), 전년대비
-                // 필요: 계정과목, 2025년(합계), 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 2025년(합계), 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 펼치기: 계정과목, 2025년(합계), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
                 const newHeaders = [
                     '계정과목',
                     '2025년(합계)',
+                    '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
                     '2026년(계획)',
                     '계획-전년',
                     '2026년(합계)',
@@ -6299,6 +6301,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     
                     // CSV 인덱스: 0=계정과목, 1=25년(합계), 2-13=월별, 14=26년(계획), 15=26년(합계), 16=전년대비
                     const year2025 = vals[1] || '0';
+                    const months = [
+                        vals[2] || '0', vals[3] || '0', vals[4] || '0', vals[5] || '0',
+                        vals[6] || '0', vals[7] || '0', vals[8] || '0', vals[9] || '0',
+                        vals[10] || '0', vals[11] || '0', vals[12] || '0', vals[13] || '0'
+                    ]; // 1월~12월
                     const plan2026 = vals[14] || '0';
                     const total2026 = vals[15] || '0';
                     
@@ -6323,9 +6330,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = numTotal2026 - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((numTotal2026 / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
+                    // 새로운 values 배열 (순서: 2025년, 1월~12월, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
                     const newValues = [
                         year2025,
+                        ...months,
                         plan2026,
                         formatNum(planMinusPrev),
                         total2026,
@@ -6390,10 +6398,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 기초잔액, 1월, 2월, ..., 12월, 26년(계획), 기말잔액, 전년대비
-                // 필요: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 펼치기: 계정과목, 2025년(기말), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
                 const newHeaders2 = [
                     '계정과목',
                     '2025년(기말)',
+                    '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
                     '2026년(계획)',
                     '계획-전년',
                     '2026년(기말)',
@@ -6410,6 +6420,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     
                     // CSV 인덱스: 0=계정과목, 1=기초잔액, 2-13=월별, 14=26년(계획), 15=기말잔액, 16=전년대비
                     const year2025End = vals[1] || '0'; // 기초잔액 = 2025년(기말)
+                    const months = [
+                        vals[2] || '0', vals[3] || '0', vals[4] || '0', vals[5] || '0',
+                        vals[6] || '0', vals[7] || '0', vals[8] || '0', vals[9] || '0',
+                        vals[10] || '0', vals[11] || '0', vals[12] || '0', vals[13] || '0'
+                    ]; // 1월~12월
                     const plan2026 = vals[14] || '0';
                     const year2026End = vals[15] || '0'; // 기말잔액 = 2026년(기말)
                     
@@ -6434,9 +6449,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = num2026End - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
+                    // 새로운 values 배열 (순서: 2025년, 1월~12월, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
                     const newValues2 = [
                         year2025End,
+                        ...months,
                         plan2026,
                         formatNum(planMinusPrev),
                         year2026End,
@@ -6483,10 +6499,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 25년(기말), 1월, 2월, ..., 12월, 26년(계획), 26년(기말), 전년대비
-                // 필요: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 펼치기: 계정과목, 2025년(기말), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
                 const newHeaders3 = [
                     '계정과목',
                     '2025년(기말)',
+                    '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
                     '2026년(계획)',
                     '계획-전년',
                     '2026년(기말)',
@@ -6503,6 +6521,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     
                     // CSV 인덱스: 0=계정과목, 1=25년(기말), 2-13=월별, 14=26년(계획), 15=26년(기말), 16=전년대비
                     const year2025End = vals[1] || '0';
+                    const months = [
+                        vals[2] || '0', vals[3] || '0', vals[4] || '0', vals[5] || '0',
+                        vals[6] || '0', vals[7] || '0', vals[8] || '0', vals[9] || '0',
+                        vals[10] || '0', vals[11] || '0', vals[12] || '0', vals[13] || '0'
+                    ]; // 1월~12월
                     const plan2026 = vals[14] || '0';
                     const year2026End = vals[15] || '0';
                     
@@ -6527,9 +6550,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = num2026End - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
+                    // 새로운 values 배열 (순서: 2025년, 1월~12월, 계획, 계획-전년, 2026년, Rolling-전년, 계획대비증감, 계획대비%)
                     const newValues3 = [
                         year2025End,
+                        ...months,
                         plan2026,
                         formatNum(planMinusPrev),
                         year2026End,
@@ -6697,6 +6721,15 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 >
                                     {tableType === 'flow' ? '2025년(합계)' : '2025년(기말)'}
                                 </TableHead>
+                                {showAllMonths && (
+                                    <TableHead 
+                                        colSpan={12}
+                                        className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        2026년 월별
+                                    </TableHead>
+                                )}
                                 <TableHead 
                                     colSpan={2}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
@@ -6737,6 +6770,22 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             
                             {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
                                 <>
+                                    {showAllMonths && (
+                                        <>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>1월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>2월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>3월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>4월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>5월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>6월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>7월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>8월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>9월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>10월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>11월</TableHead>
+                                            <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>12월</TableHead>
+                                        </>
+                                    )}
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
@@ -6844,6 +6893,15 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
+                                        // flow, balance, working 테이블에서 월 접기 상태일 때 월별 컬럼 숨김
+                                        if (tableType === 'flow' || tableType === 'balance' || tableType === 'working') {
+                                            // values 배열: [2025년, 1월~12월(1-12), 계획(13), 계획-전년(14), 2026년(15), Rolling-전년(16), 계획대비증감(17), 계획대비%(18)]
+                                            // 월 접기 상태일 때 인덱스 1-12 (월별 데이터) 숨김
+                                            if (!showAllMonths && vIdx >= 1 && vIdx <= 12) {
+                                                return null;
+                                            }
+                                        }
+                                        
                                         // 현금흐름표, 현금잔액표, 운전자본표가 아닌 경우 월 컬럼 가시성 확인
                                         if (tableType !== 'flow' && tableType !== 'balance' && tableType !== 'working') {
                                             const headerIndex = vIdx + 1;
