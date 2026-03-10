@@ -6387,13 +6387,67 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 if (headers2.length > 0) {
                     headers2[0] = (headers2[0] || '').replace(/^\uFEFF/, '');
                 }
-                setBalanceHeaders(headers2);
+                
+                // 새로운 헤더 구조로 변환
+                // CSV: 계정과목, 기초잔액, 1월, 2월, ..., 12월, 26년(계획), 기말잔액, 전년대비
+                // 필요: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                const newHeaders2 = [
+                    '계정과목',
+                    '2025년(기말)',
+                    '2026년(계획)',
+                    '계획-전년',
+                    '2026년(기말)',
+                    'Rolling-전년',
+                    '계획대비증감',
+                    '계획대비(%)'
+                ];
+                setBalanceHeaders(newHeaders2);
+                
                 const parsed2 = [];
                 for(let i=1; i<lines2.length; i++) {
                     const vals = parseCSVLine(lines2[i]);
+                    const label = vals[0].trim();
+                    
+                    // CSV 인덱스: 0=계정과목, 1=기초잔액, 2-13=월별, 14=26년(계획), 15=기말잔액, 16=전년대비
+                    const year2025End = vals[1] || '0'; // 기초잔액 = 2025년(기말)
+                    const plan2026 = vals[14] || '0';
+                    const year2026End = vals[15] || '0'; // 기말잔액 = 2026년(기말)
+                    
+                    // 계산 함수
+                    const parseNum = (str: string) => {
+                        if (!str || str === '-' || str === '') return 0;
+                        return parseFloat(str.replace(/,/g, '').replace(/"/g, '')) || 0;
+                    };
+                    
+                    const formatNum = (num: number) => {
+                        if (num === 0) return '0';
+                        return num < 0 ? `(${Math.abs(num).toLocaleString()})` : num.toLocaleString();
+                    };
+                    
+                    const num2025End = parseNum(year2025End);
+                    const numPlan2026 = parseNum(plan2026);
+                    const num2026End = parseNum(year2026End);
+                    
+                    // 계산된 값들
+                    const planMinusPrev = numPlan2026 - num2025End; // 계획-전년
+                    const rollingMinusPrev = num2026End - num2025End; // Rolling-전년
+                    const planDiff = num2026End - numPlan2026; // 계획대비증감
+                    const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
+                    
+                    // 새로운 values 배열
+                    const newValues2 = [
+                        year2025End,
+                        plan2026,
+                        formatNum(planMinusPrev),
+                        year2026End,
+                        formatNum(rollingMinusPrev),
+                        formatNum(planDiff),
+                        `${planPercent}%`
+                    ];
+                    
                     parsed2.push({
-                        label: vals[0].trim(),
-                        values: vals.slice(1)
+                        label: label,
+                        values: newValues2
                     });
                 }
                 setBalanceData(parsed2);
@@ -6572,8 +6626,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader className="sticky top-0 z-10 shadow-sm">
-                        {/* 첫 번째 헤더 행: 섹션 헤더 */}
-                        {tableType === 'flow' && (
+                        {/* 첫 번째 헤더 행: 섹션 헤더 - flow와 balance에 적용 */}
+                        {(tableType === 'flow' || tableType === 'balance') && (
                             <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                                 <TableHead 
                                     rowSpan={2}
@@ -6587,7 +6641,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    2025년(합계)
+                                    {tableType === 'flow' ? '2025년(합계)' : '2025년(기말)'}
                                 </TableHead>
                                 <TableHead 
                                     colSpan={3}
@@ -6608,7 +6662,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         
                         {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
-                            {tableType !== 'flow' && headers.map((h, i) => {
+                            {(tableType !== 'flow' && tableType !== 'balance') && headers.map((h, i) => {
                                 if (!isMonthColumnVisible(h, i, headers)) return null;
                                 
                                 return (
@@ -6627,7 +6681,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 );
                             })}
                             
-                            {tableType === 'flow' && (
+                            {(tableType === 'flow' || tableType === 'balance') && (
                                 <>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
@@ -6645,7 +6699,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        2026년(합계)
+                                        {tableType === 'flow' ? '2026년(합계)' : '2026년(기말)'}
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
@@ -6736,8 +6790,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
-                                        // 현금흐름표가 아닌 경우 월 컬럼 가시성 확인
-                                        if (tableType !== 'flow') {
+                                        // 현금흐름표와 현금잔액표가 아닌 경우 월 컬럼 가시성 확인
+                                        if (tableType !== 'flow' && tableType !== 'balance') {
                                             const headerIndex = vIdx + 1;
                                             if (headerIndex >= headers.length || !isMonthColumnVisible(headers[headerIndex], headerIndex, headers)) {
                                                 return null;
