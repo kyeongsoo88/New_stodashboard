@@ -1452,10 +1452,9 @@ function InventoryPlanDialog({ data }: { data: any }) {
         return <div>데이터를 불러오는 중...</div>;
     }
     
-    const [growthRate, setGrowthRate] = React.useState(139);
-    
     const { chartData, tableData } = data;
     const lineColors: Record<string, string> = {
+        ss26: "#8b5cf6",   // 26SS
         fw25: "#ef4444",   // 25FW
         ss25: "#10b981",   // 25SS
         fw24: "#fbbf24",   // FW과시즌
@@ -1503,38 +1502,6 @@ function InventoryPlanDialog({ data }: { data: any }) {
 
     return (
         <div className="space-y-4 bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg">
-            {/* 성장률 설정 슬라이더 */}
-            <div className="bg-blue-700 p-3 rounded-lg shadow-md">
-                <div className="flex items-center gap-4">
-                    <span className="text-white text-sm font-semibold whitespace-nowrap">성장률 설정</span>
-                    <span className="text-white text-xs">100%</span>
-                    <Slider 
-                        value={[growthRate]} 
-                        onValueChange={(val) => setGrowthRate(val[0])} 
-                        min={100}
-                        max={200} 
-                        step={1} 
-                        className="flex-1" 
-                    />
-                    <span className="text-white text-xs">200%</span>
-                    <div className="flex items-center gap-2">
-                        <span className="text-white text-lg font-bold">{growthRate}%</span>
-                        <Input 
-                            type="number" 
-                            value={growthRate} 
-                            onChange={(e) => {
-                                const val = Number(e.target.value);
-                                if (val >= 100 && val <= 200) {
-                                    setGrowthRate(val);
-                                }
-                            }} 
-                            min={100}
-                            max={200}
-                            className="w-[70px] h-8 text-sm text-right px-2 bg-white" 
-                        />
-                    </div>
-                </div>
-            </div>
             
             <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="text-lg font-bold mb-3 text-slate-800">시즌별 재고 25년 연말 시뮬레이션</h3>
@@ -1551,6 +1518,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
                             />
                             <Tooltip content={<CustomTooltip />} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                            <Line type="monotone" dataKey="ss26" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4, fill: "#8b5cf6" }} name="26SS" />
                             <Line type="monotone" dataKey="fw25" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25FW" />
                             <Line type="monotone" dataKey="ss25" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="25SS" />
                             <Line type="monotone" dataKey="fw24" stroke="#fbbf24" strokeWidth={2} dot={{ r: 4, fill: "#fbbf24" }} name="FW과시즌" />
@@ -8469,10 +8437,10 @@ export default function DashboardPage() {
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
-    // 3월부터 12월까지 데이터 수집 (CSV 컬럼 매핑: 25-Jan -> 3월, ..., 25-Oct -> 12월, 25-Nov -> 1월)
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월'];
-    // CSV 헤더와 매핑 (사용자 요청: 25-Jan 컬럼을 3월 데이터로 사용하여 12월까지 표시, 25-Nov를 1월로 추가)
-    const csvMonthKeys = ['25-Jan', '25-Feb', '25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov'];
+    // 3월부터 2월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 25-Dec -> 12월, 26-Jan -> 1월, 26-Feb -> 2월)
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월'];
+    // CSV 헤더와 매핑
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -8483,6 +8451,7 @@ export default function DashboardPage() {
         return dashboardData[key][month];
       };
       // 데이터 키값은 그대로 유지 (기존 코드 참조)
+      const ss26 = parseFloat(getValue('팝업_재고소진계획_26SS_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const fw25 = parseFloat(getValue('팝업_재고소진계획_fw25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const ss25 = parseFloat(getValue('팝업_재고소진계획_ss25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const fw24 = parseFloat(getValue('팝업_재고소진계획_FW과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
@@ -8492,6 +8461,7 @@ export default function DashboardPage() {
       
       inventoryChartData.push({
         month: monthLabel,
+        ss26,
         fw25,
         ss25,
         fw24,
@@ -8507,6 +8477,8 @@ export default function DashboardPage() {
         period = '25.12실적';
       } else if (monthLabel === '1월') {
         period = '26.1실적';
+      } else if (monthLabel === '2월') {
+        period = '26.2실적';
       } else {
         const periodLabel = monthLabel.replace('월', '');
         period = `25.${periodLabel}실적`;
@@ -8776,15 +8748,15 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
            {loadingDashboard || !cardData ? (
              <>
-               <MetricCard title="📈 당시즌 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
-               <MetricCard title="🎯 US EC 25FW M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
-               <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
-               <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
+              <MetricCard title="📈 US EC 26SS 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
+              <MetricCard title="🎯 US EC 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+              <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
+              <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
              </>
            ) : (
              <>
-               <MetricCard 
-                 title="📈 US EC 25FW 판매율" 
+              <MetricCard 
+                title="📈 US EC 26SS 판매율"
                  value={cardData.metricCards.salesRate.value} 
                  subValue={cardData.metricCards.salesRate.subValue} 
                  subValueColor={cardData.metricCards.salesRate.subValueColor} 
@@ -8792,15 +8764,15 @@ export default function DashboardPage() {
                  itemDetails={cardData.metricCards.salesRate.itemDetails}
                  expandAll={expandAllDetails}
                />
-               <MetricCard 
-                 title="🎯 US EC 25FW M/U" 
-                 value={cardData.metricCards.mu.value} 
-                 subValue={cardData.metricCards.mu.subValue} 
-                 subValueColor={cardData.metricCards.mu.subValueColor} 
-                 description={cardData.metricCards.mu.description} 
-                 topStoresDetails={cardData.metricCards.mu.topStoresDetails}
-                 expandAll={expandAllDetails}
-               />
+              <MetricCard 
+                title="🎯 US EC 26SS M/U" 
+                value={cardData.metricCards.mu.value} 
+                subValue={cardData.metricCards.mu.subValue} 
+                subValueColor={cardData.metricCards.mu.subValueColor} 
+                description={cardData.metricCards.mu.description} 
+                topStoresDetails={cardData.metricCards.mu.topStoresDetails}
+                expandAll={expandAllDetails}
+              />
                <MetricCard 
                  title="🏭 기말재고" 
                  value={cardData.metricCards.inventory.value} 
