@@ -3716,7 +3716,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
   const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2025-12");
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-02");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
@@ -6323,13 +6323,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = numTotal2026 - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((numTotal2026 / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열
+                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, Rolling-전년, 2026년, 계획대비증감, 계획대비%)
                     const newValues = [
                         year2025,
                         plan2026,
                         formatNum(planMinusPrev),
-                        total2026,
                         formatNum(rollingMinusPrev),
+                        total2026,
                         formatNum(planDiff),
                         `${planPercent}%`
                     ];
@@ -6434,13 +6434,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = num2026End - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열
+                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, Rolling-전년, 2026년, 계획대비증감, 계획대비%)
                     const newValues2 = [
                         year2025End,
                         plan2026,
                         formatNum(planMinusPrev),
-                        year2026End,
                         formatNum(rollingMinusPrev),
+                        year2026End,
                         formatNum(planDiff),
                         `${planPercent}%`
                     ];
@@ -6527,13 +6527,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const planDiff = num2026End - numPlan2026; // 계획대비증감
                     const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
                     
-                    // 새로운 values 배열
+                    // 새로운 values 배열 (순서: 2025년, 계획, 계획-전년, Rolling-전년, 2026년, 계획대비증감, 계획대비%)
                     const newValues3 = [
                         year2025End,
                         plan2026,
                         formatNum(planMinusPrev),
-                        year2026End,
                         formatNum(rollingMinusPrev),
+                        year2026End,
                         formatNum(planDiff),
                         `${planPercent}%`
                     ];
@@ -6698,14 +6698,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     {tableType === 'flow' ? '2025년(합계)' : '2025년(기말)'}
                                 </TableHead>
                                 <TableHead 
-                                    colSpan={3}
+                                    colSpan={2}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
                                     계획
                                 </TableHead>
                                 <TableHead 
-                                    colSpan={3}
+                                    colSpan={4}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
@@ -6753,13 +6753,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        {tableType === 'flow' ? '2026년(합계)' : '2026년(기말)'}
+                                        Rolling-전년
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        Rolling-전년
+                                        {tableType === 'flow' ? '2026년(합계)' : '2026년(기말)'}
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
