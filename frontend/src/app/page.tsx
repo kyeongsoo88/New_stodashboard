@@ -6480,13 +6480,67 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 if (headers3.length > 0) {
                     headers3[0] = (headers3[0] || '').replace(/^\uFEFF/, '');
                 }
-                setWorkingCapitalHeaders(headers3);
+                
+                // 새로운 헤더 구조로 변환
+                // CSV: 계정과목, 25년(기말), 1월, 2월, ..., 12월, 26년(계획), 26년(기말), 전년대비
+                // 필요: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                const newHeaders3 = [
+                    '계정과목',
+                    '2025년(기말)',
+                    '2026년(계획)',
+                    '계획-전년',
+                    '2026년(기말)',
+                    'Rolling-전년',
+                    '계획대비증감',
+                    '계획대비(%)'
+                ];
+                setWorkingCapitalHeaders(newHeaders3);
+                
                 const parsed3 = [];
                 for(let i=1; i<lines3.length; i++) {
                     const vals = parseCSVLine(lines3[i]);
+                    const label = vals[0].trim();
+                    
+                    // CSV 인덱스: 0=계정과목, 1=25년(기말), 2-13=월별, 14=26년(계획), 15=26년(기말), 16=전년대비
+                    const year2025End = vals[1] || '0';
+                    const plan2026 = vals[14] || '0';
+                    const year2026End = vals[15] || '0';
+                    
+                    // 계산 함수
+                    const parseNum = (str: string) => {
+                        if (!str || str === '-' || str === '') return 0;
+                        return parseFloat(str.replace(/,/g, '').replace(/"/g, '')) || 0;
+                    };
+                    
+                    const formatNum = (num: number) => {
+                        if (num === 0) return '0';
+                        return num < 0 ? `(${Math.abs(num).toLocaleString()})` : num.toLocaleString();
+                    };
+                    
+                    const num2025End = parseNum(year2025End);
+                    const numPlan2026 = parseNum(plan2026);
+                    const num2026End = parseNum(year2026End);
+                    
+                    // 계산된 값들
+                    const planMinusPrev = numPlan2026 - num2025End; // 계획-전년
+                    const rollingMinusPrev = num2026End - num2025End; // Rolling-전년
+                    const planDiff = num2026End - numPlan2026; // 계획대비증감
+                    const planPercent = numPlan2026 !== 0 ? Math.round((num2026End / numPlan2026) * 100) : 0; // 계획대비(%)
+                    
+                    // 새로운 values 배열
+                    const newValues3 = [
+                        year2025End,
+                        plan2026,
+                        formatNum(planMinusPrev),
+                        year2026End,
+                        formatNum(rollingMinusPrev),
+                        formatNum(planDiff),
+                        `${planPercent}%`
+                    ];
+                    
                     parsed3.push({
-                        label: vals[0].trim(),
-                        values: vals.slice(1)
+                        label: label,
+                        values: newValues3
                     });
                 }
                 setWorkingCapitalData(parsed3);
@@ -6626,8 +6680,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader className="sticky top-0 z-10 shadow-sm">
-                        {/* 첫 번째 헤더 행: 섹션 헤더 - flow와 balance에 적용 */}
-                        {(tableType === 'flow' || tableType === 'balance') && (
+                        {/* 첫 번째 헤더 행: 섹션 헤더 - flow, balance, working에 적용 */}
+                        {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
                             <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                                 <TableHead 
                                     rowSpan={2}
@@ -6662,7 +6716,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         
                         {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
-                            {(tableType !== 'flow' && tableType !== 'balance') && headers.map((h, i) => {
+                            {(tableType !== 'flow' && tableType !== 'balance' && tableType !== 'working') && headers.map((h, i) => {
                                 if (!isMonthColumnVisible(h, i, headers)) return null;
                                 
                                 return (
@@ -6681,7 +6735,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 );
                             })}
                             
-                            {(tableType === 'flow' || tableType === 'balance') && (
+                            {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
                                 <>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
@@ -6790,8 +6844,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
-                                        // 현금흐름표와 현금잔액표가 아닌 경우 월 컬럼 가시성 확인
-                                        if (tableType !== 'flow' && tableType !== 'balance') {
+                                        // 현금흐름표, 현금잔액표, 운전자본표가 아닌 경우 월 컬럼 가시성 확인
+                                        if (tableType !== 'flow' && tableType !== 'balance' && tableType !== 'working') {
                                             const headerIndex = vIdx + 1;
                                             if (headerIndex >= headers.length || !isMonthColumnVisible(headers[headerIndex], headerIndex, headers)) {
                                                 return null;
