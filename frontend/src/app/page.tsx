@@ -6276,11 +6276,64 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 if (headers1.length > 0) {
                     headers1[0] = (headers1[0] || '').replace(/^\uFEFF/, '');
                 }
-                setCashFlowHeaders(headers1);
+                
+                // 새로운 헤더 구조로 변환
+                // CSV: 계정과목, 25년(합계), 26년 1월, 2월, ..., 12월, 26년(계획), 26년(합계), 전년대비
+                // 필요: 계정과목, 2025년(합계), 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
+                const newHeaders = [
+                    '계정과목',
+                    '2025년(합계)',
+                    '2026년(계획)',
+                    '계획-전년',
+                    '2026년(합계)',
+                    'Rolling-전년',
+                    '계획대비증감',
+                    '계획대비(%)'
+                ];
+                setCashFlowHeaders(newHeaders);
+                
                 const parsed1 = [];
                 for(let i=1; i<lines1.length; i++) {
                     const vals = parseCSVLine(lines1[i]);
                     const label = vals[0].trim();
+                    
+                    // CSV 인덱스: 0=계정과목, 1=25년(합계), 2-13=월별, 14=26년(계획), 15=26년(합계), 16=전년대비
+                    const year2025 = vals[1] || '0';
+                    const plan2026 = vals[14] || '0';
+                    const total2026 = vals[15] || '0';
+                    
+                    // 계산 함수
+                    const parseNum = (str: string) => {
+                        if (!str || str === '-' || str === '') return 0;
+                        return parseFloat(str.replace(/,/g, '').replace(/"/g, '')) || 0;
+                    };
+                    
+                    const formatNum = (num: number) => {
+                        if (num === 0) return '0';
+                        return num < 0 ? `(${Math.abs(num).toLocaleString()})` : num.toLocaleString();
+                    };
+                    
+                    const num2025 = parseNum(year2025);
+                    const numPlan2026 = parseNum(plan2026);
+                    const numTotal2026 = parseNum(total2026);
+                    
+                    // 계산된 값들
+                    const planMinusPrev = numPlan2026 - num2025; // 계획-전년
+                    const rollingMinusPrev = numTotal2026 - num2025; // Rolling-전년
+                    const planDiff = numTotal2026 - numPlan2026; // 계획대비증감
+                    const planPercent = numPlan2026 !== 0 ? Math.round((numTotal2026 / numPlan2026) * 100) : 0; // 계획대비(%)
+                    
+                    // 새로운 values 배열
+                    const newValues = [
+                        year2025,
+                        plan2026,
+                        formatNum(planMinusPrev),
+                        total2026,
+                        formatNum(rollingMinusPrev),
+                        formatNum(planDiff),
+                        `${planPercent}%`
+                    ];
+                    
                     // 하위 항목 식별
                     const isSubItem = label === '매출수금' || label === '물품대 지출' || label === '비용지출' || 
                                      label.startsWith('기타수금') || label.startsWith('기타지출') ||
@@ -6298,7 +6351,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
                     parsed1.push({
                         label,
-                        values: vals.slice(1),
+                        values: newValues,
                         isSubItem,
                         isParent,
                         parentKey
@@ -6519,8 +6572,43 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader className="sticky top-0 z-10 shadow-sm">
+                        {/* 첫 번째 헤더 행: 섹션 헤더 */}
+                        {tableType === 'flow' && (
+                            <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
+                                <TableHead 
+                                    rowSpan={2}
+                                    className="text-xs font-bold text-white h-10 px-2 text-left w-[280px] pl-6 sticky left-0 z-20 border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    계정과목
+                                </TableHead>
+                                <TableHead 
+                                    rowSpan={2}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    2025년(합계)
+                                </TableHead>
+                                <TableHead 
+                                    colSpan={3}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    계획
+                                </TableHead>
+                                <TableHead 
+                                    colSpan={3}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    2026년 Rolling
+                                </TableHead>
+                            </TableRow>
+                        )}
+                        
+                        {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
-                            {headers.map((h, i) => {
+                            {tableType !== 'flow' && headers.map((h, i) => {
                                 if (!isMonthColumnVisible(h, i, headers)) return null;
                                 
                                 return (
@@ -6538,6 +6626,47 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     </TableHead>
                                 );
                             })}
+                            
+                            {tableType === 'flow' && (
+                                <>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        2026년(계획)
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        계획-전년
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        2026년(합계)
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        Rolling-전년
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        계획대비증감
+                                    </TableHead>
+                                    <TableHead 
+                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                        style={{ backgroundColor: '#2E5C8A' }}
+                                    >
+                                        계획대비(%)
+                                    </TableHead>
+                                </>
+                            )}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -6607,10 +6736,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
-                                        // 월 컬럼 가시성 확인
-                                        const headerIndex = vIdx + 1;
-                                        if (headerIndex >= headers.length || !isMonthColumnVisible(headers[headerIndex], headerIndex, headers)) {
-                                            return null;
+                                        // 현금흐름표가 아닌 경우 월 컬럼 가시성 확인
+                                        if (tableType !== 'flow') {
+                                            const headerIndex = vIdx + 1;
+                                            if (headerIndex >= headers.length || !isMonthColumnVisible(headers[headerIndex], headerIndex, headers)) {
+                                                return null;
+                                            }
                                         }
                                         
                                         // 값 스타일
