@@ -2306,17 +2306,16 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
   // 컬럼 표시 여부 확인
   const isColumnVisible = (idx: number) => {
-    // 0: Jan-26실적, 1: Jan-25실적, 2: YoY
-    // 3: Feb-26F ... 13: Dec-26F
-    // 14: 2026 Total, 15: Total YoY
+    // 새 구조: 0: 26년 1월(실적), 1: 26년 2월(실적), 2: 25년 2월(실적), 3: YoY
+    // 4: Mar-26F, 5: Apr-26F, ... 13: Dec-26F
+    // 14: 26년, 15: 연간 YoY
     
     if (showAllMonths) return true;
     
-    // 항상 표시: Jan-26(0), Jan-25(1), YoY(2), Total(14), Total YoY(15)
-    if (idx <= 2) return true;
-    if (idx >= 14) return true;
+    // 항상 표시: 26년 1월(0), 26년(14), 연간 YoY(15)
+    if (idx === 0 || idx >= 14) return true;
     
-    return false; // Feb~Dec 숨김
+    return false; // 나머지 숨김
   };
 
   React.useEffect(() => {
@@ -2501,8 +2500,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                         cellTextColor = "text-red-600 font-normal";
                       }
 
-                      // YoY 컬럼 강조
-                      const isYoYCol = vIdx === 2 || headers[vIdx+1] === "Total YoY" || headers[vIdx+1] === "연간 YoY";
+                      // YoY 컬럼 강조 (새 구조에서 YoY는 idx 3과 15)
+                      const isYoYCol = vIdx === 3 || headers[vIdx+1] === "연간 YoY";
                       
                       return (
                         <TableCell 
