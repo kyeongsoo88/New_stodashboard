@@ -3034,7 +3034,7 @@ function IncomeStatementSection_OLD({ selectedMonth }: { selectedMonth: string }
 // STE 손익계산서 컴포넌트
 function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }) {
   const [headers, setHeaders] = React.useState<string[]>([]);
-  const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
+  const [rows, setRows] = React.useState<Array<{ label: string; originalLabel?: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
   const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접힘
@@ -3089,8 +3089,11 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
 
         const parsedRows = lines.slice(1).map((line) => {
           const values = parseCSVLine(line);
+          const rawLabel = values[0] || '';
+          // 공백 제거하지 않고 원본 유지하여 들여쓰기 확인
           return {
-            label: (values[0] || '').trim(),
+            label: rawLabel.trim(),
+            originalLabel: rawLabel, // 원본 저장
             values: values.slice(1),
           };
         });
@@ -3121,40 +3124,61 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
     return !isNaN(num) && num < 0;
   };
 
-  // 월 접기 대상: 26년 2월 ~ 26년 12월
+  // 월 접기/펼치기 로직
   // CSV 헤더: 구분, 25년 합계, 26년 1월, 26년 2월, ..., 26년 12월, 26년 합계, 연간 YoY
   // 인덱스:   0,       1,        2,        3, ...,         13,        14,       15
-  // 접을 때 보여줄 컬럼 인덱스: 0, 1, 2, 14, 15
+  // 접을 때 보여줄 컬럼: 구분(0), 25년 합계(1), 26년 2월(3), 26년 합계(14), 연간 YoY(15)
+  // 펼칠 때 보여줄 컬럼: 모든 컬럼
   const visibleHeaderIndices = headers
     .map((h, idx) => ({ h, idx }))
     .filter(({ idx }) => {
       if (showAllMonths) return true;
-      // 기본 보기: 구분(0), 25년 합계(1), 26년 1월(2), 26년 합계(14), 연간 YoY(15)
-      // 즉, 26년 2월(3) ~ 26년 12월(13) 숨김
-      return idx <= 2 || idx >= 14; 
+      // 월 접기: 구분(0), 25년 합계(1), 26년 2월(3), 26년 합계(14), 연간 YoY(15)
+      // 즉, 26년 1월(2), 26년 3월(4) ~ 26년 12월(13) 숨김
+      return idx <= 1 || idx === 3 || idx >= 14; 
     })
     .map(({ idx }) => idx);
 
   // 계층 구조 정의
   const parentRows = ['라이센시 로열티 매출', '영업비'];
+  const royaltyChildren = ['Movin FR', 'SUGI FR (모빈 이후)', 'Silver', 'SUGI', 'Benjamin', 'BDS', 'BBUK'];
   
   const processedRows = React.useMemo(() => {
     let currentParent: string | null = null;
     return rows.map((row) => {
       const isParent = parentRows.includes(row.label);
+      
+      // 라이센시 로열티 매출의 하위 항목 확인
+      const isRoyaltyChild = royaltyChildren.includes(row.label);
+      
       if (isParent) {
         currentParent = row.label;
-      } else if (parentRows.includes(currentParent || '') && row.label.startsWith('-')) {
-        // 이미 parent가 설정되어 있음
+        return {
+          ...row,
+          isParent: true,
+          parent: null,
+        };
+      } else if (isRoyaltyChild && currentParent === '라이센시 로열티 매출') {
+        return {
+          ...row,
+          isParent: false,
+          parent: currentParent,
+        };
+      } else if (currentParent === '영업비' && row.label.startsWith('-')) {
+        // 영업비 하위 항목 (하이픈으로 시작)
+        return {
+          ...row,
+          isParent: false,
+          parent: currentParent,
+        };
       } else {
         currentParent = null;
+        return {
+          ...row,
+          isParent: false,
+          parent: null,
+        };
       }
-
-      return {
-        ...row,
-        isParent,
-        parent: isParent ? null : currentParent,
-      };
     });
   }, [rows]);
 
@@ -3221,6 +3245,8 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                 if (label === "감가비 조정 후 영업이익") rowBg = "bg-white";
 
                 const isBold = isParent || label === "영업이익" || label === "감가비 조정 후 영업이익";
+                const isChild = row.parent !== null && row.parent !== undefined;
+                const isSummaryRow = label === "영업이익" || label === "감가비 조정 후 영업이익";
 
                 return (
                   <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
@@ -3230,7 +3256,7 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                         "min-w-[120px] truncate",
                         rowBg,
                         isBold ? "font-bold text-gray-900" : "text-gray-900",
-                        isParent ? "pl-2" : "pl-6"
+                        isParent || isSummaryRow ? "pl-2" : isChild ? "pl-8" : "pl-6"
                       )}
                       onClick={() => isParent && toggleRow(label)}
                     >
@@ -3241,6 +3267,8 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                           ) : (
                             <ChevronRightIcon className="h-3 w-3 text-slate-400 flex-shrink-0" />
                           )
+                        ) : isChild ? null : isSummaryRow ? (
+                          <span className="inline-block h-3 w-3 flex-shrink-0" />
                         ) : (
                           <span className="inline-block h-3 w-3 flex-shrink-0" />
                         )}
