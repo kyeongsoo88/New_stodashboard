@@ -3749,14 +3749,18 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
 
-  // 월 옵션 (1월부터 12월까지)
-  const monthOptions = Array.from({ length: 12 }, (_, i) => {
-    const month = i + 1;
-    return {
-      value: `2025-${String(month).padStart(2, '0')}`,
-      label: `${month}월`
-    };
-  });
+  // 월 옵션 (25년 1월~12월, 26년 1월~2월)
+  const monthOptions = [
+    ...Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      return {
+        value: `2025-${String(month).padStart(2, '0')}`,
+        label: `25년 ${month}월`
+      };
+    }),
+    { value: '2026-01', label: '26년 1월' },
+    { value: '2026-02', label: '26년 2월' }
+  ];
 
   React.useEffect(() => {
     setLoading(true);
@@ -3923,6 +3927,25 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return sum;
   };
 
+  // 25년 전체 합계 (1월~12월)
+  const get25TotalValue = (dataKey: string): number => {
+    let sum = 0;
+    
+    // 25년 1월~12월 데이터 합산
+    for (let i = 1; i <= 12; i++) {
+      const monthKey = `25년 ${i}월`;
+      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
+        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+          sum += num;
+        }
+      }
+    }
+    
+    return sum;
+  };
+
   // 26년 당월 값 가져오기 (당년 데이터)
   const get26MonthValue = (dataKey: string, month: string): number => {
     const monthNum = parseInt(month.split('-')[1]);
@@ -3934,12 +3957,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return 0;
   };
 
-  // 26년 YTD 값 계산 (당년 데이터)
+  // 26년 YTD 값 가져오기 (1월부터 선택한 월까지 합계)
   const get26YTDValue = (dataKey: string, month: string): number => {
     const monthNum = parseInt(month.split('-')[1]);
     let sum = 0;
     
-    // 26년 데이터는 같은 키에 26년 월별 컬럼으로 저장됨
+    // 26년 1월부터 선택한 월까지 합산
     for (let i = 1; i <= monthNum; i++) {
       const monthKey = `26년 ${i}월`;
       if (csvData[dataKey] && csvData[dataKey][monthKey]) {
@@ -3952,6 +3975,16 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     }
     
     return sum;
+  };
+
+  // 26년(계획) 값 가져오기
+  const get26PlanValue = (dataKey: string): number => {
+    const planKey = '26년(계획)';
+    if (csvData[dataKey] && csvData[dataKey][planKey]) {
+      const val = csvData[dataKey][planKey].replace(/[^0-9.-]/g, '');
+      return parseFloat(val) || 0;
+    }
+    return 0;
   };
 
   // 현재 표시할 값 (YTD 또는 당월) - 26년 데이터
@@ -4101,14 +4134,22 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const detailTableData = accountCategories.map(cat => {
     const val26 = viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     const val25 = viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const val25Total = get25TotalValue(`영업비_${cat.key}`); // 25년 전체 합계
+    const val25Progress = val25Total > 0 ? (val25 / val25Total * 100) : 0; // 25년 진척률
+    const valPlan = get26PlanValue(`영업비_${cat.key}`); // 26년 계획
+    const val26Progress = valPlan > 0 ? (val26 / valPlan * 100) : 0; // 26년 진척률
     const diff = val26 - val25;
     const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
     const detail = detailNotes[cat.name] || '';
     
     return {
       name: cat.name,
+      total25: val25Total,
+      plan26: valPlan,
       ytd24: val25,
+      progress25: val25Progress,
       ytd25: val26,
+      progress26: val26Progress,
       diff: diff,
       diffRate: diffRate,
       detail: detail,
@@ -4117,8 +4158,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   const totalRow = {
     name: '합계',
+    total25: get25TotalValue('영업비_총영업비'), // 25년 전체 합계
+    plan26: get26PlanValue('영업비_총영업비'), // 26년 계획
     ytd24: totalOperatingExpense25,
+    progress25: get25TotalValue('영업비_총영업비') > 0 ? (totalOperatingExpense25 / get25TotalValue('영업비_총영업비') * 100) : 0, // 25년 진척률
     ytd25: totalOperatingExpense,
+    progress26: get26PlanValue('영업비_총영업비') > 0 ? (totalOperatingExpense / get26PlanValue('영업비_총영업비') * 100) : 0, // 26년 진척률
     diff: totalOperatingExpense - totalOperatingExpense25,
     diffRate: totalOperatingExpenseYOY - 100,
     detail: '',
@@ -4149,6 +4194,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       const dataKey = `영업비_${categoryKey}_${sub.key}`;
       const val26 = viewMode === "YTD" ? get26YTDValue(dataKey, selectedMonthLocal) : get26MonthValue(dataKey, selectedMonthLocal);
       const val25 = viewMode === "YTD" ? get25YTDValue(dataKey, selectedMonthLocal) : get25MonthValue(dataKey, selectedMonthLocal);
+      const val25Total = get25TotalValue(dataKey); // 25년 전체 합계
+      const val25Progress = val25Total > 0 ? (val25 / val25Total * 100) : 0; // 25년 진척률
+      const valPlan = get26PlanValue(dataKey); // 26년 계획
+      const val26Progress = valPlan > 0 ? (val26 / valPlan * 100) : 0; // 26년 진척률
       const diff = val26 - val25;
       const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
       const detailKey = `${categoryName}||${sub.name}`;
@@ -4156,8 +4205,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       
       return {
         name: sub.name,
+        total25: val25Total,
+        plan26: valPlan,
         ytd24: val25,
+        progress25: val25Progress,
         ytd25: val26,
+        progress26: val26Progress,
         diff: diff,
         diffRate: diffRate,
         detail: detail,
@@ -4181,9 +4234,6 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl font-bold mb-1">STO 영업비 분석</CardTitle>
-              <CardDescription className="text-sm">
-                {viewMode === "YTD" ? "25년 YTD vs 26년 YTD (단위: K $)" : "26년 1월 vs 25년 1월 (단위: K $)"}
-              </CardDescription>
             </div>
             <div className="flex gap-2 items-center">
               <Select value={selectedMonthLocal} onValueChange={setSelectedMonthLocal}>
@@ -4401,12 +4451,21 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[140px]">대분류</TableHead>
-                  <TableHead className="text-right w-[90px]">{year25Label}</TableHead>
-                  <TableHead className="text-right w-[90px]">{year26Label}</TableHead>
-                  <TableHead className="text-right w-[90px]">증감액</TableHead>
-                  <TableHead className="text-right w-[90px]">증감률</TableHead>
-                  <TableHead className="text-center w-[280px]">상세</TableHead>
+                  <TableHead rowSpan={2} className="w-[140px] align-middle border-r-2 border-gray-300">대분류</TableHead>
+                  <TableHead colSpan={3} className="text-center border-r-2 border-gray-300 bg-blue-50">2025년</TableHead>
+                  <TableHead colSpan={3} className="text-center border-r-2 border-gray-300 bg-green-50">2026년</TableHead>
+                  <TableHead colSpan={2} className="text-center border-r-2 border-gray-300 bg-amber-50">비교</TableHead>
+                  <TableHead rowSpan={2} className="text-center w-[280px] align-middle">상세</TableHead>
+                </TableRow>
+                <TableRow>
+                  <TableHead className="text-right w-[90px] bg-blue-50">합계</TableHead>
+                  <TableHead className="text-right w-[90px] bg-blue-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
+                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-blue-50">진척률</TableHead>
+                  <TableHead className="text-right w-[90px] bg-green-50">계획</TableHead>
+                  <TableHead className="text-right w-[90px] bg-green-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
+                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-green-50">진척률</TableHead>
+                  <TableHead className="text-right w-[90px] bg-amber-50">증감액</TableHead>
+                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-amber-50">증감률</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -4416,7 +4475,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       className="cursor-pointer hover:bg-gray-50"
                       onClick={() => toggleCategory(row.name)}
                     >
-                      <TableCell className="font-medium w-[140px]">
+                      <TableCell className="font-medium w-[140px] border-r-2 border-gray-300">
                         <div className="flex items-center gap-2">
                           {expandedCategories.has(row.name) ? (
                             <ChevronUpIcon className="h-4 w-4" />
@@ -4426,12 +4485,16 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                           {row.name}
                         </div>
                       </TableCell>
+                      <TableCell className="text-right w-[90px]">${row.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                       <TableCell className="text-right w-[90px]">${row.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                      <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{row.progress25.toFixed(1)}%</TableCell>
+                      <TableCell className="text-right w-[90px]">${row.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                       <TableCell className="text-right w-[90px]">${row.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                      <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{row.progress26.toFixed(1)}%</TableCell>
                       <TableCell className={cn("text-right font-medium w-[90px]", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
                         {row.diff >= 0 ? '+' : ''}${row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                       </TableCell>
-                      <TableCell className={cn("text-right font-medium w-[90px]", row.diffRate > 100 ? "text-red-600" : row.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                      <TableCell className={cn("text-right font-medium w-[90px] border-r-2 border-gray-300", row.diffRate > 100 ? "text-red-600" : row.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
                         {row.diffRate.toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-left w-[280px]">{row.detail}</TableCell>
@@ -4439,18 +4502,22 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                     {/* 확장된 세부 항목 표시 */}
                     {expandedCategories.has(row.name) && getSubCategoryData(row.name).map((subRow) => (
                       <TableRow key={`${row.name}-${subRow.name}`} className="bg-gray-50">
-                        <TableCell className="font-medium pl-8 w-[140px]">
+                        <TableCell className="font-medium pl-8 w-[140px] border-r-2 border-gray-300">
                           <div className="flex items-center gap-2">
                             <span className="text-xs">└</span>
                             {subRow.name}
                           </div>
                         </TableCell>
+                        <TableCell className="text-right w-[90px]">${subRow.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                         <TableCell className="text-right w-[90px]">${subRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                        <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{subRow.progress25.toFixed(1)}%</TableCell>
+                        <TableCell className="text-right w-[90px]">${subRow.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                         <TableCell className="text-right w-[90px]">${subRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                        <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{subRow.progress26.toFixed(1)}%</TableCell>
                         <TableCell className={cn("text-right font-medium w-[90px]", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                           {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                         </TableCell>
-                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diffRate > 100 ? "text-red-600" : subRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                        <TableCell className={cn("text-right font-medium w-[90px] border-r-2 border-gray-300", subRow.diffRate > 100 ? "text-red-600" : subRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
                           {subRow.diffRate.toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-left w-[280px]">{subRow.detail}</TableCell>
@@ -4459,13 +4526,17 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   </React.Fragment>
                 ))}
                 <TableRow className="bg-blue-50 font-bold">
-                  <TableCell className="font-bold w-[140px]">{totalRow.name}</TableCell>
+                  <TableCell className="font-bold w-[140px] border-r-2 border-gray-300">{totalRow.name}</TableCell>
+                  <TableCell className="text-right font-bold w-[90px]">${totalRow.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                   <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                  <TableCell className="text-right font-bold w-[90px] border-r-2 border-gray-300">{totalRow.progress25.toFixed(1)}%</TableCell>
+                  <TableCell className="text-right font-bold w-[90px]">${totalRow.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
                   <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
+                  <TableCell className="text-right font-bold w-[90px] border-r-2 border-gray-300">{totalRow.progress26.toFixed(1)}%</TableCell>
                   <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
                     {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
                   </TableCell>
-                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diffRate > 100 ? "text-red-600" : totalRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
+                  <TableCell className={cn("text-right font-bold w-[90px] border-r-2 border-gray-300", totalRow.diffRate > 100 ? "text-red-600" : totalRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
                     {totalRow.diffRate.toFixed(1)}%
                   </TableCell>
                   <TableCell className="text-left font-bold w-[280px]">{totalRow.detail}</TableCell>
