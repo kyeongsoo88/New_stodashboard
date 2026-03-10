@@ -701,15 +701,15 @@ function DetailedMetricCard({
                                           // 기말재고, 인원수 카드에서는 "전년"을 "YoY"로 변경, 그 외(M/U 등)는 그대로 "전년" 유지
                                           const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
                                           const yoyDisplay = shouldConvertToYoY && item.yoy && item.yoy.includes("전년")
-                                            ? item.yoy.replace(/전년/g, 'YoY')
+                                            ? item.yoy.replace(/전년/g, 'YoY ')
                                             : item.yoy;
                                           
                                           return (
-                                            <div key={idx} className="flex justify-between items-center py-0.5">
-                                                <span className="text-[11px] min-w-[60px]">{item.name}</span>
-                                                <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '120px' }}>
-                                                    <span className="font-bold text-[11px] w-[60px] text-right tabular-nums">{item.value}</span>
-                                                    <span className="text-[11px] text-gray-500 min-w-[60px] text-right">{yoyDisplay}</span>
+                                            <div key={idx} className="flex justify-between items-center py-2">
+                                                <span className="text-base font-medium min-w-[80px]">{item.name}</span>
+                                                <div className="flex items-center gap-3 justify-end" style={{ minWidth: '180px' }}>
+                                                    <span className="font-bold text-base w-[80px] text-right tabular-nums">{item.value}</span>
+                                                    <span className="text-base text-gray-600 min-w-[80px] text-right">{yoyDisplay}</span>
                                                 </div>
                                             </div>
                                           );
