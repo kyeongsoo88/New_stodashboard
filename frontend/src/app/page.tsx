@@ -1047,6 +1047,8 @@ function ShippingCostDialog({ data }: { data: any }) {
                             <TableHead className="text-center">10월</TableHead>
                             <TableHead className="text-center">11월</TableHead>
                             <TableHead className="text-center">12월</TableHead>
+                            <TableHead className="text-center">1월</TableHead>
+                            <TableHead className="text-center">2월</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -8516,7 +8518,7 @@ export default function DashboardPage() {
       });
     });
     
-    // 운반비 팝업 데이터 (3월부터 10월까지) - summaryData에서 읽기
+    // 운반비 팝업 데이터 (3월부터 2월까지) - summaryData에서 읽기
     const getSummaryValueForPopup = (key: string, month: string, defaultValue: string = '0') => {
       const csvMonthKey = monthMapping[month] || month;
       if (!summaryData[key] || !summaryData[key][csvMonthKey]) {
@@ -8525,8 +8527,8 @@ export default function DashboardPage() {
       return summaryData[key][csvMonthKey];
     };
     
-    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '26년 1월'];
+    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '26년 1월', '26년 2월'];
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
