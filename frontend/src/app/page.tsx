@@ -4558,6 +4558,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   };
 
   const monthFoldTargets = new Set([
+    '26년 1월(실적)',
     '26년 2월',
     '26년 3월',
     '26년 4월',
