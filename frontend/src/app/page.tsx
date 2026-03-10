@@ -2306,16 +2306,17 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
   // 컬럼 표시 여부 확인
   const isColumnVisible = (idx: number) => {
-    // 새 구조: 0: 26년 1월(실적), 1: 26년 2월(실적), 2: 25년 2월(실적), 3: YoY
+    // CSV 구조: 0: 26년 1월(실적), 1: 26년 2월(실적), 2: 25년 2월(실적), 3: YoY
     // 4: Mar-26F, 5: Apr-26F, ... 13: Dec-26F
     // 14: 26년, 15: 연간 YoY
     
     if (showAllMonths) return true;
     
-    // 항상 표시: 26년 1월(0), 26년(14), 연간 YoY(15)
-    if (idx === 0 || idx >= 14) return true;
+    // 월 접기 상태: 26년 2월(1), 25년 2월(2), YoY(3), 26년(14), 연간 YoY(15)만 표시
+    if (idx >= 1 && idx <= 3) return true;
+    if (idx >= 14) return true;
     
-    return false; // 나머지 숨김
+    return false; // 26년 1월, Mar-Dec 숨김
   };
 
   React.useEffect(() => {
