@@ -2289,6 +2289,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [loading, setLoading] = React.useState(true);
   const [allExpanded, setAllExpanded] = React.useState(false); // 기본값: 축소
   const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접기 (Feb-Dec 숨김)
+  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set()); // 개별 카테고리 펼치기 상태
 
   // 숫자가 포함된 문자열을 숫자로 변환 (천단위 콤마 제거) 및 포맷팅
   const formatNumber = (val: string) => {
@@ -2302,6 +2303,19 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
     
     if (isNaN(num)) return val;
     return num.toLocaleString();
+  };
+
+  // 개별 카테고리 토글
+  const toggleCategory = (categoryLabel: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryLabel)) {
+        newSet.delete(categoryLabel);
+      } else {
+        newSet.add(categoryLabel);
+      }
+      return newSet;
+    });
   };
 
   // 컬럼 표시 여부 확인
@@ -2362,6 +2376,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         
         // 데이터 파싱
         const parsed: any[] = [];
+        let currentMainCategory = '';
+        let currentSubCategory = '';
+        
+        // E-com의 하위 항목들 (TAG 판매가 아래의 E-com만 해당)
+        const ecomSubItems = ['26FW', '26SS', '25FW', '25SS', 'FW과시즌', 'SW과시즌', 'CORE'];
         
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];
@@ -2377,12 +2396,36 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                                label === 'Gross Profit' || 
                                label === 'Direct Profit' || 
                                label === 'Operating Profit';
-                               
-          // 비율 행인지 확인 (%)
-          const isRatioRow = label === '(%)' || label === 'Discount Rate';
           
-          // 서브 아이템인지 확인 (메인 카테고리도 아니고 비율 행도 아니면)
-          const isSubItem = !isMainCategory && !isRatioRow;
+          // 카테고리 키 추적 (먼저 업데이트)
+          if (isMainCategory) {
+            currentMainCategory = label;
+            currentSubCategory = '';
+          } else if (label === 'E-com') {
+            currentSubCategory = label;
+          }
+                               
+          // 비율 행인지 확인 (%) - 할인율은 2. 실판 매출의 하위 항목
+          const isRatioRow = (label === '(%)' || label === 'Discount Rate') || 
+                            (label === '할인율' && currentMainCategory !== '2. 실판 매출');
+          
+          // E-com의 하위 항목인지 확인 (TAG 판매가 아래에만 해당)
+          const isEcomSubItem = ecomSubItems.includes(label) && currentMainCategory === '1. TAG 판매가';
+          
+          // 서브 아이템인지 확인 (메인 카테고리도 아니고 비율 행도 아니고 E-com 하위 항목도 아니면)
+          const isSubItem = !isMainCategory && !isRatioRow && !isEcomSubItem;
+          
+          // 카테고리 키 추출
+          let categoryKey = '';
+          let parentCategory = '';
+          
+          if (isMainCategory) {
+            categoryKey = label;
+          } else if (isSubItem && label === 'E-com' && currentMainCategory === '1. TAG 판매가') {
+            // TAG 판매가의 E-com만 자체적으로 토글 가능
+            categoryKey = 'TAG-E-com'; // 고유 키로 구분
+            parentCategory = currentMainCategory;
+          }
 
           parsed.push({
             id: `row-${i}`,
@@ -2390,7 +2433,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             values: values.slice(1), // 첫 번째 컬럼(Category) 제외한 데이터
             isMainCategory,
             isRatioRow,
-            isSubItem
+            isSubItem,
+            isEcomSubItem,
+            categoryKey,
+            parentCategory
           });
         }
         
@@ -2453,15 +2499,69 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             </TableHeader>
             <TableBody>
               {csvData.map((row, idx) => {
-                // 펼치기/접기 로직: 메인 카테고리와 주요 Profit 행은 항상 표시
-                // 서브 아이템은 allExpanded가 true일 때만 표시
-                if (row.isSubItem && !allExpanded) return null;
+                // 현재 메인 카테고리와 서브 카테고리 추적
+                let currentCategory = '';
+                let currentSubCategory = '';
+                let isUnderTagEcom = false;
+                
+                if (row.isMainCategory) {
+                  currentCategory = row.categoryKey;
+                }
+                
+                // 이전 메인 카테고리와 서브 카테고리 찾기
+                if (row.isSubItem || row.isEcomSubItem) {
+                  for (let i = idx - 1; i >= 0; i--) {
+                    if (csvData[i].isMainCategory) {
+                      currentCategory = csvData[i].categoryKey;
+                    }
+                    if (csvData[i].isSubItem && csvData[i].label === 'E-com' && currentCategory === '1. TAG 판매가') {
+                      currentSubCategory = 'TAG-E-com';
+                      isUnderTagEcom = true;
+                    }
+                    if (currentCategory && (row.isEcomSubItem ? currentSubCategory : true)) break;
+                  }
+                }
+                
+                // 펼치기/접기 로직
+                // 1. 메인 카테고리는 항상 표시
+                // 2. 서브 아이템(E-com, Wholesale 등)은 메인 카테고리가 펼쳐져 있거나 allExpanded가 true일 때만 표시
+                // 3. TAG 판매가의 E-com 하위 항목만 E-com이 펼쳐져 있거나 allExpanded가 true일 때만 표시
+                // 4. 비율 행은 항상 표시
+                
+                if (row.isSubItem && row.label !== 'E-com') {
+                  const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                  if (!isExpanded) return null;
+                }
+                
+                if (row.isSubItem && row.label === 'E-com') {
+                  const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                  if (!isExpanded) return null;
+                }
+                
+                if (row.isEcomSubItem) {
+                  const isParentExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                  const isEcomExpanded = expandedCategories.has('TAG-E-com') || allExpanded;
+                  if (!isParentExpanded || !isEcomExpanded) return null;
+                }
 
                 let rowBg = "bg-white";
                 let textStyle = "text-gray-900";
                 let labelStyle = "font-normal pl-8"; // 서브 아이템 들여쓰기
+                
+                // TAG 판매가의 E-com인지 확인
+                let isTagEcom = false;
+                if (row.isSubItem && row.label === 'E-com') {
+                  for (let i = idx - 1; i >= 0; i--) {
+                    if (csvData[i].isMainCategory) {
+                      if (csvData[i].label === '1. TAG 판매가') {
+                        isTagEcom = true;
+                      }
+                      break;
+                    }
+                  }
+                }
 
-                // 스타일링 - 교대로 배경색 적용
+                // 스타일링
                 if (row.isMainCategory) {
                   rowBg = "bg-white";
                   textStyle = "font-bold text-gray-900";
@@ -2473,7 +2573,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     textStyle = "font-bold text-gray-900";
                   }
                 } else if (row.isRatioRow) {
-                  if (row.label === "Discount Rate") {
+                  if (row.label === "Discount Rate" || row.label === "할인율") {
                     rowBg = "bg-white";
                     textStyle = "text-gray-900 font-normal";
                     labelStyle = "font-normal pl-4";
@@ -2483,12 +2583,37 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     textStyle = "text-gray-900 font-normal";
                     labelStyle = "text-center font-normal text-xs px-0";
                   }
+                } else if (row.isEcomSubItem) {
+                  // TAG 판매가의 E-com 하위 항목은 더 들여쓰기
+                  labelStyle = "font-normal pl-12";
+                } else if (row.isSubItem) {
+                  labelStyle = "font-normal pl-8";
                 }
 
                 return (
                   <TableRow key={idx} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell className={cn("border border-gray-300 sticky left-0 z-10", rowBg, labelStyle, textStyle)}>
-                      {row.label}
+                      {row.isMainCategory ? (
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCategory(row.categoryKey)}>
+                          {expandedCategories.has(row.categoryKey) ? (
+                            <ChevronDownIcon className="h-4 w-4 flex-shrink-0" />
+                          ) : (
+                            <ChevronRightIcon className="h-4 w-4 flex-shrink-0" />
+                          )}
+                          <span>{row.label}</span>
+                        </div>
+                      ) : isTagEcom ? (
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCategory('TAG-E-com')}>
+                          <span>{row.label}</span>
+                          {expandedCategories.has('TAG-E-com') ? (
+                            <ChevronDownIcon className="h-3 w-3 flex-shrink-0" />
+                          ) : (
+                            <ChevronRightIcon className="h-3 w-3 flex-shrink-0" />
+                          )}
+                        </div>
+                      ) : (
+                        row.label
+                      )}
                     </TableCell>
                     {row.values.map((val: string, vIdx: number) => {
                       if (!isColumnVisible(vIdx)) return null;
