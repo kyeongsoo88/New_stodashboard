@@ -989,6 +989,147 @@ function DirectProfitPopupDialog({ data }: { data: DirectProfitPopupData | null 
 }
 
 // US/EU 건당 운반비 단가 팝업 컴포넌트
+// 보관료 분석 팝업 컴포넌트
+function StorageCostDialog({ data }: { data: any }) {
+    const [chartData, setChartData] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/data/storage-cost-analysis.csv?t=${timestamp}`);
+                const buffer = await response.arrayBuffer();
+                const bytes = new Uint8Array(buffer);
+                
+                // BOM 기반 인코딩 감지
+                let text = '';
+                if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+                    text = new TextDecoder('utf-16le').decode(bytes);
+                } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+                    text = new TextDecoder('utf-8').decode(bytes);
+                } else {
+                    try {
+                        text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+                    } catch (e) {
+                        text = new TextDecoder('euc-kr').decode(bytes);
+                    }
+                }
+                
+                const lines = text.split('\n').filter(line => line.trim());
+                if (lines.length < 2) {
+                    setLoading(false);
+                    return;
+                }
+                
+                const headers = lines[0].split(',').map(h => h.trim());
+                const inventoryRow = lines[1].split(',').map(v => v.trim());
+                const storageCostRow = lines[2].split(',').map(v => v.trim());
+                const percentageRow = lines[3].split(',').map(v => v.trim());
+                
+                const parsed = [];
+                for (let i = 2; i < headers.length; i++) {
+                    const inventory = parseFloat(inventoryRow[i].replace(/[$,]/g, ''));
+                    const storageCost = parseFloat(storageCostRow[i].replace(/[$,]/g, ''));
+                    const percentage = parseFloat(percentageRow[i].replace(/%/g, ''));
+                    
+                    parsed.push({
+                        month: headers[i],
+                        inventory: inventory || 0,
+                        storageCost: storageCost || 0,
+                        percentage: percentage || 0
+                    });
+                }
+                
+                setChartData(parsed);
+                setLoading(false);
+            } catch (error) {
+                console.error('보관료 분석 데이터 로드 실패:', error);
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return <div>데이터를 불러오는 중...</div>;
+    }
+
+    return (
+        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-lg font-bold mb-3 text-slate-800">재고원가 대비 보관료 단가분석</h3>
+            </div>
+            
+            <div className="h-[400px] bg-white p-4 rounded-lg shadow-sm">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="month" stroke="#6b7280" />
+                        <YAxis yAxisId="left" stroke="#6b7280" label={{ value: '재고원가 ($K)', angle: -90, position: 'insideLeft' }} />
+                        <YAxis yAxisId="right" orientation="right" domain={[0, 3]} stroke="#6b7280" label={{ value: '%', angle: 90, position: 'insideRight' }} />
+                        <Tooltip 
+                            contentStyle={{ 
+                                backgroundColor: 'white', 
+                                border: '1px solid #e5e7eb',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                            }}
+                            formatter={(value: number, name: string) => {
+                                if (name === '재고연동(보관료)%') {
+                                    return [`${value.toFixed(1)}%`, name];
+                                } else if (name === '보관료(USD)') {
+                                    return [`$${value.toFixed(0)}`, name];
+                                }
+                                return [`$${value.toFixed(0)}K`, name];
+                            }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        <Bar yAxisId="left" dataKey="inventory" fill="#3b82f6" name="재고원가" />
+                        <Bar yAxisId="left" dataKey="storageCost" fill="#10b981" name="보관료(USD)" />
+                        <Line yAxisId="right" type="monotone" dataKey="percentage" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="재고연동(보관료)%" />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            </div>
+
+            <div className="bg-white rounded-lg p-4 shadow-sm">
+                <h4 className="text-sm font-bold mb-3 text-slate-800">상세 데이터</h4>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[200px]">항목</TableHead>
+                            {chartData.map((d: any) => (
+                                <TableHead key={d.month} className="text-center">{d.month}</TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell className="font-medium">재고원가</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">${d.inventory.toFixed(0)}K</TableCell>
+                            ))}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">보관료 / 물류속박비</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">${d.storageCost.toFixed(0)}</TableCell>
+                            ))}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">재고연동(보관료)%</TableCell>
+                            {chartData.map((d: any) => (
+                                <TableCell key={d.month} className="text-center">{d.percentage.toFixed(1)}%</TableCell>
+                            ))}
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+}
+
 function ShippingCostDialog({ data }: { data: any }) {
     if (!data) {
         return <div>데이터를 불러오는 중...</div>;
@@ -1257,7 +1398,9 @@ function DetailedExpenseCard({
     showDetailButton,
     semPopupData,
     showShippingButton,
-    shippingPopupData
+    shippingPopupData,
+    showStorageButton,
+    storageCostData
 }: { 
     title: string, 
     value: string, 
@@ -1271,7 +1414,9 @@ function DetailedExpenseCard({
     showDetailButton?: boolean,
     semPopupData?: any,
     showShippingButton?: boolean,
-    shippingPopupData?: any
+    shippingPopupData?: any,
+    showStorageButton?: boolean,
+    storageCostData?: any
 }) {
     const yoyNum = parseFloat(yoy.replace(/[^0-9.-]/g, ''));
     // 비용 카드이므로 100% 초과하면 붉은색(나쁨), 100% 이하면 초록색(좋음)
@@ -1325,7 +1470,35 @@ function DetailedExpenseCard({
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 pt-1">
-                <div className="text-2xl font-bold tabular-nums w-full">{value}</div>
+                <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold tabular-nums">{value}</div>
+                    {title === "운반비" && (
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <span className={cn(
+                                    "cursor-pointer px-2 py-0.5 rounded-md transition-all inline-block",
+                                    "bg-amber-50 hover:bg-amber-100 border border-amber-200",
+                                    "text-amber-700 font-medium text-xs"
+                                )}>
+                                    3개월 누적율 6.1%
+                                </span>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>운반비 증가 원인</DialogTitle>
+                                </DialogHeader>
+                                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                                    <p>
+                                        - 최근 썬더 벨트(미국 남부)에서 의미있는 매출 발생 썬더 벨트 지역 배송시 물류창고가 있는 뉴저지에서 멀어 단가 상승.
+                                    </p>
+                                    <p>
+                                        - 캘리포니아에 등 미국 서부 지역에서 Express 배송주문시 STO 분담분이 높은데 이를 고객 분담분에 전가하여 운송비 관리 예정.
+                                    </p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                </div>
                 <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
                     {title === "보관료" ? (
@@ -1360,35 +1533,6 @@ function DetailedExpenseCard({
                                 </div>
                             </DialogContent>
                         </Dialog>
-                    ) : title === "운반비" ? (
-                        <span className={cn("text-sm", diffColor)}>
-                            ({yoyDiff})
-                            {" "}
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <span className={cn(
-                                        "cursor-pointer px-2 py-0.5 rounded-md transition-all",
-                                        "bg-amber-50 hover:bg-amber-100 border border-amber-200",
-                                        "text-amber-700 font-medium"
-                                    )}>
-                                        3개월 누적율 6.1%
-                                    </span>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle>운반비 증가 원인</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="text-sm text-gray-700 leading-relaxed space-y-3">
-                                        <p>
-                                            - 최근 썬더 벨트(미국 남부)에서 의미있는 매출 발생 썬더 벨트 지역 배송시 물류창고가 있는 뉴저지에서 멀어 단가 상승.
-                                        </p>
-                                        <p>
-                                            - 캘리포니아에 등 미국 서부 지역에서 Express 배송주문시 STO 분담분이 높은데 이를 고객 분담분에 전가하여 운송비 관리 예정.
-                                        </p>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </span>
                     ) : (
                         <span className={cn("text-sm", diffColor)}>
                             ({yoyDiff})
@@ -1415,6 +1559,23 @@ function DetailedExpenseCard({
                         </Dialog>
                     </div>
                 )}
+                {showStorageButton && (
+                    <div className="pt-2 border-t">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-6 text-xs px-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
+                                    재고원가 대비 보관료 단가분석
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>재고원가 대비 보관료 단가분석</DialogTitle>
+                                </DialogHeader>
+                                <StorageCostDialog data={storageCostData} />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )
@@ -1427,7 +1588,8 @@ function ExpenseSummarySection({
     cards,
     defaultPeriod = "누적",
     semPopupData,
-    shippingPopupData
+    shippingPopupData,
+    storageCostData
 }: {
     title: string,
     iconColor: string,
@@ -1440,7 +1602,8 @@ function ExpenseSummarySection({
     }>,
     defaultPeriod?: "누적" | "당월",
     semPopupData?: any,
-    shippingPopupData?: any
+    shippingPopupData?: any,
+    storageCostData?: any
 }) {
     const [period, setPeriod] = React.useState<"누적" | "당월">(defaultPeriod);
     
@@ -1466,6 +1629,8 @@ function ExpenseSummarySection({
                         semPopupData={card.title === "SEM광고비" ? semPopupData : undefined}
                         showShippingButton={card.title === "운반비"}
                         shippingPopupData={card.title === "운반비" ? shippingPopupData : undefined}
+                        showStorageButton={card.title === "보관료"}
+                        storageCostData={card.title === "보관료" ? storageCostData : undefined}
                         className={
                             index === 0 && title === "직접비 요약" ? "bg-purple-100" :
                             index === 0 && title === "영업비 요약" ? "bg-orange-100" :
@@ -9551,6 +9716,7 @@ export default function DashboardPage() {
               cards={directExpenseSummaryData}
               semPopupData={popupData?.semAd}
               shippingPopupData={popupData?.shippingCost}
+              storageCostData={{}}
           />
         ) : (
           <ExpenseSummarySection
