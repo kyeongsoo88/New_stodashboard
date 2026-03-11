@@ -1029,15 +1029,20 @@ function StorageCostDialog({ data }: { data: any }) {
                 
                 const parsed = [];
                 for (let i = 2; i < headers.length; i++) {
-                    const inventory = parseFloat(inventoryRow[i].replace(/[$,]/g, ''));
-                    const storageCost = parseFloat(storageCostRow[i].replace(/[$,]/g, ''));
-                    const percentage = parseFloat(percentageRow[i].replace(/%/g, ''));
+                    // 공백과 특수문자 제거 후 파싱
+                    const inventoryStr = inventoryRow[i].replace(/[$,\s]/g, '').trim();
+                    const storageCostStr = storageCostRow[i].replace(/[$,\s]/g, '').trim();
+                    const percentageStr = percentageRow[i].replace(/[%\s]/g, '').trim();
+                    
+                    const inventory = parseFloat(inventoryStr);
+                    const storageCost = parseFloat(storageCostStr);
+                    const percentage = parseFloat(percentageStr);
                     
                     parsed.push({
                         month: headers[i],
-                        inventory: inventory || 0,
-                        storageCost: storageCost || 0,
-                        percentage: percentage || 0
+                        inventory: isNaN(inventory) ? 0 : inventory,
+                        storageCost: isNaN(storageCost) ? 0 : storageCost,
+                        percentage: isNaN(percentage) ? 0 : percentage
                     });
                 }
                 
@@ -1062,33 +1067,73 @@ function StorageCostDialog({ data }: { data: any }) {
                 <h3 className="text-lg font-bold mb-3 text-slate-800">재고원가 대비 보관료 단가분석</h3>
             </div>
             
-            <div className="h-[400px] bg-white p-4 rounded-lg shadow-sm">
+            <div className="h-[450px] bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="month" stroke="#6b7280" />
-                        <YAxis yAxisId="left" stroke="#6b7280" label={{ value: '재고원가 ($K)', angle: -90, position: 'insideLeft' }} />
-                        <YAxis yAxisId="right" orientation="right" domain={[0, 3]} stroke="#6b7280" label={{ value: '%', angle: 90, position: 'insideRight' }} />
+                    <ComposedChart 
+                        data={chartData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                        <XAxis 
+                            dataKey="month" 
+                            stroke="#9ca3af"
+                            style={{ fontSize: '12px' }}
+                        />
+                        <YAxis 
+                            yAxisId="left" 
+                            stroke="#9ca3af"
+                            style={{ fontSize: '12px' }}
+                            label={{ 
+                                value: '재고원가 ($K)', 
+                                angle: -90, 
+                                position: 'insideLeft'
+                            }}
+                        />
+                        <YAxis 
+                            yAxisId="right" 
+                            orientation="right" 
+                            domain={[0, 3]} 
+                            stroke="#9ca3af"
+                            style={{ fontSize: '12px' }}
+                            label={{ 
+                                value: '보관료 비율 (%)', 
+                                angle: 90, 
+                                position: 'insideRight'
+                            }}
+                        />
                         <Tooltip 
                             contentStyle={{ 
                                 backgroundColor: 'white', 
                                 border: '1px solid #e5e7eb',
                                 borderRadius: '8px',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                padding: '8px'
                             }}
                             formatter={(value: number, name: string) => {
                                 if (name === '재고연동(보관료)%') {
                                     return [`${value.toFixed(1)}%`, name];
-                                } else if (name === '보관료(USD)') {
-                                    return [`$${value.toFixed(0)}`, name];
                                 }
                                 return [`$${value.toFixed(0)}K`, name];
                             }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                        <Bar yAxisId="left" dataKey="inventory" fill="#3b82f6" name="재고원가" />
-                        <Bar yAxisId="left" dataKey="storageCost" fill="#10b981" name="보관료(USD)" />
-                        <Line yAxisId="right" type="monotone" dataKey="percentage" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="재고연동(보관료)%" />
+                        <Bar 
+                            yAxisId="left" 
+                            dataKey="inventory" 
+                            fill="#2563eb"
+                            name="재고원가"
+                            radius={[4, 4, 0, 0]}
+                            barSize={35}
+                        />
+                        <Line 
+                            yAxisId="right" 
+                            type="monotone" 
+                            dataKey="percentage" 
+                            stroke="#ef4444" 
+                            strokeWidth={2.5} 
+                            dot={{ r: 4, fill: "#ef4444", stroke: "#fff", strokeWidth: 2 }}
+                            name="재고연동(보관료)%" 
+                        />
                     </ComposedChart>
                 </ResponsiveContainer>
             </div>
