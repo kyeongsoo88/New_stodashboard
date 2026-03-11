@@ -6570,13 +6570,15 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const isSubItem = label === '매출수금' || label === '물품대 지출' || label === '비용지출' || 
                                      label.startsWith('기타수금') || label.startsWith('기타지출') ||
                                      label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스' ||
-                                     label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용';
+                                     label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용' ||
+                                     label === '본사차입' || label === 'STE감자' || label === 'STE청산' || label === 'STE지분매입' || label === '본사차입상환';
                     // 부모 항목 식별
                     const isParent = label === '영업활동' || label === '재무활동' || 
                                     label === '매출수금' || label === '비용지출';
                     // 부모 키 찾기
                     let parentKey = null;
                     if (label === '매출수금' || label === '물품대 지출' || label === '비용지출') parentKey = '영업활동';
+                    if (label === '본사차입' || label === 'STE감자' || label === 'STE청산' || label === 'STE지분매입' || label === '본사차입상환') parentKey = '재무활동';
                     else if (label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스') parentKey = '매출수금';
                     else if (label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용') parentKey = '비용지출';
                     else if (label.startsWith('기타수금') || label.startsWith('기타지출')) parentKey = '재무활동';
