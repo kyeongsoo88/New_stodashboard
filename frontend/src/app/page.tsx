@@ -1354,12 +1354,44 @@ function DetailedExpenseCard({
                                     <p>
                                         <span className="font-bold">향후 F-Up :</span> 재발 방지를 위해 면적 기반 과금 대신 카테고리별 차등 유닛 단가를 적용한 유닛 기반 과금 방식을 Bergen이 재제안함. 유닛 기반 과금은 consolidation 리스크를 Bergen이 부담하게 하고, 스토리지 비용 예측성과 예산 관리 측면에서 유리함.
                                     </p>
+                                    <p>
+                                        <span className="font-bold">3월 11일 F-Up :</span> 1월 Argue $15K 크레딧 받았으나, 금액 산정 근거 안줌. 심지어 26년 2월달도 비슷한 문제 있다고 판단. 정확히 확인 전까지 현재 보관료 지급 홀딩중. 지급 홀딩하며 최대한 Argue할 예정
+                                    </p>
                                 </div>
                             </DialogContent>
                         </Dialog>
+                    ) : title === "운반비" ? (
+                        <span className={cn("text-sm", diffColor)}>
+                            ({yoyDiff})
+                            {" "}
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <span className={cn(
+                                        "cursor-pointer px-2 py-0.5 rounded-md transition-all",
+                                        "bg-amber-50 hover:bg-amber-100 border border-amber-200",
+                                        "text-amber-700 font-medium"
+                                    )}>
+                                        3개월 누적율 6.1%
+                                    </span>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>운반비 증가 원인</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                                        <p>
+                                            - 최근 썬더 벨트(미국 남부)에서 의미있는 매출 발생 썬더 벨트 지역 배송시 물류창고가 있는 뉴저지에서 멀어 단가 상승.
+                                        </p>
+                                        <p>
+                                            - 캘리포니아에 등 미국 서부 지역에서 Express 배송주문시 STO 분담분이 높은데 이를 고객 분담분에 전가하여 운송비 관리 예정.
+                                        </p>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </span>
                     ) : (
                         <span className={cn("text-sm", diffColor)}>
-                            ({yoyDiff}){title === "운반비" && " 3개월 누적율 6.1%"}
+                            ({yoyDiff})
                         </span>
                     )}
                 </div>
