@@ -9588,16 +9588,14 @@ export default function DashboardPage() {
 
         {/* Profit & Loss Table */}
          <div className="space-y-4">
-           <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <h3 className="font-bold text-2xl">손익요약</h3>
-           </div>
            <Card className="overflow-hidden border-t-4 border-t-green-500">
              <CardHeader className="bg-slate-50/50 py-4 border-b">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <h3 className="font-bold text-2xl">손익요약</h3>
                     {currentSelectedMonth === '2025-10' && (
-                      <CardDescription className="text-green-700 font-bold">
+                      <CardDescription className="text-green-700 font-bold ml-4">
                         당월 실판 매출 $1,936K, 영업이익 -$389K 적자
                       </CardDescription>
                     )}
