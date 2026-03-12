@@ -6696,7 +6696,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
   
   // 성장률 설정 상태
-  const [growthRate, setGrowthRate] = React.useState(139);
+  const [growthRate, setGrowthRate] = React.useState(130);
   
   // 섹션별 접기/펼치기 상태
   const [isCashFlowExpanded, setIsCashFlowExpanded] = React.useState(true);
