@@ -697,23 +697,93 @@ function DetailedMetricCard({
                                 
                                 {isTopStoresExpanded && (
                                     <div className="border-t pt-2 space-y-1 text-xs">
-                                        {topStoresDetails.map((item, idx) => {
-                                          // 기말재고, 인원수 카드에서는 "전년"을 "YoY"로 변경, 그 외(M/U 등)는 그대로 "전년" 유지
-                                          const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
-                                          const yoyDisplay = shouldConvertToYoY && item.yoy && item.yoy.includes("전년")
-                                            ? item.yoy.replace(/전년/g, 'YoY ')
-                                            : item.yoy;
-                                          
-                                          return (
-                                            <div key={idx} className="flex justify-between items-center py-2">
-                                                <span className="text-base font-medium min-w-[80px]">{item.name}</span>
-                                                <div className="flex items-center gap-3 justify-end" style={{ minWidth: '180px' }}>
-                                                    <span className="font-bold text-base w-[80px] text-right tabular-nums">{item.value}</span>
-                                                    <span className="text-base text-gray-600 min-w-[80px] text-right">{yoyDisplay}</span>
+                                        {title.includes("기말재고") ? (
+                                          <div className="space-y-3">
+                                            {/* 차트 영역 */}
+                                            <div className="relative">
+                                              <ResponsiveContainer width="100%" height={200}>
+                                                <LineChart data={topStoresDetails.map((item, idx) => ({
+                                                  name: item.name,
+                                                  value: parseFloat(item.value.replace(/,/g, '')) || 0
+                                                }))}>
+                                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                                  <XAxis 
+                                                    dataKey="name" 
+                                                    tick={{ fontSize: 11 }}
+                                                    stroke="#6b7280"
+                                                  />
+                                                  <YAxis 
+                                                    tick={{ fontSize: 11 }}
+                                                    stroke="#6b7280"
+                                                    tickFormatter={(value) => `$${(value/1000).toFixed(0)}K`}
+                                                  />
+                                                  <Tooltip 
+                                                    formatter={(value: any) => `$${value.toLocaleString()}`}
+                                                    contentStyle={{ fontSize: 12 }}
+                                                  />
+                                                  <Line 
+                                                    type="monotone" 
+                                                    dataKey="value" 
+                                                    stroke="#ef4444" 
+                                                    strokeWidth={2}
+                                                    dot={{ fill: '#ef4444', r: 4 }}
+                                                    name="재고"
+                                                  />
+                                                </LineChart>
+                                              </ResponsiveContainer>
+                                              
+                                              {/* 25FW 재고 증가 사유 말풍선 */}
+                                              <div className="absolute top-2 right-2 bg-amber-50 border border-amber-200 rounded-lg p-2 shadow-sm max-w-[280px]">
+                                                <div className="flex items-start gap-1">
+                                                  <span className="text-amber-600 text-xs font-bold flex-shrink-0">📌 Note</span>
+                                                  <p className="text-[10px] text-amber-900 leading-relaxed">
+                                                    25FW 발주가 판매 대비 많아 발주 취소하려했으나, 불가능 일부 계절성 안타는 트랙자켓/팬츠 위주로 26년 2월로 입고 지연되어 1월 대비 2월 25FW 재고 증가
+                                                  </p>
                                                 </div>
+                                              </div>
                                             </div>
-                                          );
-                                        })}
+                                            
+                                            {/* 테이블 */}
+                                            <div className="space-y-1">
+                                              {topStoresDetails.map((item, idx) => {
+                                                const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
+                                                const yoyDisplay = shouldConvertToYoY && item.yoy && item.yoy.includes("전년")
+                                                  ? item.yoy.replace(/전년/g, 'YoY ')
+                                                  : item.yoy;
+                                                
+                                                return (
+                                                  <div key={idx} className="flex justify-between items-center py-2">
+                                                      <span className="text-base font-medium min-w-[80px]">{item.name}</span>
+                                                      <div className="flex items-center gap-3 justify-end" style={{ minWidth: '180px' }}>
+                                                          <span className="font-bold text-base w-[80px] text-right tabular-nums">{item.value}</span>
+                                                          <span className="text-base text-gray-600 min-w-[80px] text-right">{yoyDisplay}</span>
+                                                      </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <>
+                                            {topStoresDetails.map((item, idx) => {
+                                              // 기말재고, 인원수 카드에서는 "전년"을 "YoY"로 변경, 그 외(M/U 등)는 그대로 "전년" 유지
+                                              const shouldConvertToYoY = title.includes("기말재고") || title.includes("인원수");
+                                              const yoyDisplay = shouldConvertToYoY && item.yoy && item.yoy.includes("전년")
+                                                ? item.yoy.replace(/전년/g, 'YoY ')
+                                                : item.yoy;
+                                              
+                                              return (
+                                                <div key={idx} className="flex justify-between items-center py-2">
+                                                    <span className="text-base font-medium min-w-[80px]">{item.name}</span>
+                                                    <div className="flex items-center gap-3 justify-end" style={{ minWidth: '180px' }}>
+                                                        <span className="font-bold text-base w-[80px] text-right tabular-nums">{item.value}</span>
+                                                        <span className="text-base text-gray-600 min-w-[80px] text-right">{yoyDisplay}</span>
+                                                    </div>
+                                                </div>
+                                              );
+                                            })}
+                                          </>
+                                        )}
                                     </div>
                                 )}
                             </>
