@@ -1829,7 +1829,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
                                 stroke="#6b7280" 
                                 tickFormatter={(value) => value.toLocaleString()}
                             />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 1000 }} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
                             <Line type="monotone" dataKey="ss26" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4, fill: "#8b5cf6" }} name="26SS" />
                             <Line type="monotone" dataKey="fw25" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25FW" />
@@ -1841,7 +1841,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
                     </ResponsiveContainer>
                     
                     {/* 25FW 재고 증가 사유 말풍선 */}
-                    <div className="absolute top-3 right-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3 shadow-lg max-w-[320px] z-10">
+                    <div className="absolute top-3 right-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3 shadow-lg max-w-[320px] pointer-events-none" style={{ zIndex: 1 }}>
                         <div className="flex items-start gap-2">
                             <span className="text-amber-600 text-sm font-bold flex-shrink-0">📌 Note</span>
                             <p className="text-xs text-amber-900 leading-relaxed">
