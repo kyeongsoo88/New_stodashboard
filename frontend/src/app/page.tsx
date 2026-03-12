@@ -9588,47 +9588,49 @@ export default function DashboardPage() {
 
         {/* Profit & Loss Table */}
          <div className="space-y-4">
-           <div className="flex items-center justify-between">
-             <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <h3 className="font-bold text-2xl">손익요약</h3>
-             </div>
-             <div className="flex gap-1 bg-slate-200 rounded-lg p-1 border border-slate-300">
-               <Button
-                 variant={pnlDataSource === '전체' ? "default" : "ghost"}
-                 size="sm"
-                 className={cn(
-                   "h-9 px-5 text-sm font-semibold transition-all",
-                   pnlDataSource === '전체' 
-                     ? "bg-green-600 text-white shadow-md hover:bg-green-700" 
-                     : "text-gray-700 hover:bg-slate-300"
-                 )}
-                 onClick={() => setPnlDataSource('전체')}
-               >
-                 전체
-               </Button>
-               <Button
-                 variant={pnlDataSource === 'USEC' ? "default" : "ghost"}
-                 size="sm"
-                 className={cn(
-                   "h-9 px-5 text-sm font-semibold transition-all",
-                   pnlDataSource === 'USEC' 
-                     ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
-                     : "text-gray-700 hover:bg-slate-300"
-                 )}
-                 onClick={() => setPnlDataSource('USEC')}
-               >
-                 US EC
-               </Button>
-             </div>
+           <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <h3 className="font-bold text-2xl">손익요약</h3>
            </div>
            <Card className="overflow-hidden border-t-4 border-t-green-500">
              <CardHeader className="bg-slate-50/50 py-4 border-b">
-                {currentSelectedMonth === '2025-10' && (
-                  <CardDescription className="text-green-700 font-bold">
-                    당월 실판 매출 $1,936K, 영업이익 -$389K 적자
-                  </CardDescription>
-                )}
+                <div className="flex items-center justify-between">
+                  <div>
+                    {currentSelectedMonth === '2025-10' && (
+                      <CardDescription className="text-green-700 font-bold">
+                        당월 실판 매출 $1,936K, 영업이익 -$389K 적자
+                      </CardDescription>
+                    )}
+                  </div>
+                  <div className="flex gap-1 bg-slate-200 rounded-lg p-1 border border-slate-300">
+                    <Button
+                      variant={pnlDataSource === '전체' ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "h-9 px-5 text-sm font-semibold transition-all",
+                        pnlDataSource === '전체' 
+                          ? "bg-green-600 text-white shadow-md hover:bg-green-700" 
+                          : "text-gray-700 hover:bg-slate-300"
+                      )}
+                      onClick={() => setPnlDataSource('전체')}
+                    >
+                      전체
+                    </Button>
+                    <Button
+                      variant={pnlDataSource === 'USEC' ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "h-9 px-5 text-sm font-semibold transition-all",
+                        pnlDataSource === 'USEC' 
+                          ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
+                          : "text-gray-700 hover:bg-slate-300"
+                      )}
+                      onClick={() => setPnlDataSource('USEC')}
+                    >
+                      US EC
+                    </Button>
+                  </div>
+                </div>
              </CardHeader>
              <CardContent className="p-0 overflow-x-auto">
                <Table>
