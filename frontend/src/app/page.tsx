@@ -1819,7 +1819,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
             <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="text-lg font-bold mb-3 text-slate-800">시즌별 재고 25년 연말 시뮬레이션</h3>
                 
-                <div className="h-[350px] mb-4">
+                <div className="h-[350px] mb-4 relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1839,6 +1839,16 @@ function InventoryPlanDialog({ data }: { data: any }) {
                             <Line type="monotone" dataKey="past" stroke="#9ca3af" strokeWidth={2} dot={{ r: 4, fill: "#9ca3af" }} name="CORE" />
                         </LineChart>
                     </ResponsiveContainer>
+                    
+                    {/* 25FW 재고 증가 사유 말풍선 */}
+                    <div className="absolute top-3 right-3 bg-amber-50 border-2 border-amber-300 rounded-lg p-3 shadow-lg max-w-[320px] z-10">
+                        <div className="flex items-start gap-2">
+                            <span className="text-amber-600 text-sm font-bold flex-shrink-0">📌 Note</span>
+                            <p className="text-xs text-amber-900 leading-relaxed">
+                                25FW 발주가 판매 대비 많아 발주 취소하려했으나, 불가능 일부 계절성 안타는 트랙자켓/팬츠 위주로 26년 2월로 입고 지연되어 1월 대비 2월 25FW 재고 증가
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-lg p-4 shadow-sm">
