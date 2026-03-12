@@ -8137,8 +8137,6 @@ export default function DashboardPage() {
     // 손익요약 데이터의 경우 pnlDataSource에 따라 다른 데이터 소스 사용
     const dataSource = dataKey.startsWith('손익요약_') && pnlDataSource === 'USEC' 
       ? dashboardUSECData 
-      : dataKey.startsWith('손익요약_')
-      ? dashboardData
       : summaryData;
     
     if (!dataSource[dataKey] || !dataSource[dataKey][csvMonthKey]) {
@@ -9595,15 +9593,15 @@ export default function DashboardPage() {
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <h3 className="font-bold text-2xl">손익요약</h3>
              </div>
-             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+             <div className="flex gap-1 bg-slate-200 rounded-lg p-1 border border-slate-300">
                <Button
                  variant={pnlDataSource === '전체' ? "default" : "ghost"}
                  size="sm"
                  className={cn(
-                   "h-8 px-4 text-sm font-medium transition-all",
+                   "h-9 px-5 text-sm font-semibold transition-all",
                    pnlDataSource === '전체' 
-                     ? "bg-white shadow-sm hover:bg-white" 
-                     : "hover:bg-gray-200"
+                     ? "bg-green-600 text-white shadow-md hover:bg-green-700" 
+                     : "text-gray-700 hover:bg-slate-300"
                  )}
                  onClick={() => setPnlDataSource('전체')}
                >
@@ -9613,10 +9611,10 @@ export default function DashboardPage() {
                  variant={pnlDataSource === 'USEC' ? "default" : "ghost"}
                  size="sm"
                  className={cn(
-                   "h-8 px-4 text-sm font-medium transition-all",
+                   "h-9 px-5 text-sm font-semibold transition-all",
                    pnlDataSource === 'USEC' 
-                     ? "bg-white shadow-sm hover:bg-white" 
-                     : "hover:bg-gray-200"
+                     ? "bg-blue-600 text-white shadow-md hover:bg-blue-700" 
+                     : "text-gray-700 hover:bg-slate-300"
                  )}
                  onClick={() => setPnlDataSource('USEC')}
                >
