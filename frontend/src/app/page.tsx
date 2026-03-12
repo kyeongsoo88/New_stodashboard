@@ -1789,7 +1789,7 @@ function InventoryPlanDialog({ data }: { data: any }) {
         const total = rows.reduce((sum: number, r: { value: number }) => sum + (Number(r.value) || 0), 0);
 
         return (
-            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1">
+            <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-md text-xs space-y-1" style={{ zIndex: 9999 }}>
                 <div className="font-semibold text-gray-800 mb-1">{label}</div>
                 {rows.map((r: { key: string; color: string; name: string; value: number }) => (
                     <div key={r.key} className="flex items-center justify-between gap-2">
