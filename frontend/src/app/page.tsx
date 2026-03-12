@@ -6697,6 +6697,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   
   // 기준 데이터 저장 (130% 기준 CSV 원본)
   const [baseCashFlowData, setBaseCashFlowData] = React.useState<any[]>([]);
+  const [baseWorkingCapitalData, setBaseWorkingCapitalData] = React.useState<any[]>([]);
   
   // 성장률 설정 상태
   const [growthRate, setGrowthRate] = React.useState(130);
@@ -7128,6 +7129,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     });
                 }
                 setWorkingCapitalData(parsed3);
+                setBaseWorkingCapitalData(parsed3); // 기준 데이터 저장
             }
             
         } catch (err) {
@@ -7338,7 +7340,109 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
     }
     
     setCashFlowData(newData);
-  }, [growthRate, baseCashFlowData]);
+    
+    // 현금잔액표의 현금잔액 행을 현금흐름표의 기말잔액과 동기화
+    if (endingIdx >= 0 && balanceData.length > 0) {
+      const updatedBalanceData = JSON.parse(JSON.stringify(balanceData));
+      const cashBalanceIdx = updatedBalanceData.findIndex((row: any) => row.label === '현금잔액');
+      
+      if (cashBalanceIdx >= 0) {
+        // 월별 데이터 복사 (1월~12월, 인덱스 1~12)
+        for (let col = 1; col <= 12; col++) {
+          updatedBalanceData[cashBalanceIdx].values[col] = newData[endingIdx].values[col];
+        }
+        
+        // 2026년(합계) 컬럼 복사 (인덱스 15)
+        updatedBalanceData[cashBalanceIdx].values[15] = newData[endingIdx].values[15];
+        
+        // 계획-전년 재계산 (인덱스 14)
+        const year2025 = parseNum(updatedBalanceData[cashBalanceIdx].values[0]);
+        const plan2026 = parseNum(updatedBalanceData[cashBalanceIdx].values[13]);
+        const total2026 = parseNum(newData[endingIdx].values[15]);
+        updatedBalanceData[cashBalanceIdx].values[14] = formatNum(plan2026 - year2025);
+        
+        // Rolling-전년 재계산 (인덱스 16)
+        updatedBalanceData[cashBalanceIdx].values[16] = formatNum(total2026 - year2025);
+        
+        // 계획대비증감 재계산 (인덱스 17)
+        updatedBalanceData[cashBalanceIdx].values[17] = formatNum(total2026 - plan2026);
+        
+        // 계획대비(%) 재계산 (인덱스 18)
+        const planPercent = plan2026 !== 0 ? Math.round((total2026 / plan2026) * 100) : 0;
+        updatedBalanceData[cashBalanceIdx].values[18] = `${planPercent}%`;
+        
+        setBalanceData(updatedBalanceData);
+      }
+    }
+    
+    // 운전자본표의 재고자산과 매입채무 재계산
+    if (baseWorkingCapitalData.length > 0 && onlineIdx >= 0) {
+      const updatedWcData = JSON.parse(JSON.stringify(baseWorkingCapitalData));
+      const receivableIdx = updatedWcData.findIndex((row: any) => row.label === '매출채권');
+      const inventoryIdx = updatedWcData.findIndex((row: any) => row.label === '재고자산');
+      const payableIdx = updatedWcData.findIndex((row: any) => row.label === '매입채무');
+      const totalIdx = updatedWcData.findIndex((row: any) => row.label === '운전자본 합계');
+      
+      if (inventoryIdx >= 0 && payableIdx >= 0 && totalIdx >= 0) {
+        // 3월~12월 재계산 (1월, 2월은 실적이므로 고정)
+        for (let col = 3; col <= 12; col++) {
+          // 매출 증가분 계산
+          const baseOnline = parseNum(baseCashFlowData[onlineIdx].values[col]);
+          const newOnline = parseNum(newData[onlineIdx].values[col]);
+          const revenueDelta = newOnline - baseOnline;
+          
+          // 재고 감소분 계산 (매출 증가의 50%)
+          const inventoryDelta = -(revenueDelta * 0.50);
+          
+          // 신규 재고자산 계산
+          const baseInventory = parseNum(baseWorkingCapitalData[inventoryIdx].values[col]);
+          const newInventory = Math.round(baseInventory + inventoryDelta);
+          updatedWcData[inventoryIdx].values[col] = formatNum(newInventory);
+          
+          // 운전자본 합계 재계산
+          if (receivableIdx >= 0) {
+            const receivable = parseNum(updatedWcData[receivableIdx].values[col]);
+            const payable = parseNum(updatedWcData[payableIdx].values[col]);
+            const total = Math.round(receivable + newInventory - payable);
+            updatedWcData[totalIdx].values[col] = formatNum(total);
+          }
+        }
+        
+        // 2026년(기말) 및 집계 컬럼 재계산
+        if (inventoryIdx >= 0) {
+          // 12월 값을 2026년(기말)로 복사
+          updatedWcData[inventoryIdx].values[15] = updatedWcData[inventoryIdx].values[12];
+          
+          const year2025 = parseNum(updatedWcData[inventoryIdx].values[0]);
+          const plan2026 = parseNum(updatedWcData[inventoryIdx].values[13]);
+          const year2026End = parseNum(updatedWcData[inventoryIdx].values[15]);
+          
+          updatedWcData[inventoryIdx].values[14] = formatNum(plan2026 - year2025);
+          updatedWcData[inventoryIdx].values[16] = formatNum(year2026End - year2025);
+          updatedWcData[inventoryIdx].values[17] = formatNum(year2026End - plan2026);
+          const planPercent = plan2026 !== 0 ? Math.round((year2026End / plan2026) * 100) : 0;
+          updatedWcData[inventoryIdx].values[18] = `${planPercent}%`;
+        }
+        
+        if (totalIdx >= 0) {
+          // 12월 값을 2026년(기말)로 복사
+          updatedWcData[totalIdx].values[15] = updatedWcData[totalIdx].values[12];
+          
+          const year2025 = parseNum(updatedWcData[totalIdx].values[0]);
+          const plan2026 = parseNum(updatedWcData[totalIdx].values[13]);
+          const year2026End = parseNum(updatedWcData[totalIdx].values[15]);
+          
+          updatedWcData[totalIdx].values[14] = formatNum(plan2026 - year2025);
+          updatedWcData[totalIdx].values[16] = formatNum(year2026End - year2025);
+          updatedWcData[totalIdx].values[17] = formatNum(year2026End - plan2026);
+          const planPercent = plan2026 !== 0 ? Math.round((year2026End / plan2026) * 100) : 0;
+          updatedWcData[totalIdx].values[18] = `${planPercent}%`;
+        }
+        
+        setWorkingCapitalData(updatedWcData);
+      }
+    }
+  }, [growthRate, baseCashFlowData, baseWorkingCapitalData]);
 
   if (loading) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
@@ -7419,10 +7523,50 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 step="1"
                                 value={growthRate}
                                 onChange={(e) => handleGrowthRateChange(Number(e.target.value))}
-                                className="w-[150px] h-2 bg-blue-900 rounded-lg appearance-none cursor-pointer accent-white"
+                                className="w-[150px] h-2 rounded-lg appearance-none cursor-pointer"
+                                style={{
+                                    background: '#3b5998',
+                                    WebkitAppearance: 'none',
+                                    MozAppearance: 'none'
+                                }}
                             />
                             <span className="text-blue-200 text-xs">200%</span>
                         </div>
+                        
+                        <style jsx>{`
+                            input[type="range"] {
+                                -webkit-appearance: none;
+                                appearance: none;
+                                background: #3b5998 !important;
+                            }
+                            input[type="range"]::-webkit-slider-thumb {
+                                -webkit-appearance: none;
+                                appearance: none;
+                                width: 16px;
+                                height: 16px;
+                                border-radius: 50%;
+                                background: white;
+                                cursor: pointer;
+                            }
+                            input[type="range"]::-moz-range-thumb {
+                                width: 16px;
+                                height: 16px;
+                                border-radius: 50%;
+                                background: white;
+                                border: 0;
+                                cursor: pointer;
+                            }
+                            input[type="range"]::-webkit-slider-runnable-track {
+                                background: #3b5998 !important;
+                                height: 8px;
+                                border-radius: 8px;
+                            }
+                            input[type="range"]::-moz-range-track {
+                                background: #3b5998 !important;
+                                height: 8px;
+                                border-radius: 8px;
+                            }
+                        `}</style>
                         
                         {/* Number Input */}
                         <div className="flex items-center gap-1">
