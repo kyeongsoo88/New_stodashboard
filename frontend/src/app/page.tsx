@@ -6695,6 +6695,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   
   const [loading, setLoading] = React.useState(true);
   
+  // 기준 데이터 저장 (130% 기준 CSV 원본)
+  const [baseCashFlowData, setBaseCashFlowData] = React.useState<any[]>([]);
+  
   // 성장률 설정 상태
   const [growthRate, setGrowthRate] = React.useState(130);
   const [inputValue, setInputValue] = React.useState<string>("130");
@@ -6922,6 +6925,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     });
                 }
                 setCashFlowData(parsed1);
+                setBaseCashFlowData(parsed1); // 기준 데이터 저장
             }
 
             // 2. 현금잔액과 차입금잔액표 데이터 로드
@@ -7134,6 +7138,144 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
     };
     fetchData();
   }, []);
+
+  // 성장률 변경 시 데이터 재계산
+  React.useEffect(() => {
+    if (baseCashFlowData.length === 0 || growthRate === 130) {
+      // 기준 데이터가 없거나 130%(기준값)이면 원본 데이터 사용
+      return;
+    }
+
+    // 비율 계산: 130%를 기준으로
+    const ratio = growthRate / 130;
+    
+    // 깊은 복사
+    const newData = JSON.parse(JSON.stringify(baseCashFlowData));
+    
+    // 행 인덱스 찾기
+    const findRowIndex = (label: string) => {
+      return newData.findIndex((row: any) => row.label === label);
+    };
+    
+    const onlineIdx = findRowIndex('온라인(US+EU)');
+    const wholesaleIdx = findRowIndex('홀세일');
+    const licenseIdx = findRowIndex('라이선스');
+    const salesIdx = findRowIndex('매출수금');
+    const goodsIdx = findRowIndex('물품대 지출');
+    const adIdx = findRowIndex('광고선전비');
+    const commissionIdx = findRowIndex('지급수수료');
+    const laborIdx = findRowIndex('인건비');
+    const etcCostIdx = findRowIndex('기타비용');
+    const expensesIdx = findRowIndex('비용지출');
+    const operatingIdx = findRowIndex('영업활동');
+    const financeIdx = findRowIndex('재무활동');
+    
+    // 계산 헬퍼 함수
+    const parseNum = (str: string): number => {
+      if (!str || str === '-' || str === '') return 0;
+      // 괄호로 둘러싸인 음수 처리: (1,234) -> -1234
+      if (str.includes('(') && str.includes(')')) {
+        return -parseFloat(str.replace(/[()$,\s]/g, '')) || 0;
+      }
+      return parseFloat(str.replace(/[$,\s]/g, '')) || 0;
+    };
+    
+    const formatNum = (num: number): string => {
+      if (num === 0) return '0';
+      return num < 0 ? `(${Math.abs(num).toLocaleString()})` : num.toLocaleString();
+    };
+    
+    // 월별 처리 (인덱스 1~12 = 1월~12월)
+    for (let col = 1; col <= 12; col++) {
+      // 1월(col=1), 2월(col=2)은 Actual 데이터
+      const isActual = (col === 1 || col === 2);
+      const currentRatio = isActual ? 1.0 : ratio;
+      
+      // 1. 온라인 매출 재계산
+      if (onlineIdx >= 0) {
+        const baseOnline = parseNum(baseCashFlowData[onlineIdx].values[col]);
+        const newOnline = Math.round(baseOnline * currentRatio);
+        newData[onlineIdx].values[col] = formatNum(newOnline);
+        
+        // 매출 증가분 (Actual 기간은 0)
+        const revenueDelta = newOnline - baseOnline;
+        
+        // 2. 광고선전비 재계산 (매출 증가분의 20%)
+        if (adIdx >= 0) {
+          const baseAd = parseNum(baseCashFlowData[adIdx].values[col]);
+          const newAd = Math.round(baseAd - (revenueDelta * 0.20));
+          newData[adIdx].values[col] = formatNum(newAd);
+        }
+        
+        // 3. 지급수수료 재계산 (매출 증가분의 30%)
+        if (commissionIdx >= 0) {
+          const baseCommission = parseNum(baseCashFlowData[commissionIdx].values[col]);
+          const newCommission = Math.round(baseCommission - (revenueDelta * 0.30));
+          newData[commissionIdx].values[col] = formatNum(newCommission);
+        }
+        
+        // 4. 비용지출 재계산 (매출 증가분의 50%)
+        if (expensesIdx >= 0) {
+          const baseExpenses = parseNum(baseCashFlowData[expensesIdx].values[col]);
+          const expenseDelta = -(revenueDelta * 0.50);
+          const newExpenses = Math.round(baseExpenses + expenseDelta);
+          newData[expensesIdx].values[col] = formatNum(newExpenses);
+        }
+      }
+      
+      // 5. 매출수금 합계 재계산
+      if (salesIdx >= 0 && onlineIdx >= 0 && wholesaleIdx >= 0 && licenseIdx >= 0) {
+        const online = parseNum(newData[onlineIdx].values[col]);
+        const wholesale = parseNum(newData[wholesaleIdx].values[col]);
+        const license = parseNum(newData[licenseIdx].values[col]);
+        const salesTotal = Math.round(online + wholesale + license);
+        newData[salesIdx].values[col] = formatNum(salesTotal);
+      }
+      
+      // 6. 영업활동 재계산
+      if (operatingIdx >= 0 && salesIdx >= 0 && goodsIdx >= 0 && expensesIdx >= 0) {
+        const sales = parseNum(newData[salesIdx].values[col]);
+        const goods = parseNum(newData[goodsIdx].values[col]);
+        const expenses = parseNum(newData[expensesIdx].values[col]);
+        const operating = Math.round(sales + goods + expenses);
+        newData[operatingIdx].values[col] = formatNum(operating);
+      }
+    }
+    
+    // 계획 및 합계 재계산
+    for (let i = 0; i < newData.length; i++) {
+      const row = newData[i];
+      
+      // 월별 합계 계산 (1월~12월, 인덱스 1~12)
+      let monthlyTotal = 0;
+      for (let col = 1; col <= 12; col++) {
+        monthlyTotal += parseNum(row.values[col]);
+      }
+      
+      // 2026년(계획) 컬럼 업데이트 (인덱스 13)
+      row.values[13] = formatNum(Math.round(monthlyTotal));
+      
+      // 2026년(합계) 컬럼 업데이트 (인덱스 15)
+      row.values[15] = formatNum(Math.round(monthlyTotal));
+      
+      // 계획-전년 재계산 (인덱스 14)
+      const year2025 = parseNum(row.values[0]);
+      const plan2026 = Math.round(monthlyTotal);
+      row.values[14] = formatNum(plan2026 - year2025);
+      
+      // Rolling-전년 재계산 (인덱스 16)
+      row.values[16] = formatNum(Math.round(monthlyTotal) - year2025);
+      
+      // 계획대비증감 재계산 (인덱스 17)
+      row.values[17] = formatNum(Math.round(monthlyTotal) - plan2026);
+      
+      // 계획대비(%) 재계산 (인덱스 18)
+      const planPercent = plan2026 !== 0 ? Math.round((monthlyTotal / plan2026) * 100) : 0;
+      row.values[18] = `${planPercent}%`;
+    }
+    
+    setCashFlowData(newData);
+  }, [growthRate, baseCashFlowData]);
 
   if (loading) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
