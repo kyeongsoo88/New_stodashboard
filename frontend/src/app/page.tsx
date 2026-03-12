@@ -7252,15 +7252,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
         monthlyTotal += parseNum(row.values[col]);
       }
       
-      // 2026년(계획) 컬럼 업데이트 (인덱스 13)
-      row.values[13] = formatNum(Math.round(monthlyTotal));
+      // 2026년(계획) 컬럼은 CSV 원본 유지 (인덱스 13) - 수정하지 않음
       
       // 2026년(합계) 컬럼 업데이트 (인덱스 15)
       row.values[15] = formatNum(Math.round(monthlyTotal));
       
       // 계획-전년 재계산 (인덱스 14)
       const year2025 = parseNum(row.values[0]);
-      const plan2026 = Math.round(monthlyTotal);
+      const plan2026 = parseNum(row.values[13]); // CSV 원본 계획값 사용
       row.values[14] = formatNum(plan2026 - year2025);
       
       // Rolling-전년 재계산 (인덱스 16)
