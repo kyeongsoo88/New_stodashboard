@@ -6697,6 +6697,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   
   // 성장률 설정 상태
   const [growthRate, setGrowthRate] = React.useState(130);
+  const [inputValue, setInputValue] = React.useState<string>("130");
+  
+  // 성장률 변경 핸들러
+  const handleGrowthRateChange = (rate: number) => {
+    setGrowthRate(rate);
+    setInputValue(String(rate));
+  };
   
   // 섹션별 접기/펼치기 상태
   const [isCashFlowExpanded, setIsCashFlowExpanded] = React.useState(true);
@@ -7191,33 +7198,56 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             <div className="flex items-center gap-2">
                 {/* 성장률 설정 슬라이더 - 현금흐름표에만 표시 */}
                 {tableType === 'flow' && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ backgroundColor: '#2E5C8A' }}>
-                        <span className="text-white text-xs font-semibold whitespace-nowrap">성장률 설정</span>
-                        <span className="text-white text-[10px]">100%</span>
-                        <Slider 
-                            value={[growthRate]} 
-                            onValueChange={(val) => setGrowthRate(val[0])} 
-                            min={100}
-                            max={200} 
-                            step={1} 
-                            className="w-[120px]" 
-                        />
-                        <span className="text-white text-[10px]">200%</span>
-                        <div className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1">
-                            <Input 
-                                type="number" 
-                                value={growthRate} 
-                                onChange={(e) => {
-                                    const val = Number(e.target.value);
-                                    if (val >= 100 && val <= 200) {
-                                        setGrowthRate(val);
-                                    }
-                                }} 
-                                min={100}
-                                max={200}
-                                className="w-[50px] h-6 text-sm font-bold text-right px-1 bg-transparent border-0 focus:outline-none focus:ring-0" 
+                    <div className="flex items-center gap-3 ml-4 bg-blue-800/50 px-4 py-1.5 rounded-lg border border-blue-700">
+                        {/* 레이블 */}
+                        <span className="text-white text-sm font-medium whitespace-nowrap">
+                            성장률 설정
+                        </span>
+                        
+                        {/* Range Slider */}
+                        <div className="flex items-center gap-2">
+                            <span className="text-blue-200 text-xs">100%</span>
+                            <input
+                                type="range"
+                                min="100"
+                                max="200"
+                                step="1"
+                                value={growthRate}
+                                onChange={(e) => handleGrowthRateChange(Number(e.target.value))}
+                                className="w-[150px] h-2 bg-blue-900 rounded-lg appearance-none cursor-pointer accent-white"
                             />
-                            <span className="text-sm font-bold text-gray-900">%</span>
+                            <span className="text-blue-200 text-xs">200%</span>
+                        </div>
+                        
+                        {/* Number Input */}
+                        <div className="flex items-center gap-1">
+                            <input
+                                type="number"
+                                min="100"
+                                max="200"
+                                step="1"
+                                value={inputValue}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setInputValue(val);
+                                    const numVal = Number(val);
+                                    if (!isNaN(numVal) && numVal >= 100 && numVal <= 200) {
+                                        setGrowthRate(numVal);
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    const val = Number(e.target.value);
+                                    if (isNaN(val) || val < 100) {
+                                        handleGrowthRateChange(100);
+                                    } else if (val > 200) {
+                                        handleGrowthRateChange(200);
+                                    } else {
+                                        handleGrowthRateChange(val);
+                                    }
+                                }}
+                                className="w-[60px] px-2 py-1 text-center bg-white text-gray-900 font-bold text-base rounded border border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                            <span className="text-white font-medium text-base">%</span>
                         </div>
                     </div>
                 )}
