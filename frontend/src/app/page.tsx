@@ -7141,8 +7141,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
   // 성장률 변경 시 데이터 재계산
   React.useEffect(() => {
-    if (baseCashFlowData.length === 0 || growthRate === 130) {
-      // 기준 데이터가 없거나 130%(기준값)이면 원본 데이터 사용
+    if (baseCashFlowData.length === 0) {
+      // 기준 데이터가 없으면 아무것도 하지 않음
+      return;
+    }
+
+    // 130%(기준값)이면 원본 데이터를 그대로 사용
+    if (growthRate === 130) {
+      setCashFlowData(JSON.parse(JSON.stringify(baseCashFlowData)));
       return;
     }
 
@@ -7169,6 +7175,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
     const expensesIdx = findRowIndex('비용지출');
     const operatingIdx = findRowIndex('영업활동');
     const financeIdx = findRowIndex('재무활동');
+    const beginningIdx = findRowIndex('기초잔액');
+    const endingIdx = findRowIndex('기말잔액');
+    const netCashIdx = findRowIndex('Net Cash');
     
     // 계산 헬퍼 함수
     const parseNum = (str: string): number => {
@@ -7190,6 +7199,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
       // 1월(col=1), 2월(col=2)은 Actual 데이터
       const isActual = (col === 1 || col === 2);
       const currentRatio = isActual ? 1.0 : ratio;
+      
+      // 이전 달 기말잔액을 현재 달 기초잔액으로 설정
+      if (col > 1 && beginningIdx >= 0 && endingIdx >= 0) {
+        const prevEnding = parseNum(newData[endingIdx].values[col - 1]);
+        newData[beginningIdx].values[col] = formatNum(prevEnding);
+      }
       
       // 1. 온라인 매출 재계산
       if (onlineIdx >= 0) {
@@ -7240,11 +7255,60 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
         const operating = Math.round(sales + goods + expenses);
         newData[operatingIdx].values[col] = formatNum(operating);
       }
+      
+      // 7. 기말잔액 재계산 (기초잔액 + 영업활동 + 재무활동)
+      if (endingIdx >= 0 && beginningIdx >= 0 && operatingIdx >= 0 && financeIdx >= 0) {
+        const beginning = parseNum(newData[beginningIdx].values[col]);
+        const operating = parseNum(newData[operatingIdx].values[col]);
+        const finance = parseNum(newData[financeIdx].values[col]);
+        const netCash = operating + finance;
+        const ending = Math.round(beginning + netCash);
+        newData[endingIdx].values[col] = formatNum(ending);
+      }
+      
+      // 8. Net Cash 재계산 (기말잔액 - 기초잔액)
+      if (netCashIdx >= 0 && endingIdx >= 0 && beginningIdx >= 0) {
+        const ending = parseNum(newData[endingIdx].values[col]);
+        const beginning = parseNum(newData[beginningIdx].values[col]);
+        const netCash = Math.round(ending - beginning);
+        newData[netCashIdx].values[col] = formatNum(netCash);
+      }
     }
     
     // 계획 및 합계 재계산
     for (let i = 0; i < newData.length; i++) {
       const row = newData[i];
+      
+      // 기초잔액 행은 모든 집계 컬럼을 CSV 원본 유지
+      if (row.label === '기초잔액') {
+        continue;
+      }
+      
+      // 기말잔액 행은 특별 계산: 기초잔액 + 영업활동 + 재무활동
+      if (row.label === '기말잔액' && beginningIdx >= 0 && operatingIdx >= 0 && financeIdx >= 0) {
+        const beginningTotal = parseNum(newData[beginningIdx].values[15]); // 기초잔액의 2026년(합계)
+        const operatingTotal = parseNum(newData[operatingIdx].values[15]); // 영업활동의 2026년(합계)
+        const financeTotal = parseNum(newData[financeIdx].values[15]); // 재무활동의 2026년(합계)
+        const endingTotal = Math.round(beginningTotal + operatingTotal + financeTotal);
+        row.values[15] = formatNum(endingTotal);
+        
+        // 계획-전년 재계산
+        const year2025 = parseNum(row.values[0]);
+        const plan2026 = parseNum(row.values[13]);
+        row.values[14] = formatNum(plan2026 - year2025);
+        
+        // Rolling-전년 재계산
+        row.values[16] = formatNum(endingTotal - year2025);
+        
+        // 계획대비증감 재계산
+        row.values[17] = formatNum(endingTotal - plan2026);
+        
+        // 계획대비(%) 재계산
+        const planPercent = plan2026 !== 0 ? Math.round((endingTotal / plan2026) * 100) : 0;
+        row.values[18] = `${planPercent}%`;
+        
+        continue;
+      }
       
       // 월별 합계 계산 (1월~12월, 인덱스 1~12)
       let monthlyTotal = 0;
@@ -7374,6 +7438,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     const numVal = Number(val);
                                     if (!isNaN(numVal) && numVal >= 100 && numVal <= 200) {
                                         setGrowthRate(numVal);
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.currentTarget.blur();
+                                        const val = Number(e.currentTarget.value);
+                                        if (isNaN(val) || val < 100) {
+                                            handleGrowthRateChange(100);
+                                        } else if (val > 200) {
+                                            handleGrowthRateChange(200);
+                                        } else {
+                                            handleGrowthRateChange(val);
+                                        }
                                     }
                                 }}
                                 onBlur={(e) => {
