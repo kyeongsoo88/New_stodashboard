@@ -6848,11 +6848,37 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     
                     // CSV 인덱스: 0=계정과목, 1=25년(합계), 2-13=월별, 14=26년(계획), 15=26년(합계), 16=전년대비
                     const year2025 = vals[1] || '0';
-                    const months = [
+                    let months = [
                         vals[2] || '0', vals[3] || '0', vals[4] || '0', vals[5] || '0',
                         vals[6] || '0', vals[7] || '0', vals[8] || '0', vals[9] || '0',
                         vals[10] || '0', vals[11] || '0', vals[12] || '0', vals[13] || '0'
                     ]; // 1월~12월
+                    
+                    // 온라인(US+EU) 항목의 3월~12월 값을 성장률에 따라 조정
+                    // 기준: 130% (growthRate = 130)
+                    // 성장률 변화율 = (growthRate - 130) / 100
+                    if (label === '온라인(US+EU)') {
+                        const baseGrowthRate = 130;
+                        const growthDiff = (growthRate - baseGrowthRate) / 100; // 예: 131-130 = 1, 1/100 = 0.01 (1%)
+                        
+                        // 3월~12월 (인덱스 2~11)만 조정
+                        months = months.map((monthVal, idx) => {
+                            // 1월(idx=0), 2월(idx=1)은 실적이므로 그대로 유지
+                            if (idx < 2) return monthVal;
+                            
+                            // 3월~12월은 성장률 적용
+                            const parseNum = (str: string) => {
+                                if (!str || str === '-' || str === '') return 0;
+                                return parseFloat(str.replace(/,/g, '').replace(/"/g, '')) || 0;
+                            };
+                            
+                            const baseValue = parseNum(monthVal);
+                            const adjustedValue = baseValue * (1 + growthDiff);
+                            
+                            return adjustedValue === 0 ? '0' : Math.round(adjustedValue).toString();
+                        });
+                    }
+                    
                     const plan2026 = vals[14] || '0';
                     const total2026 = vals[15] || '0';
                     
@@ -7126,7 +7152,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
         }
     };
     fetchData();
-  }, []);
+  }, [growthRate]);
 
   if (loading) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
