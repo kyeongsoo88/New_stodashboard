@@ -7505,8 +7505,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 <h3 className="text-lg font-bold text-slate-800">{title}</h3>
             </div>
             <div className="flex items-center gap-2">
-                {/* 성장률 설정 슬라이더 - 현금흐름표에만 표시 */}
-                {tableType === 'flow' && (
+                {/* 성장률 설정 슬라이더 - 현금흐름표, 현금잔액표, 운전자본표에 표시 */}
+                {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
                     <div className="flex items-center gap-3 ml-4 px-4 py-1.5 rounded-lg border border-[#2c4a6b]" style={{ backgroundColor: '#36597F' }}>
                         {/* 레이블 */}
                         <span className="text-white text-sm font-medium whitespace-nowrap">
