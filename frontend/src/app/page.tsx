@@ -7507,7 +7507,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
             <div className="flex items-center gap-2">
                 {/* 성장률 설정 슬라이더 - 현금흐름표에만 표시 */}
                 {tableType === 'flow' && (
-                    <div className="flex items-center gap-3 ml-4 bg-blue-800/50 px-4 py-1.5 rounded-lg border border-blue-700">
+                    <div className="flex items-center gap-3 ml-4 px-4 py-1.5 rounded-lg border border-[#2c4a6b]" style={{ backgroundColor: '#36597F' }}>
                         {/* 레이블 */}
                         <span className="text-white text-sm font-medium whitespace-nowrap">
                             성장률 설정
@@ -7515,7 +7515,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         
                         {/* Range Slider */}
                         <div className="flex items-center gap-2">
-                            <span className="text-blue-200 text-xs">100%</span>
+                            <span className="text-blue-100 text-xs">100%</span>
                             <input
                                 type="range"
                                 min="100"
@@ -7523,50 +7523,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 step="1"
                                 value={growthRate}
                                 onChange={(e) => handleGrowthRateChange(Number(e.target.value))}
-                                className="w-[150px] h-2 rounded-lg appearance-none cursor-pointer"
-                                style={{
-                                    background: '#3b5998',
-                                    WebkitAppearance: 'none',
-                                    MozAppearance: 'none'
-                                }}
+                                className="growth-rate-slider w-[150px] h-2 rounded-lg cursor-pointer"
                             />
-                            <span className="text-blue-200 text-xs">200%</span>
+                            <span className="text-blue-100 text-xs">200%</span>
                         </div>
-                        
-                        <style jsx>{`
-                            input[type="range"] {
-                                -webkit-appearance: none;
-                                appearance: none;
-                                background: #3b5998 !important;
-                            }
-                            input[type="range"]::-webkit-slider-thumb {
-                                -webkit-appearance: none;
-                                appearance: none;
-                                width: 16px;
-                                height: 16px;
-                                border-radius: 50%;
-                                background: white;
-                                cursor: pointer;
-                            }
-                            input[type="range"]::-moz-range-thumb {
-                                width: 16px;
-                                height: 16px;
-                                border-radius: 50%;
-                                background: white;
-                                border: 0;
-                                cursor: pointer;
-                            }
-                            input[type="range"]::-webkit-slider-runnable-track {
-                                background: #3b5998 !important;
-                                height: 8px;
-                                border-radius: 8px;
-                            }
-                            input[type="range"]::-moz-range-track {
-                                background: #3b5998 !important;
-                                height: 8px;
-                                border-radius: 8px;
-                            }
-                        `}</style>
                         
                         {/* Number Input */}
                         <div className="flex items-center gap-1">

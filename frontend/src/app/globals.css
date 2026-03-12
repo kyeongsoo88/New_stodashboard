@@ -122,3 +122,50 @@
     font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
   }
 }
+
+@layer utilities {
+  /* Growth Rate Slider Styles */
+  .growth-rate-slider {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: #36597F !important;
+    background-color: #36597F !important;
+    outline: none !important;
+  }
+
+  .growth-rate-slider::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    background: white !important;
+    background-color: white !important;
+    cursor: pointer !important;
+  }
+
+  .growth-rate-slider::-moz-range-thumb {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    background: white !important;
+    background-color: white !important;
+    border: 0 !important;
+    cursor: pointer !important;
+  }
+
+  .growth-rate-slider::-webkit-slider-runnable-track {
+    background: #203A60 !important;
+    background-color: #203A60 !important;
+    height: 8px !important;
+    border-radius: 8px !important;
+  }
+
+  .growth-rate-slider::-moz-range-track {
+    background: #203A60 !important;
+    background-color: #203A60 !important;
+    height: 8px !important;
+    border-radius: 8px !important;
+  }
+}
