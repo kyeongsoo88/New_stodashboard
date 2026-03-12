@@ -1083,6 +1083,7 @@ function StorageCostDialog({ data }: { data: any }) {
                             yAxisId="left" 
                             stroke="#9ca3af"
                             style={{ fontSize: '12px' }}
+                            tickFormatter={(value) => value.toLocaleString()}
                             label={{ 
                                 value: '재고원가 ($K)', 
                                 angle: -90, 
@@ -1113,7 +1114,7 @@ function StorageCostDialog({ data }: { data: any }) {
                                 if (name === '재고연동(보관료)%') {
                                     return [`${value.toFixed(1)}%`, name];
                                 }
-                                return [`$${value.toFixed(0)}K`, name];
+                                return [`$${value.toLocaleString()}K`, name];
                             }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} />
@@ -1153,13 +1154,13 @@ function StorageCostDialog({ data }: { data: any }) {
                         <TableRow>
                             <TableCell className="font-medium">재고원가</TableCell>
                             {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.inventory.toFixed(0)}K</TableCell>
+                                <TableCell key={d.month} className="text-center">${d.inventory.toLocaleString()}K</TableCell>
                             ))}
                         </TableRow>
                         <TableRow>
                             <TableCell className="font-medium">보관료 / 물류속박비</TableCell>
                             {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.storageCost.toFixed(0)}</TableCell>
+                                <TableCell key={d.month} className="text-center">${d.storageCost.toLocaleString()}</TableCell>
                             ))}
                         </TableRow>
                         <TableRow>
@@ -8037,9 +8038,11 @@ export default function DashboardPage() {
   
   // CSV 데이터 로딩 상태
   const [dashboardData, setDashboardData] = React.useState<Record<string, Record<string, string>>>({});
+  const [dashboardUSECData, setDashboardUSECData] = React.useState<Record<string, Record<string, string>>>({});
   const [summaryData, setSummaryData] = React.useState<Record<string, Record<string, string>>>({});
   const [directProfitPopupData, setDirectProfitPopupData] = React.useState<DirectProfitPopupData | null>(null);
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
+  const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -8049,6 +8052,7 @@ export default function DashboardPage() {
     const timestamp = new Date().getTime();
     Promise.all([
       fetch(`/data/dashboard-data.csv?t=${timestamp}`).then(res => res.text()),
+      fetch(`/data/dashboard-usec-data.csv?t=${timestamp}`).then(res => res.text()),
       fetch(`/data/dashboard-summary.csv?t=${timestamp}`).then(res => res.text()),
       fetch(`/data/direct-profit-popup.csv?t=${timestamp}`).then(async (res) => {
         const buf = await res.arrayBuffer();
@@ -8062,8 +8066,9 @@ export default function DashboardPage() {
         return new TextDecoder('utf-8').decode(bytes);
       })
     ])
-    .then(([dashboardCsv, summaryCsv, directProfitPopupCsv]) => {
+    .then(([dashboardCsv, usecCsv, summaryCsv, directProfitPopupCsv]) => {
       setDashboardData(parseDashboardCSV(dashboardCsv));
+      setDashboardUSECData(parseDashboardCSV(usecCsv));
       setSummaryData(parseSummaryCSV(summaryCsv));
       setDirectProfitPopupData(parseDirectProfitPopupCSV(directProfitPopupCsv));
       setLoadingDashboard(false);
@@ -8129,10 +8134,17 @@ export default function DashboardPage() {
     
     const csvMonthKey = monthMapping[month] || month;
     
-    if (!summaryData[dataKey] || !summaryData[dataKey][csvMonthKey]) {
+    // 손익요약 데이터의 경우 pnlDataSource에 따라 다른 데이터 소스 사용
+    const dataSource = dataKey.startsWith('손익요약_') && pnlDataSource === 'USEC' 
+      ? dashboardUSECData 
+      : dataKey.startsWith('손익요약_')
+      ? dashboardData
+      : summaryData;
+    
+    if (!dataSource[dataKey] || !dataSource[dataKey][csvMonthKey]) {
       return defaultValue;
     }
-    return summaryData[dataKey][csvMonthKey];
+    return dataSource[dataKey][csvMonthKey];
   };
   
   // 선택된 월에 맞춰 카드 데이터 생성
@@ -8707,7 +8719,7 @@ export default function DashboardPage() {
     ];
     
     return rows;
-  }, [summaryData, currentSelectedMonth, loadingDashboard]);
+  }, [summaryData, dashboardData, dashboardUSECData, currentSelectedMonth, loadingDashboard, pnlDataSource]);
   
   // 직접비요약 데이터 생성
   const directExpenseSummaryData = React.useMemo(() => {
@@ -9578,9 +9590,39 @@ export default function DashboardPage() {
 
         {/* Profit & Loss Table */}
          <div className="space-y-4">
-           <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <h3 className="font-bold text-2xl">손익요약</h3>
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <h3 className="font-bold text-2xl">손익요약</h3>
+             </div>
+             <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+               <Button
+                 variant={pnlDataSource === '전체' ? "default" : "ghost"}
+                 size="sm"
+                 className={cn(
+                   "h-8 px-4 text-sm font-medium transition-all",
+                   pnlDataSource === '전체' 
+                     ? "bg-white shadow-sm hover:bg-white" 
+                     : "hover:bg-gray-200"
+                 )}
+                 onClick={() => setPnlDataSource('전체')}
+               >
+                 전체
+               </Button>
+               <Button
+                 variant={pnlDataSource === 'USEC' ? "default" : "ghost"}
+                 size="sm"
+                 className={cn(
+                   "h-8 px-4 text-sm font-medium transition-all",
+                   pnlDataSource === 'USEC' 
+                     ? "bg-white shadow-sm hover:bg-white" 
+                     : "hover:bg-gray-200"
+                 )}
+                 onClick={() => setPnlDataSource('USEC')}
+               >
+                 US EC
+               </Button>
+             </div>
            </div>
            <Card className="overflow-hidden border-t-4 border-t-green-500">
              <CardHeader className="bg-slate-50/50 py-4 border-b">
