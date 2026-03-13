@@ -1,0 +1,90 @@
+﻿{
+    "2025daily.csv":  {
+                          "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\2025daily.csv",
+                          "size":  894961
+                      },
+    "direct-profit-popup.csv":  {
+                                    "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\direct-profit-popup.csv",
+                                    "size":  800
+                                },
+    "dashboard-summary.csv":  {
+                                  "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\dashboard-summary.csv",
+                                  "size":  26353
+                              },
+    "sto-working-capital-balance-sheet.csv":  {
+                                                  "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-working-capital-balance-sheet.csv",
+                                                  "size":  2882
+                                              },
+    "ste-income-statement-2026.csv":  {
+                                          "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\ste-income-statement-2026.csv",
+                                          "size":  1404
+                                      },
+    "sto-balance-sheet-2026-v2.csv":  {
+                                          "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-balance-sheet-2026-v2.csv",
+                                          "size":  3087
+                                      },
+    "operatingexpense-detail.csv":  {
+                                        "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\operatingexpense-detail.csv",
+                                        "size":  1358
+                                    },
+    "sto-cash-flow-2026.csv":  {
+                                   "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-cash-flow-2026.csv",
+                                   "size":  2241
+                               },
+    "dashboard-data.csv":  {
+                               "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\dashboard-data.csv",
+                               "size":  23013
+                           },
+    "sem-weekly-data.csv":  {
+                                "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sem-weekly-data.csv",
+                                "size":  289
+                            },
+    "sto-income-statement-2026-v3.csv":  {
+                                             "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-income-statement-2026-v3.csv",
+                                             "size":  3314
+                                         },
+    "core-discount-daily.csv":  {
+                                    "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\core-discount-daily.csv",
+                                    "size":  1571
+                                },
+    "dashboard-sample.csv":  {
+                                 "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\dashboard-sample.csv",
+                                 "size":  19969
+                             },
+    "dashboard-summary-data.csv":  {
+                                       "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\dashboard-summary-data.csv",
+                                       "size":  22609
+                                   },
+    "dashboard-usec-data.csv":  {
+                                    "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\dashboard-usec-data.csv",
+                                    "size":  6583
+                                },
+    "operatingexpense.csv":  {
+                                 "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\operatingexpense.csv",
+                                 "size":  5191
+                             },
+    "sto-cash-balance-2026.csv":  {
+                                      "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-cash-balance-2026.csv",
+                                      "size":  395
+                                  },
+    "storage-cost-analysis.csv":  {
+                                      "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\storage-cost-analysis.csv",
+                                      "size":  322
+                                  },
+    "ste-income-statement.csv":  {
+                                     "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\ste-income-statement.csv",
+                                     "size":  1033
+                                 },
+    "sto-working-capital-2026.csv":  {
+                                         "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\sto-working-capital-2026.csv",
+                                         "size":  590
+                                     },
+    "2026daily.csv":  {
+                          "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\2026daily.csv",
+                          "size":  1392749
+                      },
+    "ste-balance-sheet.csv":  {
+                                  "path":  "C:\\업무인수인계\\6.실적보고\\2025년\\stodashboard\\frontend\\public\\data\\ste-balance-sheet.csv",
+                                  "size":  838
+                              }
+}
