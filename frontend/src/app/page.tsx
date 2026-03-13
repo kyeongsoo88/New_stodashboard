@@ -1334,172 +1334,6 @@ function ShippingCostDialog({ data }: { data: any }) {
     );
 }
 
-// SEM광고비 분석 팝업 컴포넌트
-function SEMAdAnalysisDialog({ data }: { data: any }) {
-    const [chartData, setChartData] = React.useState<any[]>([]);
-    const [loading, setLoading] = React.useState(true);
-
-    React.useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(`/data/sem-weekly-data.csv?t=${timestamp}`);
-                const buffer = await response.arrayBuffer();
-                const decoder = new TextDecoder('utf-8');
-                const text = decoder.decode(buffer);
-                
-                const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-                if (lines.length < 2) return;
-
-                const headers = lines[0].split(',').map(h => h.trim().replace(/^\uFEFF/, ''));
-                const parsedData = lines.slice(1).map(line => {
-                    // 따옴표로 감싸진 값 처리 (예: "100,425")
-                    const values: string[] = [];
-                    let inQuotes = false;
-                    let currentValue = '';
-                    
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-                        if (char === '"') {
-                            inQuotes = !inQuotes;
-                        } else if (char === ',' && !inQuotes) {
-                            values.push(currentValue);
-                            currentValue = '';
-                        } else {
-                            currentValue += char;
-                        }
-                    }
-                    values.push(currentValue);
-
-                    const week = values[0];
-                    const adSpend = parseFloat(values[1].replace(/[,"]/g, '')) || 0;
-                    const salesInc = parseFloat(values[2].replace(/[,"]/g, '')) || 0;
-                    const salesExc = parseFloat(values[3].replace(/[,"]/g, '')) || 0;
-                    const ratioInc = parseFloat(values[4].replace(/[%"]/g, '')) || 0;
-                    const ratioExc = parseFloat(values[5].replace(/[%"]/g, '')) || 0;
-
-                    return {
-                        week,
-                        adSpend,
-                        salesInc,
-                        salesExc,
-                        ratioInc,
-                        ratioExc
-                    };
-                });
-                
-                setChartData(parsedData);
-            } catch (error) {
-                console.error('Error fetching SEM weekly data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    if (loading) {
-        return <div className="p-8 text-center">데이터를 불러오는 중...</div>;
-    }
-
-    return (
-        <div className="space-y-4 p-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">주차별 SEM 광고비율 분석</h3>
-                <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                            <XAxis 
-                                dataKey="week" 
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                dy={10}
-                            />
-                            <YAxis 
-                                yAxisId="left"
-                                orientation="left"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: '#6b7280', fontSize: 12 }}
-                                unit="%"
-                                domain={[0, 'auto']}
-                            />
-                        <Tooltip 
-                            contentStyle={{ 
-                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                    border: 'none',
-                                borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                                formatter={(value: any, name: string) => {
-                                    if (name.includes('비율')) return [`${value}%`, name];
-                                    return [`$${value.toLocaleString()}`, name];
-                            }} 
-                        />
-                            <Legend 
-                                wrapperStyle={{ paddingTop: '20px' }}
-                                iconType="circle"
-                            />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="ratioInc"
-                                name="반품 포함 SEM 광고비율"
-                                stroke="#3b82f6"
-                                strokeWidth={3}
-                                dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }}
-                                activeDot={{ r: 6 }}
-                            />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="ratioExc"
-                                name="반품 제외 SEM 광고비율"
-                                stroke="#f59e0b"
-                                strokeWidth={3}
-                                dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }}
-                                activeDot={{ r: 6 }}
-                            />
-                    </ComposedChart>
-                </ResponsiveContainer>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-                <Card className="bg-blue-50 border-blue-100">
-                    <CardContent className="p-4">
-                        <div className="text-sm text-blue-600 font-bold mb-2">반품 포함 매출 기준</div>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-xs text-blue-500 mb-1">평균 광고비율</p>
-                                <p className="text-2xl font-bold text-blue-700">
-                                    {(chartData.reduce((acc, curr) => acc + curr.ratioInc, 0) / chartData.length).toFixed(1)}%
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-amber-50 border-amber-100">
-                    <CardContent className="p-4">
-                        <div className="text-sm text-amber-600 font-bold mb-2">반품 제외 매출 기준</div>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <p className="text-xs text-amber-500 mb-1">평균 광고비율</p>
-                                <p className="text-2xl font-bold text-amber-700">
-                                    {(chartData.reduce((acc, curr) => acc + curr.ratioExc, 0) / chartData.length).toFixed(1)}%
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
-}
-
 // Detailed Expense Card Component
 function DetailedExpenseCard({ 
     title, 
@@ -1511,8 +1345,6 @@ function DetailedExpenseCard({
     period,
     onPeriodChange,
     className,
-    showDetailButton,
-    semPopupData,
     showShippingButton,
     shippingPopupData,
     showStorageButton,
@@ -1527,8 +1359,6 @@ function DetailedExpenseCard({
     period?: "누적" | "당월",
     onPeriodChange?: (period: "누적" | "당월") => void,
     className?: string,
-    showDetailButton?: boolean,
-    semPopupData?: any,
     showShippingButton?: boolean,
     shippingPopupData?: any,
     showStorageButton?: boolean,
@@ -1545,21 +1375,6 @@ function DetailedExpenseCard({
                 <CardTitle className="text-base font-medium text-muted-foreground flex items-center justify-between">
                     <span>{title}</span>
                     <div className="flex items-center gap-2">
-                        {showDetailButton && (
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300">
-                                        상세
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                                    <DialogHeader>
-                                        <DialogTitle>US EC SEM광고비 분석</DialogTitle>
-                                    </DialogHeader>
-                                    <SEMAdAnalysisDialog data={semPopupData} />
-                                </DialogContent>
-                            </Dialog>
-                        )}
                         {showToggle && period && onPeriodChange ? (
                             <div className="flex gap-1">
                                 <Button 
@@ -1703,7 +1518,6 @@ function ExpenseSummarySection({
     iconColor,
     cards,
     defaultPeriod = "누적",
-    semPopupData,
     shippingPopupData,
     storageCostData
 }: {
@@ -1717,7 +1531,6 @@ function ExpenseSummarySection({
         details: { 누적: React.ReactNode, 당월: React.ReactNode }
     }>,
     defaultPeriod?: "누적" | "당월",
-    semPopupData?: any,
     shippingPopupData?: any,
     storageCostData?: any
 }) {
@@ -1741,8 +1554,6 @@ function ExpenseSummarySection({
                         showToggle={index === 0}
                         period={period}
                         onPeriodChange={setPeriod}
-                        showDetailButton={card.title === "SEM광고비"}
-                        semPopupData={card.title === "SEM광고비" ? semPopupData : undefined}
                         showShippingButton={card.title === "운반비"}
                         shippingPopupData={card.title === "운반비" ? shippingPopupData : undefined}
                         showStorageButton={card.title === "보관료"}
@@ -9687,17 +9498,6 @@ export default function DashboardPage() {
         return dashboardData[key][csvMonthKey];
       };
       
-      // SEM광고비 팝업 데이터 - 초기화
-      const semChartData: any[] = [];
-      const semTextData = {
-        yoyText: '',
-        desc1: '',
-        desc2: ''
-      };
-      const semCumulativeSales = 0;
-      const semCumulativeAdSpend = 0;
-      const semAvgRatio = '0';
-    
     // 재고소진계획 팝업 데이터 - CSV의 각 컬럼이 3월부터 11월까지 데이터를 나타냄
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
@@ -9779,15 +9579,6 @@ export default function DashboardPage() {
     });
     
     return {
-      semAd: {
-        chartData: semChartData,
-        textData: semTextData,
-        cumulative: {
-          sales: semCumulativeSales,
-          adSpend: semCumulativeAdSpend,
-          avgRatio: semAvgRatio
-        }
-      },
       inventoryPlan: {
         chartData: inventoryChartData,
         tableData: inventoryTableData
@@ -10288,7 +10079,6 @@ export default function DashboardPage() {
               iconColor="bg-purple-500"
               defaultPeriod="당월"
               cards={directExpenseSummaryData}
-              semPopupData={popupData?.semAd}
               shippingPopupData={popupData?.shippingCost}
               storageCostData={{}}
           />
@@ -10308,7 +10098,6 @@ export default function DashboardPage() {
               iconColor="bg-orange-500"
               defaultPeriod="당월"
               cards={operatingExpenseSummaryData}
-              semPopupData={popupData?.semAd}
           />
         ) : (
           <ExpenseSummarySection
