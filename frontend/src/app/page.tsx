@@ -5044,13 +5044,42 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
         if (parsedHeaders.length > 0) {
           parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
         }
+        
+        // "Rolling-계획" 컬럼을 YoY(Rolling-전년) 다음에 추가
+        const yoyIndex = parsedHeaders.findIndex(h => h.includes('YoY') || h.includes('Rolling-전년'));
+        if (yoyIndex !== -1) {
+          parsedHeaders.splice(yoyIndex + 1, 0, 'Rolling-계획');
+        }
+        
         setHeaders(parsedHeaders);
+
+        // 26년 12월(Rolling)과 26년(계획) 컬럼의 인덱스 찾기
+        const rollingIndex = parsedHeaders.findIndex(h => h.includes('26년 12월') && h.includes('Rolling'));
+        const planIndex = parsedHeaders.findIndex(h => h === '26년(계획)');
 
         const parsedRows = lines.slice(1).map((line) => {
           const values = parseCSVLine(line);
+          
+          // Rolling-계획 값 계산: 26년 12월(Rolling) - 26년(계획)
+          let rollingPlanValue = '';
+          if (rollingIndex !== -1 && planIndex !== -1 && values[rollingIndex] && values[planIndex]) {
+            const rollingVal = parseFloat((values[rollingIndex] || '').replace(/[,$]/g, ''));
+            const planVal = parseFloat((values[planIndex] || '').replace(/[,$]/g, ''));
+            if (!isNaN(rollingVal) && !isNaN(planVal)) {
+              const result = rollingVal - planVal;
+              rollingPlanValue = result.toString();
+            }
+          }
+          
+          // YoY 다음에 Rolling-계획 값 추가
+          const newValues = [...values.slice(1)];
+          if (yoyIndex !== -1) {
+            newValues.splice(yoyIndex, 0, rollingPlanValue);
+          }
+          
           return {
             label: (values[0] || '').trim(),
-            values: values.slice(1),
+            values: newValues,
           };
         });
         setRows(parsedRows);
@@ -5373,13 +5402,42 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
         if (parsedHeaders.length > 0) {
           parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
         }
+        
+        // "Rolling-계획" 컬럼을 YoY(Rolling-전년) 다음에 추가
+        const yoyIndex = parsedHeaders.findIndex(h => h.includes('YoY') || h.includes('Rolling-전년'));
+        if (yoyIndex !== -1) {
+          parsedHeaders.splice(yoyIndex + 1, 0, 'Rolling-계획');
+        }
+        
         setHeaders(parsedHeaders);
+
+        // 26년 12월(Rolling)과 26년(계획) 컬럼의 인덱스 찾기
+        const rollingIndex = parsedHeaders.findIndex(h => h.includes('26년 12월') && h.includes('Rolling'));
+        const planIndex = parsedHeaders.findIndex(h => h === '26년(계획)');
 
         const parsedRows = lines.slice(1).map((line) => {
           const values = parseCSVLine(line);
+          
+          // Rolling-계획 값 계산: 26년 12월(Rolling) - 26년(계획)
+          let rollingPlanValue = '';
+          if (rollingIndex !== -1 && planIndex !== -1 && values[rollingIndex] && values[planIndex]) {
+            const rollingVal = parseFloat((values[rollingIndex] || '').replace(/[,$]/g, ''));
+            const planVal = parseFloat((values[planIndex] || '').replace(/[,$]/g, ''));
+            if (!isNaN(rollingVal) && !isNaN(planVal)) {
+              const result = rollingVal - planVal;
+              rollingPlanValue = result.toString();
+            }
+          }
+          
+          // YoY 다음에 Rolling-계획 값 추가
+          const newValues = [...values.slice(1)];
+          if (yoyIndex !== -1) {
+            newValues.splice(yoyIndex, 0, rollingPlanValue);
+          }
+          
           return {
             label: (values[0] || '').trim(),
-            values: values.slice(1),
+            values: newValues,
           };
         });
         setRows(parsedRows);
