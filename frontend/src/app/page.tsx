@@ -2714,11 +2714,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           
           const label = values[0].trim();
           
-          // 메인 카테고리인지 확인 (숫자.로 시작하거나 Gross Profit, Direct Profit, Operating Profit)
-          const isMainCategory = /^\d+\./.test(label) || 
-                               label === 'Gross Profit' || 
-                               label === 'Direct Profit' || 
-                               label === 'Operating Profit';
+          // 메인 카테고리인지 확인
+          const mainCategories = ['TAG 판매가', '실판 매출', '매출원가', '직접비용', '영업비', '영업이익', 
+                                  'Gross Profit', 'Direct Profit', 'Operating Profit'];
+          const isMainCategory = mainCategories.includes(label) || /^\d+\./.test(label);
           
           // 카테고리 키 추적 (먼저 업데이트)
           if (isMainCategory) {
@@ -2728,12 +2727,12 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             currentSubCategory = label;
           }
                                
-          // 비율 행인지 확인 (%) - 할인율은 2. 실판 매출의 하위 항목
+          // 비율 행인지 확인 (%) - 할인율은 실판 매출의 하위 항목
           const isRatioRow = (label === '(%)' || label === 'Discount Rate') || 
-                            (label === '할인율' && currentMainCategory !== '2. 실판 매출');
+                            (label === '할인율' && currentMainCategory !== '실판 매출');
           
           // E-com의 하위 항목인지 확인 (TAG 판매가 아래에만 해당)
-          const isEcomSubItem = ecomSubItems.includes(label) && currentMainCategory === '1. TAG 판매가';
+          const isEcomSubItem = ecomSubItems.includes(label) && currentMainCategory === 'TAG 판매가';
           
           // 서브 아이템인지 확인 (메인 카테고리도 아니고 비율 행도 아니고 E-com 하위 항목도 아니면)
           const isSubItem = !isMainCategory && !isRatioRow && !isEcomSubItem;
@@ -2744,7 +2743,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           
           if (isMainCategory) {
             categoryKey = label;
-          } else if (isSubItem && label === 'E-com' && currentMainCategory === '1. TAG 판매가') {
+          } else if (isSubItem && label === 'E-com' && currentMainCategory === 'TAG 판매가') {
             // TAG 판매가의 E-com만 자체적으로 토글 가능
             categoryKey = 'TAG-E-com'; // 고유 키로 구분
             parentCategory = currentMainCategory;
@@ -2837,7 +2836,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     if (csvData[i].isMainCategory) {
                       currentCategory = csvData[i].categoryKey;
                     }
-                    if (csvData[i].isSubItem && csvData[i].label === 'E-com' && currentCategory === '1. TAG 판매가') {
+                    if (csvData[i].isSubItem && csvData[i].label === 'E-com' && currentCategory === 'TAG 판매가') {
                       currentSubCategory = 'TAG-E-com';
                       isUnderTagEcom = true;
                     }
@@ -2876,7 +2875,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 if (row.isSubItem && row.label === 'E-com') {
                   for (let i = idx - 1; i >= 0; i--) {
                     if (csvData[i].isMainCategory) {
-                      if (csvData[i].label === '1. TAG 판매가') {
+                      if (csvData[i].label === 'TAG 판매가') {
                         isTagEcom = true;
                       }
                       break;
