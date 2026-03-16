@@ -3912,7 +3912,7 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
         {/* Season별 매출 구성 */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-bold">Season별 매출 구성</CardTitle>
+            <CardTitle className="text-lg font-bold">Season별 매출 구성 (YOY)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[500px] overflow-y-auto pr-2">
@@ -3923,18 +3923,20 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-medium text-sm">{item.name}</span>
-                          <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
+                          <span className="text-sm font-bold">${item.value.toLocaleString()} (비중 {item.percent.toFixed(1)}%)</span>
                         </div>
                         <div className="text-xs text-gray-600 mb-1">
                           할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-4">
+                        <div className="relative w-full bg-gray-200 rounded-full h-4">
+                          {/* 중앙 기준선 (100% YOY) */}
+                          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10"></div>
                           <div 
                             className="bg-blue-500 h-4 rounded-full flex items-center justify-end pr-2"
-                            style={{ width: `${Math.min(item.percent, 100)}%` }}
+                            style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
                           >
-                            {item.percent >= 5 && (
-                              <span className="text-xs text-white font-medium">{item.percent.toFixed(1)}%</span>
+                            {item.yoy >= 10 && (
+                              <span className="text-xs text-white font-medium">{item.yoy.toFixed(0)}%</span>
                             )}
                           </div>
                         </div>
@@ -3954,7 +3956,7 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
         {/* Item별 매출 구성 */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-bold">Item별 매출 구성</CardTitle>
+            <CardTitle className="text-lg font-bold">Item별 매출 구성 (YOY)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[500px] overflow-y-auto pr-2">
@@ -3965,18 +3967,20 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-medium text-sm">{item.name}</span>
-                          <span className="text-sm font-bold">${item.value.toLocaleString()} ({item.percent.toFixed(1)}%)</span>
+                          <span className="text-sm font-bold">${item.value.toLocaleString()} (비중 {item.percent.toFixed(1)}%)</span>
                         </div>
                         <div className="text-xs text-gray-600 mb-1">
                           할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-4">
+                        <div className="relative w-full bg-gray-200 rounded-full h-4">
+                          {/* 중앙 기준선 (100% YOY) */}
+                          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10"></div>
                           <div 
                             className="bg-green-500 h-4 rounded-full flex items-center justify-end pr-2"
-                            style={{ width: `${Math.min(item.percent, 100)}%` }}
+                            style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
                           >
-                            {item.percent >= 5 && (
-                              <span className="text-xs text-white font-medium">{item.percent.toFixed(1)}%</span>
+                            {item.yoy >= 10 && (
+                              <span className="text-xs text-white font-medium">{item.yoy.toFixed(0)}%</span>
                             )}
                           </div>
                         </div>
