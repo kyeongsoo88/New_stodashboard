@@ -3747,7 +3747,23 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
         margin: margin,
         yoy: yoy
       };
-    }).sort((a, b) => b.value - a.value);
+    }).sort((a, b) => {
+      // 고정된 순서 정의
+      const order = ['S26', 'F25', 'S25', 'F24', 'S24', 'CORE'];
+      const indexA = order.indexOf(a.name);
+      const indexB = order.indexOf(b.name);
+      
+      // 둘 다 고정 순서에 있으면 순서대로
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+      // A만 고정 순서에 있으면 A가 앞으로
+      if (indexA !== -1) return -1;
+      // B만 고정 순서에 있으면 B가 앞으로
+      if (indexB !== -1) return 1;
+      // 둘 다 고정 순서에 없으면 매출액 기준 내림차순
+      return b.value - a.value;
+    });
 
     setSeasonData(seasonAggregated);
 
