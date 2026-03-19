@@ -16,7 +16,7 @@ import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
-import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon, TagIcon, CalendarIcon } from "lucide-react"
+import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon, LightbulbIcon, AlertTriangleIcon, TargetIcon, BarChart3Icon, TrendingUpIcon, BriefcaseIcon, WalletIcon, PencilIcon, SaveIcon, XIcon, TagIcon, CalendarIcon, PackageIcon } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -8354,6 +8354,9 @@ export default function DashboardPage() {
     "현금흐름표": "2026-02",
     "영업비 분석": "2026-02",
     "당월 추세": "2026-02",
+    "재고자산(simu)": "2026-02",
+    "PL(simu)": "2026-02",
+    "CF(simu)": "2026-02",
   });
   
   // CSV 데이터 로딩 상태
@@ -9616,6 +9619,9 @@ export default function DashboardPage() {
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
+    { id: "재고자산(simu)", label: "재고자산(simu)", icon: PackageIcon },
+    { id: "PL(simu)", label: "PL(simu)", icon: TrendingUpIcon },
+    { id: "CF(simu)", label: "CF(simu)", icon: WalletIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
@@ -9663,22 +9669,29 @@ export default function DashboardPage() {
         
         {/* Tab Navigation */}
         <div className="bg-gray-100 rounded-lg p-2 flex items-center gap-2">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? "default" : "ghost"}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-md transition-colors",
-                activeTab === tab.id 
-                  ? "bg-blue-600 text-white hover:bg-blue-700" 
-                  : "bg-transparent text-gray-700 hover:bg-gray-200"
-              )}
-            >
-              <tab.icon className={cn("h-5 w-5", activeTab === tab.id ? "text-white" : "text-gray-600")} />
-              <span className="font-medium">{tab.label}</span>
-            </Button>
-          ))}
+          {tabs.map((tab) => {
+            const isSimuTab = tab.id.includes('(simu)');
+            return (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-md transition-colors",
+                  activeTab === tab.id
+                    ? isSimuTab 
+                      ? "bg-purple-600 text-white hover:bg-purple-700"
+                      : "bg-blue-600 text-white hover:bg-blue-700"
+                    : isSimuTab
+                      ? "bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200"
+                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                )}
+              >
+                <tab.icon className={cn("h-5 w-5", activeTab === tab.id ? "text-white" : isSimuTab ? "text-purple-600" : "text-gray-600")} />
+                <span className="font-medium">{tab.label}</span>
+              </Button>
+            );
+          })}
         </div>
 
         {/* 손익계산서 탭 콘텐츠 */}
@@ -9703,6 +9716,60 @@ export default function DashboardPage() {
         
         {/* 영업비 분석 탭 콘텐츠 */}
         {activeTab === "영업비 분석" && <OperatingExpenseSection selectedMonth={currentSelectedMonth} />}
+        
+        {/* 재고자산(simu) 탭 콘텐츠 */}
+        {activeTab === "재고자산(simu)" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>재고자산 시뮬레이션</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center h-[400px] text-gray-500">
+                <div className="text-center">
+                  <PackageIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-lg">재고자산 시뮬레이션 페이지</p>
+                  <p className="text-sm mt-2">준비 중입니다.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* PL(simu) 탭 콘텐츠 */}
+        {activeTab === "PL(simu)" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>손익계산서 시뮬레이션</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center h-[400px] text-gray-500">
+                <div className="text-center">
+                  <TrendingUpIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-lg">손익계산서 시뮬레이션 페이지</p>
+                  <p className="text-sm mt-2">준비 중입니다.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* CF(simu) 탭 콘텐츠 */}
+        {activeTab === "CF(simu)" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>현금흐름 시뮬레이션</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center h-[400px] text-gray-500">
+                <div className="text-center">
+                  <WalletIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-lg">현금흐름 시뮬레이션 페이지</p>
+                  <p className="text-sm mt-2">준비 중입니다.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         {/* 당월 추세 탭 콘텐츠 */}
         {activeTab === "당월 추세" && <MonthlyTrendSection selectedMonth={currentSelectedMonth} />}
