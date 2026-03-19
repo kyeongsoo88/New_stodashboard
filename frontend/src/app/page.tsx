@@ -9740,6 +9740,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>손익계산서 시뮬레이션</CardTitle>
+              <p className="text-sm text-orange-600 font-medium mt-2">
+                ※ 필수 방문순서: 재고자산(simu) 방문후 PL 참고해주세요
+              </p>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-[400px] text-gray-500">
@@ -9758,6 +9761,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>현금흐름 시뮬레이션</CardTitle>
+              <p className="text-sm text-orange-600 font-medium mt-2">
+                ※ 필수 방문순서: 재고자산(simu) → PL(simu) 순차적으로 방문후 데이터 참고해주세요
+              </p>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-[400px] text-gray-500">
