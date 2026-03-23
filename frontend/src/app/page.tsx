@@ -8364,6 +8364,7 @@ export default function DashboardPage() {
   const [directProfitPopupData, setDirectProfitPopupData] = React.useState<DirectProfitPopupData | null>(null);
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
+  const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, ytd26: string, yoy: string, growth: string}>>([]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -8399,6 +8400,40 @@ export default function DashboardPage() {
       setLoadingDashboard(false);
     });
   }, [activeTab]);
+
+  // 시뮬레이션 P/L CSV 로딩
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/simulpl.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+        try {
+          text = new TextDecoder('euc-kr').decode(bytes);
+        } catch {
+          text = new TextDecoder('utf-8').decode(bytes);
+        }
+        return text;
+      })
+      .then(csvText => {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const data = lines.slice(1).map(line => {
+          const values = line.split(',');
+          return {
+            label: values[0] || '',
+            fy25: values[1] || '0',
+            ytd26: values[2] || '0',
+            yoy: values[3] || '0',
+            growth: values[4] || '0'
+          };
+        });
+        setSimulPLData(data);
+      })
+      .catch(err => {
+        console.error('Error loading simulpl.csv:', err);
+      });
+  }, []);
   
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
   const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-01";
@@ -9766,21 +9801,21 @@ export default function DashboardPage() {
                       <tbody>
                         {/* TAG Sales */}
                         <tr className="font-bold bg-gray-50">
-                          <td className="p-2 border">TAG Sales</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.label || 'TAG Sales'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50 font-medium">
-                          <td className="p-2 border pl-6">E-com</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'E-com')?.label || 'E-com'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">26FW</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === '26FW')?.label || '26FW'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
