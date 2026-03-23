@@ -9751,33 +9751,33 @@ export default function DashboardPage() {
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
                             자산
                           </td>
-                          <td className="text-center p-3 border">86,249</td>
-                          <td className="text-center p-3 border bg-yellow-50">
+                          <td className="text-right p-3 border">86,249</td>
+                          <td className="text-right p-3 border bg-yellow-50">
                             <input 
-                              type="number" 
-                              className="w-full px-2 py-1 border rounded text-center"
-                              defaultValue="63791"
+                              type="text" 
+                              className="w-full px-2 py-1 border rounded text-right"
+                              defaultValue="63,791"
                             />
                           </td>
-                          <td className="text-center p-3 border">63,930</td>
+                          <td className="text-right p-3 border">63,930</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">
                             <ChevronRightIcon className="inline w-4 h-4 mr-1" />
                             유동자산
                           </td>
-                          <td className="text-center p-3 border">14,771</td>
-                          <td className="text-center p-3 border">10,529</td>
-                          <td className="text-center p-3 border">10,973</td>
+                          <td className="text-right p-3 border">14,771</td>
+                          <td className="text-right p-3 border">10,529</td>
+                          <td className="text-right p-3 border">10,973</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">
                             <ChevronRightIcon className="inline w-4 h-4 mr-1" />
                             비유동자산
                           </td>
-                          <td className="text-center p-3 border">71,478</td>
-                          <td className="text-center p-3 border">53,262</td>
-                          <td className="text-center p-3 border">52,957</td>
+                          <td className="text-right p-3 border">71,478</td>
+                          <td className="text-right p-3 border">53,262</td>
+                          <td className="text-right p-3 border">52,957</td>
                         </tr>
                         
                         {/* 부채 */}
@@ -9786,27 +9786,27 @@ export default function DashboardPage() {
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
                             부채
                           </td>
-                          <td className="text-center p-3 border">46,089</td>
-                          <td className="text-center p-3 border">24,806</td>
-                          <td className="text-center p-3 border">25,300</td>
+                          <td className="text-right p-3 border">46,089</td>
+                          <td className="text-right p-3 border">24,806</td>
+                          <td className="text-right p-3 border">25,300</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">
                             <ChevronRightIcon className="inline w-4 h-4 mr-1" />
                             유동부채
                           </td>
-                          <td className="text-center p-3 border">5,812</td>
-                          <td className="text-center p-3 border">2,095</td>
-                          <td className="text-center p-3 border">3,500</td>
+                          <td className="text-right p-3 border">5,812</td>
+                          <td className="text-right p-3 border">2,095</td>
+                          <td className="text-right p-3 border">3,500</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">
                             <ChevronRightIcon className="inline w-4 h-4 mr-1" />
                             비유동부채
                           </td>
-                          <td className="text-center p-3 border">40,277</td>
-                          <td className="text-center p-3 border">22,711</td>
-                          <td className="text-center p-3 border">21,800</td>
+                          <td className="text-right p-3 border">40,277</td>
+                          <td className="text-right p-3 border">22,711</td>
+                          <td className="text-right p-3 border">21,800</td>
                         </tr>
 
                         {/* 자본 */}
@@ -9815,21 +9815,21 @@ export default function DashboardPage() {
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
                             자본
                           </td>
-                          <td className="text-center p-3 border">40,159</td>
-                          <td className="text-center p-3 border">38,985</td>
-                          <td className="text-center p-3 border">38,630</td>
+                          <td className="text-right p-3 border">40,159</td>
+                          <td className="text-right p-3 border">38,985</td>
+                          <td className="text-right p-3 border">38,630</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">자본금</td>
-                          <td className="text-center p-3 border">60,672</td>
-                          <td className="text-center p-3 border">60,672</td>
-                          <td className="text-center p-3 border">60,672</td>
+                          <td className="text-right p-3 border">60,672</td>
+                          <td className="text-right p-3 border">60,672</td>
+                          <td className="text-right p-3 border">60,672</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border pl-8">이익잉여금</td>
-                          <td className="text-center p-3 border text-red-600">-20,513</td>
-                          <td className="text-center p-3 border text-red-600">-21,687</td>
-                          <td className="text-center p-3 border text-red-600">-22,042</td>
+                          <td className="text-right p-3 border text-red-600">-20,513</td>
+                          <td className="text-right p-3 border text-red-600">-21,687</td>
+                          <td className="text-right p-3 border text-red-600">-22,042</td>
                         </tr>
                       </tbody>
                     </table>
@@ -9846,39 +9846,102 @@ export default function DashboardPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="bg-orange-900 text-white">
-                          <th className="text-left p-3 font-semibold border">항목</th>
-                          <th className="text-center p-3 font-semibold border">금액</th>
+                        <tr className="bg-gray-100">
+                          <th className="text-center p-3 font-semibold border bg-blue-50">구분</th>
+                          <th className="text-center p-3 font-semibold border">
+                            기초<br/>
+                            <span className="text-xs font-normal">(2025년기말)</span>
+                          </th>
+                          <th className="text-center p-3 font-semibold border">
+                            상품매입<br/>
+                            <span className="text-xs font-normal">(연간)</span>
+                          </th>
+                          <th className="text-center p-3 font-semibold border">
+                            판매<br/>
+                            <span className="text-xs font-normal">(연간)</span>
+                          </th>
+                          <th className="text-center p-3 font-semibold border">
+                            기말<br/>
+                            <span className="text-xs font-normal">(2026년기말)</span>
+                          </th>
+                          <th className="text-center p-3 font-semibold border">
+                            증감<br/>
+                            <span className="text-xs font-normal">(26년-25년)</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="text-sm">
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">기초재고</td>
-                          <td className="text-center p-3 border">$4,874</td>
+                          <td className="p-3 border bg-blue-50 font-medium">재고자산합계</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">당월 매입</td>
-                          <td className="text-center p-3 border">$2,111</td>
+                          <td className="p-3 border font-medium">YOY</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">당월 매출원가</td>
-                          <td className="text-center p-3 border text-red-600">-$485</td>
-                        </tr>
-                        <tr className="bg-orange-50 font-bold">
-                          <td className="p-3 border">기말재고</td>
-                          <td className="text-center p-3 border text-orange-600">$6,500</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">재고회전일수</td>
-                          <td className="text-center p-3 border">45일</td>
+                          <td className="p-3 border">26F</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">재고회전율</td>
-                          <td className="text-center p-3 border">8.1회</td>
+                          <td className="p-3 border">26S</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
                         </tr>
-                        <tr className="bg-blue-50 font-bold">
-                          <td className="p-3 border">재고자산비율</td>
-                          <td className="text-center p-3 border">10.2%</td>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">25F(1분차)</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">25S(1분차)</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">차기시즌</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">관사즌</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">CORE</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
                         </tr>
                       </tbody>
                     </table>
@@ -9909,38 +9972,38 @@ export default function DashboardPage() {
                       <tbody className="text-sm">
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border font-medium">영업활동 현금흐름</td>
-                          <td className="text-center p-3 border">$150</td>
-                          <td className="text-center p-3 border">$120</td>
-                          <td className="text-center p-3 border">$140</td>
-                          <td className="text-center p-3 border font-bold">$410</td>
+                          <td className="text-right p-3 border">150</td>
+                          <td className="text-right p-3 border">120</td>
+                          <td className="text-right p-3 border">140</td>
+                          <td className="text-right p-3 border font-bold">410</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">투자활동 현금흐름</td>
-                          <td className="text-center p-3 border text-red-600">-$50</td>
-                          <td className="text-center p-3 border text-red-600">-$30</td>
-                          <td className="text-center p-3 border text-red-600">-$40</td>
-                          <td className="text-center p-3 border font-bold text-red-600">-$120</td>
+                          <td className="text-right p-3 border text-red-600">-50</td>
+                          <td className="text-right p-3 border text-red-600">-30</td>
+                          <td className="text-right p-3 border text-red-600">-40</td>
+                          <td className="text-right p-3 border font-bold text-red-600">-120</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">재무활동 현금흐름</td>
-                          <td className="text-center p-3 border text-red-600">-$20</td>
-                          <td className="text-center p-3 border text-red-600">-$20</td>
-                          <td className="text-center p-3 border text-red-600">-$20</td>
-                          <td className="text-center p-3 border font-bold text-red-600">-$60</td>
+                          <td className="text-right p-3 border text-red-600">-20</td>
+                          <td className="text-right p-3 border text-red-600">-20</td>
+                          <td className="text-right p-3 border text-red-600">-20</td>
+                          <td className="text-right p-3 border font-bold text-red-600">-60</td>
                         </tr>
                         <tr className="bg-green-50 font-bold">
                           <td className="p-3 border">현금 증감</td>
-                          <td className="text-center p-3 border">$80</td>
-                          <td className="text-center p-3 border">$70</td>
-                          <td className="text-center p-3 border">$80</td>
-                          <td className="text-center p-3 border text-green-600">$230</td>
+                          <td className="text-right p-3 border">80</td>
+                          <td className="text-right p-3 border">70</td>
+                          <td className="text-right p-3 border">80</td>
+                          <td className="text-right p-3 border text-green-600">230</td>
                         </tr>
                         <tr className="bg-blue-50 font-bold">
                           <td className="p-3 border">기말 현금</td>
-                          <td className="text-center p-3 border">$2,562</td>
-                          <td className="text-center p-3 border">$2,632</td>
-                          <td className="text-center p-3 border">$2,712</td>
-                          <td className="text-center p-3 border text-blue-600">$2,712</td>
+                          <td className="text-right p-3 border">2,562</td>
+                          <td className="text-right p-3 border">2,632</td>
+                          <td className="text-right p-3 border">2,712</td>
+                          <td className="text-right p-3 border text-blue-600">2,712</td>
                         </tr>
                       </tbody>
                     </table>
@@ -9965,27 +10028,27 @@ export default function DashboardPage() {
                       <tbody className="text-sm">
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">매출채권</td>
-                          <td className="text-center p-3 border">$519</td>
+                          <td className="text-right p-3 border">519</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">재고자산</td>
-                          <td className="text-center p-3 border">$6,500</td>
+                          <td className="text-right p-3 border">6,500</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">매입채무</td>
-                          <td className="text-center p-3 border text-red-600">-$1,509</td>
+                          <td className="text-right p-3 border text-red-600">-1,509</td>
                         </tr>
                         <tr className="bg-purple-50 font-bold">
                           <td className="p-3 border">순운전자본</td>
-                          <td className="text-center p-3 border text-purple-600">$5,510</td>
+                          <td className="text-right p-3 border text-purple-600">5,510</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-3 border">현금/차입금</td>
-                          <td className="text-center p-3 border text-red-600">-$18,748</td>
+                          <td className="text-right p-3 border text-red-600">-18,748</td>
                         </tr>
                         <tr className="bg-blue-50 font-bold">
                           <td className="p-3 border">순운전자본(현금포함)</td>
-                          <td className="text-center p-3 border text-blue-600">-$13,238</td>
+                          <td className="text-right p-3 border text-blue-600">-13,238</td>
                         </tr>
                       </tbody>
                     </table>
