@@ -9730,106 +9730,620 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 손익계산서 */}
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg font-bold">손익계산서 (P/L) - YTD</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const allExpanded = !document.querySelector('[data-pl-section-collapsed="true"]');
+                      document.querySelectorAll('[data-pl-section]').forEach(row => {
+                        row.setAttribute('data-pl-section-collapsed', allExpanded ? 'true' : 'false');
+                        if (allExpanded) {
+                          row.style.display = 'none';
+                        } else {
+                          row.style.display = '';
+                        }
+                      });
+                    }}
+                    className="text-xs"
+                  >
+                    펼치기/접기
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                    <table className="w-full border-collapse text-sm">
                       <thead>
-                        <tr className="bg-blue-900 text-white">
-                          <th className="text-left p-3 font-semibold border border-blue-800">계정과목</th>
-                          <th className="text-center p-3 font-semibold border border-blue-800">25년 기말</th>
-                          <th className="text-center p-3 font-semibold border border-blue-800">26년 2월(실적)</th>
-                          <th className="text-center p-3 font-semibold border border-blue-800">26년(계획)</th>
+                        <tr className="bg-gray-100">
+                          <th className="text-left p-2 font-semibold border">구분</th>
+                          <th className="text-center p-2 font-semibold border w-[150px]">25FY</th>
+                          <th className="text-center p-2 font-semibold border w-[150px]">26FY YTD</th>
+                          <th className="text-center p-2 font-semibold border w-[150px]">전년대비</th>
                         </tr>
                       </thead>
-                      <tbody className="text-sm">
-                        {/* 자산 */}
-                        <tr className="bg-gray-50 font-bold">
-                          <td className="p-3 border">
-                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            자산
-                          </td>
-                          <td className="text-right p-3 border">86,249</td>
-                          <td className="text-right p-3 border bg-yellow-50">
-                            <input 
-                              type="text" 
-                              className="w-full px-2 py-1 border rounded text-right"
-                              defaultValue="63,791"
-                            />
-                          </td>
-                          <td className="text-right p-3 border">63,930</td>
+                      <tbody>
+                        {/* TAG Sales */}
+                        <tr className="font-bold bg-gray-50">
+                          <td className="p-2 border">TAG Sales</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">
-                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
-                            유동자산
-                          </td>
-                          <td className="text-right p-3 border">14,771</td>
-                          <td className="text-right p-3 border">10,529</td>
-                          <td className="text-right p-3 border">10,973</td>
+                          <td className="p-2 border pl-6">E-com</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">
-                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
-                            비유동자산
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>26FW</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
                           </td>
-                          <td className="text-right p-3 border">71,478</td>
-                          <td className="text-right p-3 border">53,262</td>
-                          <td className="text-right p-3 border">52,957</td>
-                        </tr>
-                        
-                        {/* 부채 */}
-                        <tr className="bg-gray-50 font-bold">
-                          <td className="p-3 border">
-                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            부채
-                          </td>
-                          <td className="text-right p-3 border">46,089</td>
-                          <td className="text-right p-3 border">24,806</td>
-                          <td className="text-right p-3 border">25,300</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">
-                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
-                            유동부채
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>26SS</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
                           </td>
-                          <td className="text-right p-3 border">5,812</td>
-                          <td className="text-right p-3 border">2,095</td>
-                          <td className="text-right p-3 border">3,500</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">
-                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
-                            비유동부채
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>25FW</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
                           </td>
-                          <td className="text-right p-3 border">40,277</td>
-                          <td className="text-right p-3 border">22,711</td>
-                          <td className="text-right p-3 border">21,800</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>25SS</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>CORE</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-2 border pl-6">
+                            <div className="flex items-center gap-3">
+                              <span>관사즌</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <input
+                                  type="range"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (input) input.value = value;
+                                  }}
+                                />
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min="-50"
+                                  max="200"
+                                  defaultValue="0"
+                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    if (slider) slider.value = value;
+                                  }}
+                                />
+                                <span className="text-xs">%</span>
+                                <button
+                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                  onClick={(e) => {
+                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                    if (slider && input) {
+                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                      slider.value = newValue.toString();
+                                      input.value = newValue.toString();
+                                    }
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-2 border pl-6">Wholesale</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
 
-                        {/* 자본 */}
-                        <tr className="bg-gray-50 font-bold">
-                          <td className="p-3 border">
+                        {/* Net Sales */}
+                        <tr className="font-bold bg-gray-100 cursor-pointer hover:bg-gray-200"
+                          onClick={(e) => {
+                            const parent = e.currentTarget;
+                            let sibling = parent.nextElementSibling;
+                            while (sibling && sibling.getAttribute('data-pl-section') === 'net-sales') {
+                              const isHidden = sibling.style.display === 'none';
+                              sibling.style.display = isHidden ? '' : 'none';
+                              sibling = sibling.nextElementSibling;
+                            }
+                          }}
+                        >
+                          <td className="p-2 border">
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            자본
+                            Net Sales
                           </td>
-                          <td className="text-right p-3 border">40,159</td>
-                          <td className="text-right p-3 border">38,985</td>
-                          <td className="text-right p-3 border">38,630</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">E-com</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Wholesale</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">License Revenue</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Others</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">자본금</td>
-                          <td className="text-right p-3 border">60,672</td>
-                          <td className="text-right p-3 border">60,672</td>
-                          <td className="text-right p-3 border">60,672</td>
+                          <td className="p-2 border pl-6">Discount Rate</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">이익잉여금</td>
-                          <td className="text-right p-3 border text-red-600">-20,513</td>
-                          <td className="text-right p-3 border text-red-600">-21,687</td>
-                          <td className="text-right p-3 border text-red-600">-22,042</td>
+
+                        {/* CoGs */}
+                        <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
+                          onClick={(e) => {
+                            const parent = e.currentTarget;
+                            let sibling = parent.nextElementSibling;
+                            while (sibling && sibling.getAttribute('data-pl-section') === 'cogs') {
+                              const isHidden = sibling.style.display === 'none';
+                              sibling.style.display = isHidden ? '' : 'none';
+                              sibling = sibling.nextElementSibling;
+                            }
+                          }}
+                        >
+                          <td className="p-2 border">
+                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
+                            CoGs
+                          </td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">E-com</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Wholesale</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Others</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+
+                        {/* Gross Profit */}
+                        <tr className="font-bold bg-blue-100">
+                          <td className="p-2 border">Gross Profit</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+
+                        {/* 4. Direct Cost */}
+                        <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
+                          onClick={(e) => {
+                            const parent = e.currentTarget;
+                            let sibling = parent.nextElementSibling;
+                            while (sibling && sibling.getAttribute('data-pl-section') === 'direct-cost') {
+                              const isHidden = sibling.style.display === 'none';
+                              sibling.style.display = isHidden ? '' : 'none';
+                              sibling = sibling.nextElementSibling;
+                            }
+                          }}
+                        >
+                          <td className="p-2 border">
+                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
+                            4. Direct Cost
+                          </td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Marketing</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Freight</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Order Processing</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Professional Service</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
+                          <td className="p-2 border pl-6">Others</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+
+                        {/* Direct Profit */}
+                        <tr className="font-bold bg-blue-100">
+                          <td className="p-2 border">Direct Profit</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+
+                        {/* 5. G&A */}
+                        <tr className="font-bold bg-gray-50">
+                          <td className="p-2 border">5. G&A</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                        </tr>
+
+                        {/* Operating Profit */}
+                        <tr className="font-bold bg-blue-100">
+                          <td className="p-2 border">Operating Profit</td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border"></td>
                         </tr>
                       </tbody>
                     </table>
