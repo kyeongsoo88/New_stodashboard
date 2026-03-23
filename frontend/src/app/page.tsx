@@ -10105,7 +10105,7 @@ export default function DashboardPage() {
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">관사즌</span>
+                              <span className="text-gray-600">과시즌</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
