@@ -8354,9 +8354,7 @@ export default function DashboardPage() {
     "현금흐름표": "2026-02",
     "영업비 분석": "2026-02",
     "당월 추세": "2026-02",
-    "재고자산(simu)": "2026-02",
-    "PL(simu)": "2026-02",
-    "CF(simu)": "2026-02",
+    "시뮬레이션": "2026-02",
   });
   
   // CSV 데이터 로딩 상태
@@ -9619,9 +9617,7 @@ export default function DashboardPage() {
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
-    { id: "재고자산(simu)", label: "재고자산(simu)", icon: PackageIcon },
-    { id: "PL(simu)", label: "PL(simu)", icon: TrendingUpIcon },
-    { id: "CF(simu)", label: "CF(simu)", icon: WalletIcon },
+    { id: "시뮬레이션", label: "시뮬레이션", icon: PackageIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
@@ -9717,64 +9713,287 @@ export default function DashboardPage() {
         {/* 영업비 분석 탭 콘텐츠 */}
         {activeTab === "영업비 분석" && <OperatingExpenseSection selectedMonth={currentSelectedMonth} />}
         
-        {/* 재고자산(simu) 탭 콘텐츠 */}
-        {activeTab === "재고자산(simu)" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>재고자산 시뮬레이션</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-[400px] text-gray-500">
-                <div className="text-center">
-                  <PackageIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg">재고자산 시뮬레이션 페이지</p>
-                  <p className="text-sm mt-2">준비 중입니다.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* PL(simu) 탭 콘텐츠 */}
-        {activeTab === "PL(simu)" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>손익계산서 시뮬레이션</CardTitle>
-              <p className="text-sm text-orange-600 font-medium mt-2">
-                ※ 필수 방문순서: 재고자산(simu) 방문후 PL 참고해주세요
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-[400px] text-gray-500">
-                <div className="text-center">
-                  <TrendingUpIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg">손익계산서 시뮬레이션 페이지</p>
-                  <p className="text-sm mt-2">준비 중입니다.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {/* CF(simu) 탭 콘텐츠 */}
-        {activeTab === "CF(simu)" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>현금흐름 시뮬레이션</CardTitle>
-              <p className="text-sm text-orange-600 font-medium mt-2">
-                ※ 필수 방문순서: 재고자산(simu) → PL(simu) 순차적으로 방문후 데이터 참고해주세요
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-[400px] text-gray-500">
-                <div className="text-center">
-                  <WalletIcon className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg">현금흐름 시뮬레이션 페이지</p>
-                  <p className="text-sm mt-2">준비 중입니다.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* 시뮬레이션 탭 콘텐츠 */}
+        {activeTab === "시뮬레이션" && (
+          <div className="space-y-6">
+            {/* 상단 안내 */}
+            <Card>
+              <CardHeader>
+                <CardTitle>시뮬레이션</CardTitle>
+                <p className="text-sm text-blue-600 mt-2">
+                  💡 매출액을 조정하면 연동된 모든 재무제표가 자동으로 업데이트됩니다.
+                </p>
+              </CardHeader>
+            </Card>
+
+            {/* PL (손익계산서) + 재고표 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 손익계산서 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold">손익계산서 (P/L) - YTD</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-blue-900 text-white">
+                          <th className="text-left p-3 font-semibold border border-blue-800">계정과목</th>
+                          <th className="text-center p-3 font-semibold border border-blue-800">25년 기말</th>
+                          <th className="text-center p-3 font-semibold border border-blue-800">26년 2월(실적)</th>
+                          <th className="text-center p-3 font-semibold border border-blue-800">26년(계획)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm">
+                        {/* 자산 */}
+                        <tr className="bg-gray-50 font-bold">
+                          <td className="p-3 border">
+                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
+                            자산
+                          </td>
+                          <td className="text-center p-3 border">86,249</td>
+                          <td className="text-center p-3 border bg-yellow-50">
+                            <input 
+                              type="number" 
+                              className="w-full px-2 py-1 border rounded text-center"
+                              defaultValue="63791"
+                            />
+                          </td>
+                          <td className="text-center p-3 border">63,930</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">
+                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
+                            유동자산
+                          </td>
+                          <td className="text-center p-3 border">14,771</td>
+                          <td className="text-center p-3 border">10,529</td>
+                          <td className="text-center p-3 border">10,973</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">
+                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
+                            비유동자산
+                          </td>
+                          <td className="text-center p-3 border">71,478</td>
+                          <td className="text-center p-3 border">53,262</td>
+                          <td className="text-center p-3 border">52,957</td>
+                        </tr>
+                        
+                        {/* 부채 */}
+                        <tr className="bg-gray-50 font-bold">
+                          <td className="p-3 border">
+                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
+                            부채
+                          </td>
+                          <td className="text-center p-3 border">46,089</td>
+                          <td className="text-center p-3 border">24,806</td>
+                          <td className="text-center p-3 border">25,300</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">
+                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
+                            유동부채
+                          </td>
+                          <td className="text-center p-3 border">5,812</td>
+                          <td className="text-center p-3 border">2,095</td>
+                          <td className="text-center p-3 border">3,500</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">
+                            <ChevronRightIcon className="inline w-4 h-4 mr-1" />
+                            비유동부채
+                          </td>
+                          <td className="text-center p-3 border">40,277</td>
+                          <td className="text-center p-3 border">22,711</td>
+                          <td className="text-center p-3 border">21,800</td>
+                        </tr>
+
+                        {/* 자본 */}
+                        <tr className="bg-gray-50 font-bold">
+                          <td className="p-3 border">
+                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
+                            자본
+                          </td>
+                          <td className="text-center p-3 border">40,159</td>
+                          <td className="text-center p-3 border">38,985</td>
+                          <td className="text-center p-3 border">38,630</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">자본금</td>
+                          <td className="text-center p-3 border">60,672</td>
+                          <td className="text-center p-3 border">60,672</td>
+                          <td className="text-center p-3 border">60,672</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">이익잉여금</td>
+                          <td className="text-center p-3 border text-red-600">-20,513</td>
+                          <td className="text-center p-3 border text-red-600">-21,687</td>
+                          <td className="text-center p-3 border text-red-600">-22,042</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 재고표 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold">재고자산 현황</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-orange-900 text-white">
+                          <th className="text-left p-3 font-semibold border">항목</th>
+                          <th className="text-center p-3 font-semibold border">금액</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm">
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">기초재고</td>
+                          <td className="text-center p-3 border">$4,874</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">당월 매입</td>
+                          <td className="text-center p-3 border">$2,111</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">당월 매출원가</td>
+                          <td className="text-center p-3 border text-red-600">-$485</td>
+                        </tr>
+                        <tr className="bg-orange-50 font-bold">
+                          <td className="p-3 border">기말재고</td>
+                          <td className="text-center p-3 border text-orange-600">$6,500</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">재고회전일수</td>
+                          <td className="text-center p-3 border">45일</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">재고회전율</td>
+                          <td className="text-center p-3 border">8.1회</td>
+                        </tr>
+                        <tr className="bg-blue-50 font-bold">
+                          <td className="p-3 border">재고자산비율</td>
+                          <td className="text-center p-3 border">10.2%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* CF (현금흐름표) + 운전자본 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 현금흐름표 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold">현금흐름표 (C/F)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-green-900 text-white">
+                          <th className="text-left p-3 font-semibold border">항목</th>
+                          <th className="text-center p-3 font-semibold border">26년 1월</th>
+                          <th className="text-center p-3 font-semibold border">26년 2월</th>
+                          <th className="text-center p-3 font-semibold border">26년 3월</th>
+                          <th className="text-center p-3 font-semibold border">누적</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm">
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border font-medium">영업활동 현금흐름</td>
+                          <td className="text-center p-3 border">$150</td>
+                          <td className="text-center p-3 border">$120</td>
+                          <td className="text-center p-3 border">$140</td>
+                          <td className="text-center p-3 border font-bold">$410</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">투자활동 현금흐름</td>
+                          <td className="text-center p-3 border text-red-600">-$50</td>
+                          <td className="text-center p-3 border text-red-600">-$30</td>
+                          <td className="text-center p-3 border text-red-600">-$40</td>
+                          <td className="text-center p-3 border font-bold text-red-600">-$120</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">재무활동 현금흐름</td>
+                          <td className="text-center p-3 border text-red-600">-$20</td>
+                          <td className="text-center p-3 border text-red-600">-$20</td>
+                          <td className="text-center p-3 border text-red-600">-$20</td>
+                          <td className="text-center p-3 border font-bold text-red-600">-$60</td>
+                        </tr>
+                        <tr className="bg-green-50 font-bold">
+                          <td className="p-3 border">현금 증감</td>
+                          <td className="text-center p-3 border">$80</td>
+                          <td className="text-center p-3 border">$70</td>
+                          <td className="text-center p-3 border">$80</td>
+                          <td className="text-center p-3 border text-green-600">$230</td>
+                        </tr>
+                        <tr className="bg-blue-50 font-bold">
+                          <td className="p-3 border">기말 현금</td>
+                          <td className="text-center p-3 border">$2,562</td>
+                          <td className="text-center p-3 border">$2,632</td>
+                          <td className="text-center p-3 border">$2,712</td>
+                          <td className="text-center p-3 border text-blue-600">$2,712</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 운전자본 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold">운전자본</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-purple-900 text-white">
+                          <th className="text-left p-3 font-semibold border">항목</th>
+                          <th className="text-center p-3 font-semibold border">금액</th>
+                        </tr>
+                      </thead>
+                      <tbody className="text-sm">
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">매출채권</td>
+                          <td className="text-center p-3 border">$519</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">재고자산</td>
+                          <td className="text-center p-3 border">$6,500</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">매입채무</td>
+                          <td className="text-center p-3 border text-red-600">-$1,509</td>
+                        </tr>
+                        <tr className="bg-purple-50 font-bold">
+                          <td className="p-3 border">순운전자본</td>
+                          <td className="text-center p-3 border text-purple-600">$5,510</td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border">현금/차입금</td>
+                          <td className="text-center p-3 border text-red-600">-$18,748</td>
+                        </tr>
+                        <tr className="bg-blue-50 font-bold">
+                          <td className="p-3 border">순운전자본(현금포함)</td>
+                          <td className="text-center p-3 border text-blue-600">-$13,238</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
         
         {/* 당월 추세 탭 콘텐츠 */}
