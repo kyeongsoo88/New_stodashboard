@@ -10178,11 +10178,11 @@ export default function DashboardPage() {
                         <tr className="font-bold bg-gray-100 cursor-pointer hover:bg-gray-200"
                           onClick={(e) => {
                             const parent = e.currentTarget;
-                            let sibling = parent.nextElementSibling;
+                            let sibling = parent.nextElementSibling as HTMLElement | null;
                             while (sibling && sibling.getAttribute('data-pl-section') === 'net-sales') {
                               const isHidden = sibling.style.display === 'none';
                               sibling.style.display = isHidden ? '' : 'none';
-                              sibling = sibling.nextElementSibling;
+                              sibling = sibling.nextElementSibling as HTMLElement | null;
                             }
                           }}
                         >
@@ -10229,11 +10229,11 @@ export default function DashboardPage() {
                         <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
                           onClick={(e) => {
                             const parent = e.currentTarget;
-                            let sibling = parent.nextElementSibling;
+                            let sibling = parent.nextElementSibling as HTMLElement | null;
                             while (sibling && sibling.getAttribute('data-pl-section') === 'cogs') {
                               const isHidden = sibling.style.display === 'none';
                               sibling.style.display = isHidden ? '' : 'none';
-                              sibling = sibling.nextElementSibling;
+                              sibling = sibling.nextElementSibling as HTMLElement | null;
                             }
                           }}
                         >
@@ -10276,11 +10276,11 @@ export default function DashboardPage() {
                         <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
                           onClick={(e) => {
                             const parent = e.currentTarget;
-                            let sibling = parent.nextElementSibling;
+                            let sibling = parent.nextElementSibling as HTMLElement | null;
                             while (sibling && sibling.getAttribute('data-pl-section') === 'direct-cost') {
                               const isHidden = sibling.style.display === 'none';
                               sibling.style.display = isHidden ? '' : 'none';
-                              sibling = sibling.nextElementSibling;
+                              sibling = sibling.nextElementSibling as HTMLElement | null;
                             }
                           }}
                         >
