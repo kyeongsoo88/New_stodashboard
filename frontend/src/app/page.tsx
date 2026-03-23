@@ -9873,14 +9873,14 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">26SS</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === '26SS')?.label || '26SS'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -9938,14 +9938,14 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">25FW</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === '25FW')?.label || '25FW'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10003,14 +10003,14 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">25SS</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === '25SS')?.label || '25SS'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10068,14 +10068,14 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">CORE</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === 'CORE')?.label || 'CORE'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10133,14 +10133,14 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
                           <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span className="text-gray-600">과시즌</span>
+                              <span className="text-gray-600">{simulPLData.find(row => row.label === '과시즌')?.label || '과시즌'}</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10198,15 +10198,15 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">Wholesale</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Wholesale')?.label || 'Wholesale'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.yoy || ''}</td>
                         </tr>
 
                         {/* Net Sales */}
@@ -10223,11 +10223,11 @@ export default function DashboardPage() {
                         >
                           <td className="p-2 border">
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            Net Sales
+                            {simulPLData.find(row => row.label === 'Net Sales')?.label || 'Net Sales'}
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
                           <td className="p-2 border pl-6">E-com</td>
@@ -10242,22 +10242,22 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">License Revenue</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'License Revenue')?.label || 'License Revenue'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Others</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Others')?.label || 'Others'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">Discount Rate</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Discount Rate')?.label || 'Discount Rate'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.yoy || ''}</td>
                         </tr>
 
                         {/* CoGs */}
@@ -10274,11 +10274,11 @@ export default function DashboardPage() {
                         >
                           <td className="p-2 border">
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            CoGs
+                            {simulPLData.find(row => row.label === 'CoGs')?.label || 'CoGs'}
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
                           <td className="p-2 border pl-6">E-com</td>
@@ -10301,10 +10301,10 @@ export default function DashboardPage() {
 
                         {/* Gross Profit */}
                         <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">Gross Profit</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.label || 'Gross Profit'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.yoy || ''}</td>
                         </tr>
 
                         {/* 4. Direct Cost */}
@@ -10321,35 +10321,35 @@ export default function DashboardPage() {
                         >
                           <td className="p-2 border">
                             <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            4. Direct Cost
+                            {simulPLData.find(row => row.label === '4. Direct Cost')?.label || '4. Direct Cost'}
                           </td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Marketing</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Marketing')?.label || 'Marketing'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Freight</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Freight')?.label || 'Freight'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Order Processing</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Order Processing')?.label || 'Order Processing'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Professional Service</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Professional Service')?.label || 'Professional Service'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.yoy || ''}</td>
                         </tr>
                         <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
                           <td className="p-2 border pl-6">Others</td>
@@ -10360,26 +10360,26 @@ export default function DashboardPage() {
 
                         {/* Direct Profit */}
                         <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">Direct Profit</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.label || 'Direct Profit'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.yoy || ''}</td>
                         </tr>
 
                         {/* 5. G&A */}
                         <tr className="font-bold bg-gray-50">
-                          <td className="p-2 border">5. G&A</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.label || '5. G&A'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.yoy || ''}</td>
                         </tr>
 
                         {/* Operating Profit */}
                         <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">Operating Profit</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
+                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.label || 'Operating Profit'}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.fy25 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.ytd26 || ''}</td>
+                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.yoy || ''}</td>
                         </tr>
                       </tbody>
                     </table>
