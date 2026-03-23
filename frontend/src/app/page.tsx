@@ -9771,16 +9771,16 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                           <td className="text-right p-2 border"></td>
                         </tr>
-                        <tr className="hover:bg-gray-50">
+                        <tr className="hover:bg-gray-50 font-medium">
                           <td className="p-2 border pl-6">E-com</td>
                           <td className="text-right p-2 border"></td>
                           <td className="text-right p-2 border"></td>
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>26FW</span>
+                              <span className="text-gray-600">26FW</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -9843,9 +9843,9 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>26SS</span>
+                              <span className="text-gray-600">26SS</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -9908,9 +9908,9 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>25FW</span>
+                              <span className="text-gray-600">25FW</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -9973,9 +9973,9 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>25SS</span>
+                              <span className="text-gray-600">25SS</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10038,9 +10038,9 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>CORE</span>
+                              <span className="text-gray-600">CORE</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
@@ -10103,9 +10103,9 @@ export default function DashboardPage() {
                           <td className="text-right p-2 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">
+                          <td className="p-2 border pl-12">
                             <div className="flex items-center gap-3">
-                              <span>관사즌</span>
+                              <span className="text-gray-600">관사즌</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <input
                                   type="range"
