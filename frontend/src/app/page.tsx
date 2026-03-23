@@ -9738,11 +9738,12 @@ export default function DashboardPage() {
                     onClick={() => {
                       const allExpanded = !document.querySelector('[data-pl-section-collapsed="true"]');
                       document.querySelectorAll('[data-pl-section]').forEach(row => {
-                        row.setAttribute('data-pl-section-collapsed', allExpanded ? 'true' : 'false');
+                        const htmlRow = row as HTMLElement;
+                        htmlRow.setAttribute('data-pl-section-collapsed', allExpanded ? 'true' : 'false');
                         if (allExpanded) {
-                          row.style.display = 'none';
+                          htmlRow.style.display = 'none';
                         } else {
-                          row.style.display = '';
+                          htmlRow.style.display = '';
                         }
                       });
                     }}
