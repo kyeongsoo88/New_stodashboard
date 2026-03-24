@@ -10064,27 +10064,27 @@ export default function DashboardPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
                         <thead>
-                          <tr className="bg-purple-900 text-white">
-                            <th className="text-left p-3 font-semibold border">항목</th>
-                            <th className="text-center p-3 font-semibold border">금액</th>
+                          <tr className="bg-[#2E5C8A] text-white">
+                            <th className="text-left p-3 font-semibold border">계정과목</th>
+                            <th className="text-center p-3 font-semibold border">2025년(기말)</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">매출채권</td>
-                            <td className="text-right p-3 border">519</td>
+                            <td className="text-right p-3 border">371</td>
                           </tr>
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">재고자산</td>
-                            <td className="text-right p-3 border">6,500</td>
+                            <td className="text-right p-3 border">4,597</td>
                           </tr>
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">매입채무</td>
-                            <td className="text-right p-3 border text-red-600">-1,509</td>
+                            <td className="text-right p-3 border">4,778</td>
                           </tr>
-                          <tr className="bg-purple-50 font-bold">
-                            <td className="p-3 border">운전자본합계</td>
-                            <td className="text-right p-3 border text-purple-600">5,510</td>
+                          <tr className="bg-blue-50 font-bold">
+                            <td className="p-3 border">운전자본 합계</td>
+                            <td className="text-right p-3 border text-blue-600">190</td>
                           </tr>
                         </tbody>
                       </table>
