@@ -8368,6 +8368,7 @@ export default function DashboardPage() {
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, initial: string, purchase: string, sales: string, final: string, change: string}>>([]);
   const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
+  const [simulWCData, setSimulWCData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string}>>([]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -8514,6 +8515,39 @@ export default function DashboardPage() {
       })
       .catch(err => {
         console.error('Error loading simulcash.csv:', err);
+      });
+  }, []);
+
+  // 시뮬레이션 운전자본 CSV 로딩
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/simulwc.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+        try {
+          text = new TextDecoder('euc-kr').decode(bytes);
+        } catch {
+          text = new TextDecoder('utf-8').decode(bytes);
+        }
+        return text;
+      })
+      .then(csvText => {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const data = lines.slice(1).map(line => {
+          const values = line.split(',');
+          return {
+            label: values[0] || '',
+            col1: values[1] || '',
+            col2: values[2] || '',
+            col3: values[3] || ''
+          };
+        });
+        setSimulWCData(data);
+      })
+      .catch(err => {
+        console.error('Error loading simulwc.csv:', err);
       });
   }, []);
   
@@ -10104,30 +10138,26 @@ export default function DashboardPage() {
                           </tr>
                         </thead>
                         <tbody className="text-sm">
-                          <tr className="hover:bg-gray-50">
-                            <td className="p-3 border">매출채권</td>
-                            <td className="text-right p-3 border">371</td>
-                            <td className="text-right p-3 border">519</td>
-                            <td className="text-right p-3 border">{(519 - 371).toLocaleString()}</td>
-                          </tr>
-                          <tr className="hover:bg-gray-50">
-                            <td className="p-3 border">재고자산</td>
-                            <td className="text-right p-3 border">4,597</td>
-                            <td className="text-right p-3 border">6,500</td>
-                            <td className="text-right p-3 border">{(6500 - 4597).toLocaleString()}</td>
-                          </tr>
-                          <tr className="hover:bg-gray-50">
-                            <td className="p-3 border">매입채무</td>
-                            <td className="text-right p-3 border">4,778</td>
-                            <td className="text-right p-3 border">6,287</td>
-                            <td className="text-right p-3 border">{(6287 - 4778).toLocaleString()}</td>
-                          </tr>
-                          <tr className="bg-blue-50 font-bold">
-                            <td className="p-3 border">운전자본 합계</td>
-                            <td className="text-right p-3 border text-blue-600">190</td>
-                            <td className="text-right p-3 border text-blue-600">{(519 + 6500 - 6287).toLocaleString()}</td>
-                            <td className="text-right p-3 border text-blue-600">{((519 + 6500 - 6287) - 190).toLocaleString()}</td>
-                          </tr>
+                          {simulWCData.map((row, index) => {
+                            const isTotal = row.label === '운전자본 합계';
+                            const rowClass = isTotal ? 'bg-blue-50 font-bold' : 'hover:bg-gray-50';
+                            const textClass = isTotal ? 'text-blue-600' : '';
+                            
+                            return (
+                              <tr key={`wc-row-${index}`} className={rowClass}>
+                                <td className="p-3 border">{row.label}</td>
+                                <td className={`text-right p-3 border ${textClass}`}>
+                                  {row.col1 ? Number(row.col1).toLocaleString() : ''}
+                                </td>
+                                <td className={`text-right p-3 border ${textClass}`}>
+                                  {row.col2 ? Number(row.col2).toLocaleString() : ''}
+                                </td>
+                                <td className={`text-right p-3 border ${textClass}`}>
+                                  {row.col3 ? Number(row.col3).toLocaleString() : ''}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
