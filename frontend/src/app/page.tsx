@@ -10062,13 +10062,13 @@ export default function DashboardPage() {
                   <div className="mt-6">
                     <h3 className="text-lg font-bold mb-3">운전자본</h3>
                     <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
+                      <table className="w-full border-collapse table-fixed">
                         <thead>
-                          <tr className="bg-[#2E5C8A] text-white">
-                            <th className="text-left p-3 font-semibold border">계정과목</th>
-                            <th className="text-center p-3 font-semibold border">2025년(기말)</th>
-                            <th className="text-center p-3 font-semibold border">2026년(YTD)</th>
-                            <th className="text-center p-3 font-semibold border">전년대비</th>
+                          <tr className="bg-[#2E5C8A] text-white text-sm">
+                            <th className="text-left p-3 font-semibold border w-[25%]">계정과목</th>
+                            <th className="text-center p-3 font-semibold border w-[25%]">2025년(기말)</th>
+                            <th className="text-center p-3 font-semibold border w-[25%]">2026년(YTD)</th>
+                            <th className="text-center p-3 font-semibold border w-[25%]">전년대비</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
