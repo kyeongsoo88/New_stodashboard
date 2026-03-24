@@ -9791,7 +9791,7 @@ export default function DashboardPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-sm">
                       <thead>
-                        <tr className="bg-gray-100">
+                        <tr className="bg-[#2E5C8A] text-white">
                           <th className="text-left p-2 font-semibold border">구분</th>
                           <th className="text-center p-2 font-semibold border w-[150px]">25FY</th>
                           <th className="text-center p-2 font-semibold border w-[150px]">26FY YTD</th>
