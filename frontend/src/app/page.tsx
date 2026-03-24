@@ -10150,16 +10150,8 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border text-red-600">-1,509</td>
                         </tr>
                         <tr className="bg-purple-50 font-bold">
-                          <td className="p-3 border">순운전자본</td>
+                          <td className="p-3 border">운전자본합계</td>
                           <td className="text-right p-3 border text-purple-600">5,510</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">현금/차입금</td>
-                          <td className="text-right p-3 border text-red-600">-18,748</td>
-                        </tr>
-                        <tr className="bg-blue-50 font-bold">
-                          <td className="p-3 border">순운전자본(현금포함)</td>
-                          <td className="text-right p-3 border text-blue-600">-13,238</td>
                         </tr>
                       </tbody>
                     </table>
