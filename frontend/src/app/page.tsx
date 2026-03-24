@@ -9801,25 +9801,26 @@ export default function DashboardPage() {
                       <tbody>
                         {simulPLData.map((row, index) => {
                           const label = row.label;
-                          const mainCategories = ['TAG Sales', 'Net Sales', 'CoGs', 'Gross Profit', '4. Direct Cost', 'Direct Profit', '5. G&A', 'Operating Profit'];
+                          // 최상위 층위: TAG매출, 실판매출, 할인율, 매출원가, 매출총이익, 직접비, 직접이익, 판관비, 영업이익
+                          const mainCategories = ['TAG매출', '실판매출', '할인율', '매출원가', '매출총이익', '직접비', '직접이익', '판관비', '영업이익'];
                           const isMainCategory = mainCategories.includes(label);
-                          const profitItems = ['Gross Profit', 'Direct Profit', 'Operating Profit'];
+                          const profitItems = ['매출총이익', '직접이익', '영업이익'];
                           const isProfitHighlight = profitItems.includes(label);
-                          const collapsibleParents = ['Net Sales', 'CoGs', '4. Direct Cost'];
+                          const collapsibleParents = ['실판매출', '매출원가', '직접비'];
                           const isCollapsibleParent = collapsibleParents.includes(label);
-                          const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG Sales');
-                          const isEcom = label === 'E-com' && index === tagSalesIdx + 1;
+                          const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
+                          const isEcom = label === '온라인' && index === tagSalesIdx + 1;
                           const seasonItems = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                           const isSeasonItem = seasonItems.includes(label);
-                          const netSalesIdx = simulPLData.findIndex(r => r.label === 'Net Sales');
-                          const isWholesale = label === 'Wholesale' && index > tagSalesIdx && index < netSalesIdx;
-                          const cogsIdx = simulPLData.findIndex(r => r.label === 'CoGs');
-                          const isNetSalesChild = index > netSalesIdx && index < cogsIdx && !['Net Sales', 'CoGs'].includes(label);
-                          const grossProfitIdx = simulPLData.findIndex(r => r.label === 'Gross Profit');
-                          const isCogsChild = index > cogsIdx && index < grossProfitIdx && !['CoGs', 'Gross Profit'].includes(label);
-                          const directCostIdx = simulPLData.findIndex(r => r.label === '4. Direct Cost');
-                          const directProfitIdx = simulPLData.findIndex(r => r.label === 'Direct Profit');
-                          const isDirectCostChild = index > directCostIdx && index < directProfitIdx && !['4. Direct Cost', 'Direct Profit'].includes(label);
+                          const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
+                          const isWholesale = label === '홀세일' && index > tagSalesIdx && index < netSalesIdx;
+                          const cogsIdx = simulPLData.findIndex(r => r.label === '매출원가');
+                          const isNetSalesChild = index > netSalesIdx && index < cogsIdx && !['실판매출', '매출원가'].includes(label);
+                          const grossProfitIdx = simulPLData.findIndex(r => r.label === '매출총이익');
+                          const isCogsChild = index > cogsIdx && index < grossProfitIdx && !['매출원가', '매출총이익'].includes(label);
+                          const directCostIdx = simulPLData.findIndex(r => r.label === '직접비');
+                          const directProfitIdx = simulPLData.findIndex(r => r.label === '직접이익');
+                          const isDirectCostChild = index > directCostIdx && index < directProfitIdx && !['직접비', '직접이익'].includes(label);
                           
                           let rowClass = '';
                           if (isMainCategory) {
@@ -9854,7 +9855,7 @@ export default function DashboardPage() {
                           const handleClick = isCollapsibleParent ? (e: React.MouseEvent<HTMLTableRowElement>) => {
                             const parent = e.currentTarget;
                             let sibling = parent.nextElementSibling as HTMLElement | null;
-                            const section = label === 'Net Sales' ? 'net-sales' : label === 'CoGs' ? 'cogs' : 'direct-cost';
+                            const section = label === '실판매출' ? 'net-sales' : label === '매출원가' ? 'cogs' : 'direct-cost';
                             while (sibling && sibling.getAttribute('data-pl-section') === section) {
                               const isHidden = sibling.style.display === 'none';
                               sibling.style.display = isHidden ? '' : 'none';
