@@ -9799,588 +9799,148 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {/* TAG Sales */}
-                        <tr className="font-bold bg-gray-50">
-                          <td className="p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.label || 'TAG Sales'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'TAG Sales')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50 font-medium">
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'E-com')?.label || 'E-com'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'E-com')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === '26FW')?.label || '26FW'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26FW')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === '26SS')?.label || '26SS'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '26SS')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === '25FW')?.label || '25FW'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25FW')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === '25SS')?.label || '25SS'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '25SS')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === 'CORE')?.label || 'CORE'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CORE')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-12">
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-600">{simulPLData.find(row => row.label === '과시즌')?.label || '과시즌'}</span>
-                              <div className="flex items-center gap-2 flex-1">
-                                <input
-                                  type="range"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (input) input.value = value;
-                                  }}
-                                />
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  -
-                                </button>
-                                <input
-                                  type="number"
-                                  min="-50"
-                                  max="200"
-                                  defaultValue="0"
-                                  className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    if (slider) slider.value = value;
-                                  }}
-                                />
-                                <span className="text-xs">%</span>
-                                <button
-                                  className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                  onClick={(e) => {
-                                    const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                    const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                    if (slider && input) {
-                                      const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                      slider.value = newValue.toString();
-                                      input.value = newValue.toString();
-                                    }
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '과시즌')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Wholesale')?.label || 'Wholesale'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Wholesale')?.yoy || ''}</td>
-                        </tr>
-
-                        {/* Net Sales */}
-                        <tr className="font-bold bg-gray-100 cursor-pointer hover:bg-gray-200"
-                          onClick={(e) => {
+                        {simulPLData.map((row, index) => {
+                          const label = row.label;
+                          const mainCategories = ['TAG Sales', 'Net Sales', 'CoGs', 'Gross Profit', '4. Direct Cost', 'Direct Profit', '5. G&A', 'Operating Profit'];
+                          const isMainCategory = mainCategories.includes(label);
+                          const profitItems = ['Gross Profit', 'Direct Profit', 'Operating Profit'];
+                          const isProfitHighlight = profitItems.includes(label);
+                          const collapsibleParents = ['Net Sales', 'CoGs', '4. Direct Cost'];
+                          const isCollapsibleParent = collapsibleParents.includes(label);
+                          const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG Sales');
+                          const isEcom = label === 'E-com' && index === tagSalesIdx + 1;
+                          const seasonItems = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                          const isSeasonItem = seasonItems.includes(label);
+                          const netSalesIdx = simulPLData.findIndex(r => r.label === 'Net Sales');
+                          const isWholesale = label === 'Wholesale' && index > tagSalesIdx && index < netSalesIdx;
+                          const cogsIdx = simulPLData.findIndex(r => r.label === 'CoGs');
+                          const isNetSalesChild = index > netSalesIdx && index < cogsIdx && !['Net Sales', 'CoGs'].includes(label);
+                          const grossProfitIdx = simulPLData.findIndex(r => r.label === 'Gross Profit');
+                          const isCogsChild = index > cogsIdx && index < grossProfitIdx && !['CoGs', 'Gross Profit'].includes(label);
+                          const directCostIdx = simulPLData.findIndex(r => r.label === '4. Direct Cost');
+                          const directProfitIdx = simulPLData.findIndex(r => r.label === 'Direct Profit');
+                          const isDirectCostChild = index > directCostIdx && index < directProfitIdx && !['4. Direct Cost', 'Direct Profit'].includes(label);
+                          
+                          let rowClass = '';
+                          if (isMainCategory) {
+                            rowClass = isProfitHighlight ? 'font-bold bg-blue-100' : 'font-bold bg-gray-50';
+                            if (isCollapsibleParent) rowClass += ' cursor-pointer hover:bg-gray-200';
+                          } else if (isEcom) {
+                            rowClass = 'hover:bg-gray-50 font-medium';
+                          } else {
+                            rowClass = 'hover:bg-gray-50';
+                          }
+                          
+                          let indentClass = '';
+                          if (isSeasonItem) {
+                            indentClass = 'pl-12';
+                          } else if (isEcom || isWholesale || isNetSalesChild || isCogsChild || isDirectCostChild) {
+                            indentClass = 'pl-6';
+                          }
+                          
+                          let sectionName = '';
+                          let isHidden = false;
+                          if (isNetSalesChild) {
+                            sectionName = 'net-sales';
+                            isHidden = true;
+                          } else if (isCogsChild) {
+                            sectionName = 'cogs';
+                            isHidden = true;
+                          } else if (isDirectCostChild) {
+                            sectionName = 'direct-cost';
+                            isHidden = true;
+                          }
+                          
+                          const handleClick = isCollapsibleParent ? (e: React.MouseEvent<HTMLTableRowElement>) => {
                             const parent = e.currentTarget;
                             let sibling = parent.nextElementSibling as HTMLElement | null;
-                            while (sibling && sibling.getAttribute('data-pl-section') === 'net-sales') {
+                            const section = label === 'Net Sales' ? 'net-sales' : label === 'CoGs' ? 'cogs' : 'direct-cost';
+                            while (sibling && sibling.getAttribute('data-pl-section') === section) {
                               const isHidden = sibling.style.display === 'none';
                               sibling.style.display = isHidden ? '' : 'none';
                               sibling = sibling.nextElementSibling as HTMLElement | null;
                             }
-                          }}
-                        >
-                          <td className="p-2 border">
-                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            {simulPLData.find(row => row.label === 'Net Sales')?.label || 'Net Sales'}
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Net Sales')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">E-com</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Wholesale</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'License Revenue')?.label || 'License Revenue'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'License Revenue')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="net-sales" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Others')?.label || 'Others'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Others')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Discount Rate')?.label || 'Discount Rate'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Discount Rate')?.yoy || ''}</td>
-                        </tr>
-
-                        {/* CoGs */}
-                        <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
-                          onClick={(e) => {
-                            const parent = e.currentTarget;
-                            let sibling = parent.nextElementSibling as HTMLElement | null;
-                            while (sibling && sibling.getAttribute('data-pl-section') === 'cogs') {
-                              const isHidden = sibling.style.display === 'none';
-                              sibling.style.display = isHidden ? '' : 'none';
-                              sibling = sibling.nextElementSibling as HTMLElement | null;
-                            }
-                          }}
-                        >
-                          <td className="p-2 border">
-                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            {simulPLData.find(row => row.label === 'CoGs')?.label || 'CoGs'}
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'CoGs')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">E-com</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Wholesale</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="cogs" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Others</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-
-                        {/* Gross Profit */}
-                        <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.label || 'Gross Profit'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Gross Profit')?.yoy || ''}</td>
-                        </tr>
-
-                        {/* 4. Direct Cost */}
-                        <tr className="font-bold bg-gray-50 cursor-pointer hover:bg-gray-200"
-                          onClick={(e) => {
-                            const parent = e.currentTarget;
-                            let sibling = parent.nextElementSibling as HTMLElement | null;
-                            while (sibling && sibling.getAttribute('data-pl-section') === 'direct-cost') {
-                              const isHidden = sibling.style.display === 'none';
-                              sibling.style.display = isHidden ? '' : 'none';
-                              sibling = sibling.nextElementSibling as HTMLElement | null;
-                            }
-                          }}
-                        >
-                          <td className="p-2 border">
-                            <ChevronDownIcon className="inline w-4 h-4 mr-1" />
-                            {simulPLData.find(row => row.label === '4. Direct Cost')?.label || '4. Direct Cost'}
-                          </td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '4. Direct Cost')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Marketing')?.label || 'Marketing'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Marketing')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Freight')?.label || 'Freight'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Freight')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Order Processing')?.label || 'Order Processing'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Order Processing')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">{simulPLData.find(row => row.label === 'Professional Service')?.label || 'Professional Service'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Professional Service')?.yoy || ''}</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-pl-section="direct-cost" style={{ display: 'none' }}>
-                          <td className="p-2 border pl-6">Others</td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                          <td className="text-right p-2 border"></td>
-                        </tr>
-
-                        {/* Direct Profit */}
-                        <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.label || 'Direct Profit'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Direct Profit')?.yoy || ''}</td>
-                        </tr>
-
-                        {/* 5. G&A */}
-                        <tr className="font-bold bg-gray-50">
-                          <td className="p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.label || '5. G&A'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === '5. G&A')?.yoy || ''}</td>
-                        </tr>
-
-                        {/* Operating Profit */}
-                        <tr className="font-bold bg-blue-100">
-                          <td className="p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.label || 'Operating Profit'}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.fy25 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.ytd26 || ''}</td>
-                          <td className="text-right p-2 border">{simulPLData.find(row => row.label === 'Operating Profit')?.yoy || ''}</td>
-                        </tr>
+                          } : undefined;
+                          
+                          return (
+                            <tr
+                              key={`pl-row-${index}`}
+                              className={rowClass}
+                              {...(sectionName ? { 'data-pl-section': sectionName } : {})}
+                              style={isHidden ? { display: 'none' } : {}}
+                              {...(handleClick ? { onClick: handleClick } : {})}
+                            >
+                              <td className={`p-2 border ${indentClass}`}>
+                                {isCollapsibleParent && <ChevronDownIcon className="inline w-4 h-4 mr-1" />}
+                                {isSeasonItem ? (
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-gray-600">{label}</span>
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <input
+                                        type="range"
+                                        min="-50"
+                                        max="200"
+                                        defaultValue="0"
+                                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                          if (input) input.value = value;
+                                        }}
+                                      />
+                                      <button
+                                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                          const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                          if (slider && input) {
+                                            const newValue = Math.max(-50, parseInt(slider.value) - 1);
+                                            slider.value = newValue.toString();
+                                            input.value = newValue.toString();
+                                          }
+                                        }}
+                                      >
+                                        -
+                                      </button>
+                                      <input
+                                        type="number"
+                                        min="-50"
+                                        max="200"
+                                        defaultValue="0"
+                                        className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                          if (slider) slider.value = value;
+                                        }}
+                                      />
+                                      <span className="text-xs">%</span>
+                                      <button
+                                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
+                                          const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
+                                          if (slider && input) {
+                                            const newValue = Math.min(200, parseInt(slider.value) + 1);
+                                            slider.value = newValue.toString();
+                                            input.value = newValue.toString();
+                                          }
+                                        }}
+                                      >
+                                        +
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : label}
+                              </td>
+                              <td className="text-right p-2 border">{row.fy25 || ''}</td>
+                              <td className="text-right p-2 border">{row.ytd26 || ''}</td>
+                              <td className="text-right p-2 border">{row.yoy || ''}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
