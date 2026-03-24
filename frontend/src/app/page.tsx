@@ -9652,7 +9652,7 @@ export default function DashboardPage() {
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
-    { id: "시뮬레이션", label: "시뮬레이션", icon: PackageIcon },
+    { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
