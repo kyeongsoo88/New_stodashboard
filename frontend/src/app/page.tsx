@@ -10067,24 +10067,34 @@ export default function DashboardPage() {
                           <tr className="bg-[#2E5C8A] text-white">
                             <th className="text-left p-3 font-semibold border">계정과목</th>
                             <th className="text-center p-3 font-semibold border">2025년(기말)</th>
+                            <th className="text-center p-3 font-semibold border">2026년(YTD)</th>
+                            <th className="text-center p-3 font-semibold border">전년대비</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">매출채권</td>
                             <td className="text-right p-3 border">371</td>
+                            <td className="text-right p-3 border">519</td>
+                            <td className="text-right p-3 border">{(519 - 371).toLocaleString()}</td>
                           </tr>
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">재고자산</td>
                             <td className="text-right p-3 border">4,597</td>
+                            <td className="text-right p-3 border">6,500</td>
+                            <td className="text-right p-3 border">{(6500 - 4597).toLocaleString()}</td>
                           </tr>
                           <tr className="hover:bg-gray-50">
                             <td className="p-3 border">매입채무</td>
                             <td className="text-right p-3 border">4,778</td>
+                            <td className="text-right p-3 border">6,287</td>
+                            <td className="text-right p-3 border">{(6287 - 4778).toLocaleString()}</td>
                           </tr>
                           <tr className="bg-blue-50 font-bold">
                             <td className="p-3 border">운전자본 합계</td>
                             <td className="text-right p-3 border text-blue-600">190</td>
+                            <td className="text-right p-3 border text-blue-600">{(519 + 6500 - 6287).toLocaleString()}</td>
+                            <td className="text-right p-3 border text-blue-600">{((519 + 6500 - 6287) - 190).toLocaleString()}</td>
                           </tr>
                         </tbody>
                       </table>
