@@ -8366,6 +8366,8 @@ export default function DashboardPage() {
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
   const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, ytd26: string, yoy: string, growth: string}>>([]);
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, initial: string, purchase: string, sales: string, final: string, change: string}>>([]);
+  const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
+  const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -8468,6 +8470,50 @@ export default function DashboardPage() {
       })
       .catch(err => {
         console.error('Error loading simulinven.csv:', err);
+      });
+  }, []);
+
+  // 시뮬레이션 현금흐름표 CSV 로딩
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/simulcash.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+        try {
+          text = new TextDecoder('euc-kr').decode(bytes);
+        } catch {
+          text = new TextDecoder('utf-8').decode(bytes);
+        }
+        return text;
+      })
+      .then(csvText => {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        if (lines.length === 0) return;
+        
+        // 첫 번째 행은 헤더
+        const headerLine = lines[0].split(',');
+        setSimulCashHeaders(headerLine.slice(1)); // 첫 번째 컬럼(계정과목) 제외
+        
+        // 나머지 행은 데이터
+        const data = lines.slice(1).map(line => {
+          const values = line.split(',');
+          return {
+            label: values[0] || '',
+            col1: values[1] || '',
+            col2: values[2] || '',
+            col3: values[3] || '',
+            col4: values[4] || '',
+            col5: values[5] || '',
+            col6: values[6] || '',
+            col7: values[7] || ''
+          };
+        });
+        setSimulCashData(data);
+      })
+      .catch(err => {
+        console.error('Error loading simulcash.csv:', err);
       });
   }, []);
   
@@ -10117,232 +10163,104 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">기초현금</td>
-                          <td className="text-right p-3 border">1,084</td>
-                          <td className="text-right p-3 border">7,580</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border">5,578</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border text-red-600">(2,002)</td>
-                          <td className="text-right p-3 border">112%</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">영업활동</td>
-                          <td className="text-right p-3 border">10,668</td>
-                          <td className="text-right p-3 border text-red-600">(7,920)</td>
-                          <td className="text-right p-3 border text-red-600">(13,008)</td>
-                          <td className="text-right p-3 border text-red-600">(12,805)</td>
-                          <td className="text-right p-3 border">105</td>
-                          <td className="text-right p-3 border text-red-600">(4,885)</td>
-                          <td className="text-right p-3 border">98%</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50 cursor-pointer" onClick={(e) => {
-                          const parent = e.currentTarget;
-                          let sibling = parent.nextElementSibling as HTMLElement | null;
-                          while (sibling && sibling.getAttribute('data-cf-section') === 'sales-collection') {
-                            const isHidden = sibling.style.display === 'none';
-                            sibling.style.display = isHidden ? '' : 'none';
-                            sibling = sibling.nextElementSibling as HTMLElement | null;
+                        {simulCashData.map((row, index) => {
+                          const label = row.label;
+                          
+                          // 토글 가능한 부모 항목
+                          const collapsibleParents = ['매출수금', '비용지출'];
+                          const isCollapsibleParent = collapsibleParents.includes(label);
+                          
+                          // 매출수금의 자식 항목들
+                          const salesCollectionChildren = ['온라인(US+EU)', '홀세일', '라이센스'];
+                          const isSalesChild = salesCollectionChildren.includes(label);
+                          
+                          // 비용지출의 자식 항목들
+                          const expenseChildren = ['인건비', '지급수수료', '광고선전비', '기타비용'];
+                          const isExpenseChild = expenseChildren.includes(label);
+                          
+                          // 특별한 스타일이 필요한 행들
+                          const specialRows = ['Net Cash'];
+                          const isSpecialRow = specialRows.includes(label);
+                          
+                          // 행 클래스
+                          let rowClass = 'hover:bg-gray-50';
+                          if (isSpecialRow) rowClass = 'bg-blue-100 font-bold';
+                          if (isCollapsibleParent) rowClass += ' cursor-pointer';
+                          
+                          // 들여쓰기
+                          let indentClass = '';
+                          if (isSalesChild || isExpenseChild) {
+                            indentClass = 'pl-16';
+                          } else if (collapsibleParents.includes(label) || label === '물품비 지출') {
+                            indentClass = 'pl-12';
+                          } else if (label === '영업활동' || label === '재무활동') {
+                            indentClass = 'pl-8';
+                          } else if (!['기초현금', '기말잔액', 'Net Cash'].includes(label)) {
+                            indentClass = 'pl-12';
+                          } else {
+                            indentClass = 'pl-6';
                           }
-                        }}>
-                          <td className="p-3 border pl-12">
-                            <div className="flex items-center justify-between">
-                              <span>매출수금</span>
-                              <ChevronDownIcon className="inline w-4 h-4 ml-1" />
-                            </div>
-                          </td>
-                          <td className="text-right p-3 border">23,264</td>
-                          <td className="text-right p-3 border">26,156</td>
-                          <td className="text-right p-3 border">2,892</td>
-                          <td className="text-right p-3 border">29,932</td>
-                          <td className="text-right p-3 border">2,560</td>
-                          <td className="text-right p-3 border">3,776</td>
-                          <td className="text-right p-3 border text-red-600">(324)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="sales-collection" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">온라인(US+EU)</td>
-                          <td className="text-right p-3 border">20,016</td>
-                          <td className="text-right p-3 border">24,272</td>
-                          <td className="text-right p-3 border">3,729</td>
-                          <td className="text-right p-3 border">24,148</td>
-                          <td className="text-right p-3 border">3,502</td>
-                          <td className="text-right p-3 border text-red-600">(124)</td>
-                          <td className="text-right p-3 border text-red-600">(220)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="sales-collection" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">홀세일</td>
-                          <td className="text-right p-3 border">1,585</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border text-red-600">(243)</td>
-                          <td className="text-right p-3 border">1,248</td>
-                          <td className="text-right p-3 border text-red-600">(342)</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border text-red-600">(95)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="sales-collection" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">라이센스</td>
-                          <td className="text-right p-3 border">1,483</td>
-                          <td className="text-right p-3 border">438</td>
-                          <td className="text-right p-3 border text-red-600">(936)</td>
-                          <td className="text-right p-3 border">438</td>
-                          <td className="text-right p-3 border text-red-600">(855)</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">0</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">물품비 지출</td>
-                          <td className="text-right p-3 border text-red-600">(6,812)</td>
-                          <td className="text-right p-3 border text-red-600">(4,502)</td>
-                          <td className="text-right p-3 border">1,468</td>
-                          <td className="text-right p-3 border text-red-600">(4,520)</td>
-                          <td className="text-right p-3 border">1,632</td>
-                          <td className="text-right p-3 border text-red-600">(18)</td>
-                          <td className="text-right p-3 border">173</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50 cursor-pointer" onClick={(e) => {
-                          const parent = e.currentTarget;
-                          let sibling = parent.nextElementSibling as HTMLElement | null;
-                          while (sibling && sibling.getAttribute('data-cf-section') === 'expense-payment') {
-                            const isHidden = sibling.style.display === 'none';
-                            sibling.style.display = isHidden ? '' : 'none';
-                            sibling = sibling.nextElementSibling as HTMLElement | null;
-                          }
-                        }}>
-                          <td className="p-3 border pl-12">
-                            <div className="flex items-center justify-between">
-                              <span>비용지출</span>
-                              <ChevronDownIcon className="inline w-4 h-4 ml-1" />
-                            </div>
-                          </td>
-                          <td className="text-right p-3 border text-red-600">(14,830)</td>
-                          <td className="text-right p-3 border text-red-600">(24,017)</td>
-                          <td className="text-right p-3 border">616</td>
-                          <td className="text-right p-3 border text-red-600">(24,158)</td>
-                          <td className="text-right p-3 border">473</td>
-                          <td className="text-right p-3 border text-red-600">(141)</td>
-                          <td className="text-right p-3 border text-red-600">(142)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="expense-payment" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">인건비</td>
-                          <td className="text-right p-3 border text-red-600">(4,940)</td>
-                          <td className="text-right p-3 border text-red-600">(3,398)</td>
-                          <td className="text-right p-3 border">274</td>
-                          <td className="text-right p-3 border text-red-600">(5,289)</td>
-                          <td className="text-right p-3 border">201</td>
-                          <td className="text-right p-3 border text-red-600">(1,891)</td>
-                          <td className="text-right p-3 border text-red-600">(73)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="expense-payment" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">지급수수료</td>
-                          <td className="text-right p-3 border text-red-600">(6,261)</td>
-                          <td className="text-right p-3 border text-red-600">(5,329)</td>
-                          <td className="text-right p-3 border">947</td>
-                          <td className="text-right p-3 border text-red-600">(5,244)</td>
-                          <td className="text-right p-3 border">1,002</td>
-                          <td className="text-right p-3 border">85</td>
-                          <td className="text-right p-3 border text-red-600">(44)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="expense-payment" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">광고선전비</td>
-                          <td className="text-right p-3 border text-red-600">(4,962)</td>
-                          <td className="text-right p-3 border text-red-600">(9,224)</td>
-                          <td className="text-right p-3 border text-red-600">(1,421)</td>
-                          <td className="text-right p-3 border text-red-600">(9,823)</td>
-                          <td className="text-right p-3 border text-red-600">(1,650)</td>
-                          <td className="text-right p-3 border text-red-600">(599)</td>
-                          <td className="text-right p-3 border text-red-600">(465)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50" data-cf-section="expense-payment" style={{ display: 'none' }}>
-                          <td className="p-3 border pl-16">기타비용</td>
-                          <td className="text-right p-3 border text-red-600">(6,814)</td>
-                          <td className="text-right p-3 border text-red-600">(8,193)</td>
-                          <td className="text-right p-3 border">725</td>
-                          <td className="text-right p-3 border text-red-600">(7,777)</td>
-                          <td className="text-right p-3 border">1,141</td>
-                          <td className="text-right p-3 border">416</td>
-                          <td className="text-right p-3 border">416</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">재무활동</td>
-                          <td className="text-right p-3 border">70,945</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border text-red-600">(28,843)</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border text-red-600">(28,843)</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">0</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">본사차입</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">16,000</td>
-                          <td className="text-right p-3 border">16,000</td>
-                          <td className="text-right p-3 border">10,273</td>
-                          <td className="text-right p-3 border">10,273</td>
-                          <td className="text-right p-3 border text-red-600">(5,727)</td>
-                          <td className="text-right p-3 border">273</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">STE감자</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">5,805</td>
-                          <td className="text-right p-3 border">5,805</td>
-                          <td className="text-right p-3 border">5,950</td>
-                          <td className="text-right p-3 border">5,950</td>
-                          <td className="text-right p-3 border">145</td>
-                          <td className="text-right p-3 border">0</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">STE청산</td>
-                          <td className="text-right p-3 border text-red-600">(17,985)</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">17,985</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">17,985</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">0</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">STE지분매입</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border text-red-600">(26,262)</td>
-                          <td className="text-right p-3 border text-red-600">(26,262)</td>
-                          <td className="text-right p-3 border text-red-600">(26,163)</td>
-                          <td className="text-right p-3 border text-red-600">(26,163)</td>
-                          <td className="text-right p-3 border">99</td>
-                          <td className="text-right p-3 border text-red-600">(182)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-12">본사차입상환</td>
-                          <td className="text-right p-3 border">7,463</td>
-                          <td className="text-right p-3 border text-red-600">(4,458)</td>
-                          <td className="text-right p-3 border text-red-600">(4,458)</td>
-                          <td className="text-right p-3 border text-red-600">(4,856)</td>
-                          <td className="text-right p-3 border text-red-600">(4,856)</td>
-                          <td className="text-right p-3 border text-red-600">(398)</td>
-                          <td className="text-right p-3 border text-red-600">(182)</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">기말잔액</td>
-                          <td className="text-right p-3 border">3,576</td>
-                          <td className="text-right p-3 border text-red-600">(4,458)</td>
-                          <td className="text-right p-3 border text-red-600">(8,042)</td>
-                          <td className="text-right p-3 border text-red-600">(6,739)</td>
-                          <td className="text-right p-3 border text-red-600">(10,739)</td>
-                          <td className="text-right p-3 border text-red-600">(2,281)</td>
-                          <td className="text-right p-3 border text-red-600">(187)</td>
-                        </tr>
-                        <tr className="bg-blue-100 font-bold">
-                          <td className="p-3 border">Net Cash</td>
-                          <td className="text-right p-3 border">3,576</td>
-                          <td className="text-right p-3 border text-red-600">(4,458)</td>
-                          <td className="text-right p-3 border text-red-600">(8,042)</td>
-                          <td className="text-right p-3 border text-red-600">(6,739)</td>
-                          <td className="text-right p-3 border text-red-600">(10,739)</td>
-                          <td className="text-right p-3 border text-red-600">(2,281)</td>
-                          <td className="text-right p-3 border text-red-600">(187)</td>
-                        </tr>
+                          
+                          // 토글 핸들러
+                          const handleClick = isCollapsibleParent ? (e: React.MouseEvent<HTMLTableRowElement>) => {
+                            const parent = e.currentTarget;
+                            let sibling = parent.nextElementSibling as HTMLElement | null;
+                            const section = label === '매출수금' ? 'sales-collection' : 'expense-payment';
+                            while (sibling && sibling.getAttribute('data-cf-section') === section) {
+                              const isHidden = sibling.style.display === 'none';
+                              sibling.style.display = isHidden ? '' : 'none';
+                              sibling = sibling.nextElementSibling as HTMLElement | null;
+                            }
+                          } : undefined;
+                          
+                          // 숨김 처리 및 섹션 태그
+                          const sectionAttr = isSalesChild ? 'sales-collection' : isExpenseChild ? 'expense-payment' : '';
+                          const isHidden = isSalesChild || isExpenseChild;
+                          
+                          // 값 포맷팅 함수
+                          const formatValue = (val: string) => {
+                            if (!val || val === '') return '';
+                            // 괄호로 둘러싸인 음수 처리
+                            if (val.startsWith('(') && val.endsWith(')')) {
+                              return val; // 이미 괄호로 둘러싸여 있음
+                            }
+                            return val;
+                          };
+                          
+                          // 셀 클래스 (빨간색 텍스트)
+                          const getCellClass = (val: string) => {
+                            if (val && (val.startsWith('(') || val.startsWith('-'))) {
+                              return 'text-right p-3 border text-red-600';
+                            }
+                            return 'text-right p-3 border';
+                          };
+                          
+                          return (
+                            <tr 
+                              key={`cf-row-${index}`}
+                              className={rowClass}
+                              {...(sectionAttr ? { 'data-cf-section': sectionAttr } : {})}
+                              {...(isHidden ? { style: { display: 'none' } } : {})}
+                              {...(handleClick ? { onClick: handleClick } : {})}
+                            >
+                              <td className={`p-3 border ${indentClass}`}>
+                                {isCollapsibleParent ? (
+                                  <div className="flex items-center justify-between">
+                                    <span>{label}</span>
+                                    <ChevronDownIcon className="inline w-4 h-4 ml-1" />
+                                  </div>
+                                ) : label}
+                              </td>
+                              <td className={getCellClass(row.col1)}>{formatValue(row.col1)}</td>
+                              <td className={getCellClass(row.col2)}>{formatValue(row.col2)}</td>
+                              <td className={getCellClass(row.col3)}>{formatValue(row.col3)}</td>
+                              <td className={getCellClass(row.col4)}>{formatValue(row.col4)}</td>
+                              <td className={getCellClass(row.col5)}>{formatValue(row.col5)}</td>
+                              <td className={getCellClass(row.col6)}>{formatValue(row.col6)}</td>
+                              <td className={getCellClass(row.col7)}>{formatValue(row.col7)}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
