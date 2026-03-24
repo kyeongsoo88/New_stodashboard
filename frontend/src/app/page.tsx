@@ -9982,7 +9982,7 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody className="text-sm">
-                        <tr className="hover:bg-gray-50">
+                        <tr className="bg-blue-100">
                           <td className="p-3 border font-medium">재고자산합계</td>
                           <td className="text-right p-3 border"></td>
                           <td className="text-right p-3 border"></td>
