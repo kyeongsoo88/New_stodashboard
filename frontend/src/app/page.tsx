@@ -9766,7 +9766,7 @@ export default function DashboardPage() {
               {/* 손익계산서 */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg font-bold">손익계산서 (P/L) - YTD</CardTitle>
+                  <CardTitle className="text-lg font-bold">손익계산서 YTD</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
