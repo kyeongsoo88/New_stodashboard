@@ -10057,42 +10057,38 @@ export default function DashboardPage() {
                       </tbody>
                     </table>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* 운전자본 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg font-bold">운전자본</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-purple-900 text-white">
-                          <th className="text-left p-3 font-semibold border">항목</th>
-                          <th className="text-center p-3 font-semibold border">금액</th>
-                        </tr>
-                      </thead>
-                      <tbody className="text-sm">
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">매출채권</td>
-                          <td className="text-right p-3 border">519</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">재고자산</td>
-                          <td className="text-right p-3 border">6,500</td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">매입채무</td>
-                          <td className="text-right p-3 border text-red-600">-1,509</td>
-                        </tr>
-                        <tr className="bg-purple-50 font-bold">
-                          <td className="p-3 border">운전자본합계</td>
-                          <td className="text-right p-3 border text-purple-600">5,510</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  {/* 운전자본 테이블 */}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-bold mb-3">운전자본</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-purple-900 text-white">
+                            <th className="text-left p-3 font-semibold border">항목</th>
+                            <th className="text-center p-3 font-semibold border">금액</th>
+                          </tr>
+                        </thead>
+                        <tbody className="text-sm">
+                          <tr className="hover:bg-gray-50">
+                            <td className="p-3 border">매출채권</td>
+                            <td className="text-right p-3 border">519</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50">
+                            <td className="p-3 border">재고자산</td>
+                            <td className="text-right p-3 border">6,500</td>
+                          </tr>
+                          <tr className="hover:bg-gray-50">
+                            <td className="p-3 border">매입채무</td>
+                            <td className="text-right p-3 border text-red-600">-1,509</td>
+                          </tr>
+                          <tr className="bg-purple-50 font-bold">
+                            <td className="p-3 border">운전자본합계</td>
+                            <td className="text-right p-3 border text-purple-600">5,510</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
