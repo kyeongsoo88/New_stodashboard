@@ -9872,7 +9872,6 @@ export default function DashboardPage() {
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
                               <td className={`p-2 border ${indentClass}`}>
-                                {isCollapsibleParent && <ChevronDownIcon className="inline w-4 h-4 mr-1" />}
                                 {isSeasonItem ? (
                                   <div className="flex items-center gap-3">
                                     <span className="text-gray-600">{label}</span>
@@ -9934,7 +9933,12 @@ export default function DashboardPage() {
                                       </button>
                                     </div>
                                   </div>
-                                ) : label}
+                                ) : (
+                                  <div className="flex items-center justify-between">
+                                    <span>{label}</span>
+                                    {isCollapsibleParent && <ChevronDownIcon className="inline w-4 h-4 ml-1" />}
+                                  </div>
+                                )}
                               </td>
                               <td className="text-right p-2 border">{row.fy25 || ''}</td>
                               <td className="text-right p-2 border">{row.ytd26 || ''}</td>
