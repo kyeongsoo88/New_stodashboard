@@ -8365,6 +8365,7 @@ export default function DashboardPage() {
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
   const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, ytd26: string, yoy: string, growth: string}>>([]);
+  const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, initial: string, purchase: string, sales: string, final: string, change: string}>>([]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -8432,6 +8433,41 @@ export default function DashboardPage() {
       })
       .catch(err => {
         console.error('Error loading simulpl.csv:', err);
+      });
+  }, []);
+
+  // 시뮬레이션 재고자산 CSV 로딩
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/simulinven.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+        try {
+          text = new TextDecoder('euc-kr').decode(bytes);
+        } catch {
+          text = new TextDecoder('utf-8').decode(bytes);
+        }
+        return text;
+      })
+      .then(csvText => {
+        const lines = csvText.split('\n').filter(line => line.trim());
+        const data = lines.slice(1).map(line => {
+          const values = line.split(',');
+          return {
+            label: values[0] || '',
+            initial: values[1] || '0',
+            purchase: values[2] || '0',
+            sales: values[3] || '0',
+            final: values[4] || '0',
+            change: values[5] || '0'
+          };
+        });
+        setSimulInvenData(data);
+      })
+      .catch(err => {
+        console.error('Error loading simulinven.csv:', err);
       });
   }, []);
   
@@ -9976,78 +10012,34 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody className="text-sm">
-                        <tr className="bg-blue-100">
-                          <td className="p-3 border border-gray-300 font-medium">재고자산합계</td>
-                          <td className="text-right p-3 border border-gray-300"></td>
-                          <td className="text-right p-3 border border-gray-300"></td>
-                          <td className="text-right p-3 border border-gray-300"></td>
-                          <td className="text-right p-3 border border-gray-300"></td>
-                          <td className="text-right p-3 border border-gray-300"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border font-medium">YOY</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">26F</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">26S</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">25F(1분차)</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">25S(1분차)</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">차기시즌</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">관사즌</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border">CORE</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
+                        {simulInvenData.map((row, index) => {
+                          const isFirstRow = index === 0;
+                          const rowClass = isFirstRow ? 'bg-blue-100' : 'hover:bg-gray-50';
+                          const borderClass = isFirstRow ? 'border border-gray-300' : 'border';
+                          
+                          return (
+                            <tr key={`inven-row-${index}`} className={rowClass}>
+                              <td className={`p-3 ${borderClass} ${isFirstRow ? 'font-medium' : ''}`}>
+                                {row.label}
+                              </td>
+                              <td className={`text-right p-3 ${borderClass}`}>
+                                {row.initial !== '0' ? Number(row.initial).toLocaleString() : ''}
+                              </td>
+                              <td className={`text-right p-3 ${borderClass}`}>
+                                {row.purchase !== '0' ? Number(row.purchase).toLocaleString() : ''}
+                              </td>
+                              <td className={`text-right p-3 ${borderClass}`}>
+                                {row.sales !== '0' ? Number(row.sales).toLocaleString() : ''}
+                              </td>
+                              <td className={`text-right p-3 ${borderClass}`}>
+                                {row.final !== '0' ? Number(row.final).toLocaleString() : ''}
+                              </td>
+                              <td className={`text-right p-3 ${borderClass}`}>
+                                {row.change !== '0' ? Number(row.change).toLocaleString() : ''}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
