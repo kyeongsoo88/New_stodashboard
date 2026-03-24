@@ -10175,21 +10175,21 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-sm">
+                    <table className="w-full border-collapse text-sm table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-3 font-semibold border" rowSpan={2}>계정과목</th>
-                          <th className="text-center p-3 font-semibold border" rowSpan={2}>2025년(확정)</th>
-                          <th className="text-center p-3 font-semibold border" colSpan={2}>계획</th>
-                          <th className="text-center p-3 font-semibold border" colSpan={4}>2026년 Rolling</th>
+                          <th className="text-center p-3 font-semibold border w-[20%]" rowSpan={2}>계정과목</th>
+                          <th className="text-center p-3 font-semibold border w-[10%]" rowSpan={2}>2025년(확정)</th>
+                          <th className="text-center p-3 font-semibold border w-[20%]" colSpan={2}>계획</th>
+                          <th className="text-center p-3 font-semibold border w-[50%]" colSpan={4}>2026년 Rolling</th>
                         </tr>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-2 border">2026년(예상)</th>
-                          <th className="text-center p-2 border">계획-근거</th>
-                          <th className="text-center p-2 border">2026년(운영)</th>
-                          <th className="text-center p-2 border">Rolling-근거</th>
-                          <th className="text-center p-2 border">계획대비증감</th>
-                          <th className="text-center p-2 border">계획대비(%)</th>
+                          <th className="text-center p-2 border w-[10%]">2026년(예상)</th>
+                          <th className="text-center p-2 border w-[10%]">계획-근거</th>
+                          <th className="text-center p-2 border w-[12.5%]">2026년(운영)</th>
+                          <th className="text-center p-2 border w-[12.5%]">Rolling-근거</th>
+                          <th className="text-center p-2 border w-[12.5%]">계획대비증감</th>
+                          <th className="text-center p-2 border w-[12.5%]">계획대비(%)</th>
                         </tr>
                       </thead>
                       <tbody>
