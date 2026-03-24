@@ -9955,27 +9955,27 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
+                    <table className="w-full border-collapse table-fixed">
                       <thead>
-                        <tr className="bg-gray-100">
-                          <th className="text-center p-3 font-semibold border bg-blue-50">구분</th>
-                          <th className="text-center p-3 font-semibold border">
+                        <tr className="bg-[#2E5C8A] text-white text-sm">
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">구분</th>
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">
                             기초<br/>
                             <span className="text-xs font-normal">(2025년기말)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border">
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">
                             상품매입<br/>
                             <span className="text-xs font-normal">(연간)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border">
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">
                             판매<br/>
                             <span className="text-xs font-normal">(연간)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border">
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">
                             기말<br/>
                             <span className="text-xs font-normal">(2026년기말)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border">
+                          <th className="text-center p-3 font-semibold border w-[16.67%]">
                             증감<br/>
                             <span className="text-xs font-normal">(26년-25년)</span>
                           </th>
@@ -9983,7 +9983,7 @@ export default function DashboardPage() {
                       </thead>
                       <tbody className="text-sm">
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border bg-blue-50 font-medium">재고자산합계</td>
+                          <td className="p-3 border font-medium">재고자산합계</td>
                           <td className="text-right p-3 border"></td>
                           <td className="text-right p-3 border"></td>
                           <td className="text-right p-3 border"></td>
