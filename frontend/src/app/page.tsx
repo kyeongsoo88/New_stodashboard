@@ -10123,8 +10123,19 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="bg-gray-100 font-bold">
-                          <td className="p-3 border">기초현금</td>
+                        <tr className="bg-[#2E5C8A] text-white font-bold">
+                          <td className="p-3 border">계정과목</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-6">기초현금</td>
                           <td className="text-right p-3 border">1,084</td>
                           <td className="text-right p-3 border">7,580</td>
                           <td className="text-right p-3 border"></td>
@@ -10135,128 +10146,7 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">당기순익</td>
-                          <td className="text-right p-3 border text-red-600">(2,414)</td>
-                          <td className="text-right p-3 border text-red-600">(2,470)</td>
-                          <td className="text-right p-3 border">4,866</td>
-                          <td className="text-right p-3 border text-red-600">(7,765)</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border">112%</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">매출채권</td>
-                          <td className="text-right p-3 border">23,264</td>
-                          <td className="text-right p-3 border">26,156</td>
-                          <td className="text-right p-3 border">2,892</td>
-                          <td className="text-right p-3 border">29,932</td>
-                          <td className="text-right p-3 border">2,560</td>
-                          <td className="text-right p-3 border text-red-600">(324)</td>
-                          <td className="text-right p-3 border">99%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">관리비용(CF)</td>
-                          <td className="text-right p-3 border">20,016</td>
-                          <td className="text-right p-3 border">24,272</td>
-                          <td className="text-right p-3 border">3,729</td>
-                          <td className="text-right p-3 border">24,148</td>
-                          <td className="text-right p-3 border">3,502</td>
-                          <td className="text-right p-3 border text-red-600">(220)</td>
-                          <td className="text-right p-3 border">99%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">물류비</td>
-                          <td className="text-right p-3 border">1,585</td>
-                          <td className="text-right p-3 border"></td>
-                          <td className="text-right p-3 border text-red-600">(243)</td>
-                          <td className="text-right p-3 border">1,248</td>
-                          <td className="text-right p-3 border text-red-600">(342)</td>
-                          <td className="text-right p-3 border text-red-600">(95)</td>
-                          <td className="text-right p-3 border">-23%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">아임센스</td>
-                          <td className="text-right p-3 border">1,483</td>
-                          <td className="text-right p-3 border">438</td>
-                          <td className="text-right p-3 border text-red-600">(936)</td>
-                          <td className="text-right p-3 border">438</td>
-                          <td className="text-right p-3 border text-red-600">(855)</td>
-                          <td className="text-right p-3 border">0</td>
-                          <td className="text-right p-3 border">100%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">광고선전 비용</td>
-                          <td className="text-right p-3 border text-red-600">(6,812)</td>
-                          <td className="text-right p-3 border text-red-600">(4,502)</td>
-                          <td className="text-right p-3 border">1,468</td>
-                          <td className="text-right p-3 border text-red-600">(4,520)</td>
-                          <td className="text-right p-3 border">1,632</td>
-                          <td className="text-right p-3 border">173</td>
-                          <td className="text-right p-3 border">98%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">배송비</td>
-                          <td className="text-right p-3 border text-red-600">(14,830)</td>
-                          <td className="text-right p-3 border text-red-600">(24,017)</td>
-                          <td className="text-right p-3 border">616</td>
-                          <td className="text-right p-3 border text-red-600">(24,158)</td>
-                          <td className="text-right p-3 border">473</td>
-                          <td className="text-right p-3 border text-red-600">(142)</td>
-                          <td className="text-right p-3 border">101%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">신입비</td>
-                          <td className="text-right p-3 border text-red-600">(4,940)</td>
-                          <td className="text-right p-3 border text-red-600">(3,398)</td>
-                          <td className="text-right p-3 border">274</td>
-                          <td className="text-right p-3 border text-red-600">(5,289)</td>
-                          <td className="text-right p-3 border">201</td>
-                          <td className="text-right p-3 border text-red-600">(73)</td>
-                          <td className="text-right p-3 border">100%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">테스트수수료</td>
-                          <td className="text-right p-3 border text-red-600">(6,261)</td>
-                          <td className="text-right p-3 border text-red-600">(5,329)</td>
-                          <td className="text-right p-3 border">947</td>
-                          <td className="text-right p-3 border text-red-600">(5,244)</td>
-                          <td className="text-right p-3 border">1,002</td>
-                          <td className="text-right p-3 border text-red-600">(44)</td>
-                          <td className="text-right p-3 border">101%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">공과사채비</td>
-                          <td className="text-right p-3 border text-red-600">(4,962)</td>
-                          <td className="text-right p-3 border text-red-600">(9,224)</td>
-                          <td className="text-right p-3 border text-red-600">(1,421)</td>
-                          <td className="text-right p-3 border text-red-600">(9,823)</td>
-                          <td className="text-right p-3 border text-red-600">(1,650)</td>
-                          <td className="text-right p-3 border text-red-600">(465)</td>
-                          <td className="text-right p-3 border">108%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-8">기타비용</td>
-                          <td className="text-right p-3 border text-red-600">(6,814)</td>
-                          <td className="text-right p-3 border text-red-600">(8,193)</td>
-                          <td className="text-right p-3 border">725</td>
-                          <td className="text-right p-3 border text-red-600">(7,777)</td>
-                          <td className="text-right p-3 border">1,141</td>
-                          <td className="text-right p-3 border">416</td>
-                          <td className="text-right p-3 border">96%</td>
-                          <td className="text-right p-3 border"></td>
-                        </tr>
-                        <tr className="bg-blue-50 font-bold">
-                          <td className="p-3 border">영업활동</td>
+                          <td className="p-3 border pl-8">영업활동</td>
                           <td className="text-right p-3 border">10,668</td>
                           <td className="text-right p-3 border text-red-600">(7,920)</td>
                           <td className="text-right p-3 border text-red-600">(13,008)</td>
@@ -10267,7 +10157,117 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">보조금</td>
+                          <td className="p-3 border pl-12">매출수금</td>
+                          <td className="text-right p-3 border">23,264</td>
+                          <td className="text-right p-3 border">26,156</td>
+                          <td className="text-right p-3 border">2,892</td>
+                          <td className="text-right p-3 border">29,932</td>
+                          <td className="text-right p-3 border">2,560</td>
+                          <td className="text-right p-3 border text-red-600">(324)</td>
+                          <td className="text-right p-3 border">99%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">온라인(US+EU)</td>
+                          <td className="text-right p-3 border">20,016</td>
+                          <td className="text-right p-3 border">24,272</td>
+                          <td className="text-right p-3 border">3,729</td>
+                          <td className="text-right p-3 border">24,148</td>
+                          <td className="text-right p-3 border">3,502</td>
+                          <td className="text-right p-3 border text-red-600">(220)</td>
+                          <td className="text-right p-3 border">99%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">홀세일</td>
+                          <td className="text-right p-3 border">1,585</td>
+                          <td className="text-right p-3 border"></td>
+                          <td className="text-right p-3 border text-red-600">(243)</td>
+                          <td className="text-right p-3 border">1,248</td>
+                          <td className="text-right p-3 border text-red-600">(342)</td>
+                          <td className="text-right p-3 border text-red-600">(95)</td>
+                          <td className="text-right p-3 border">-23%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">라이센스</td>
+                          <td className="text-right p-3 border">1,483</td>
+                          <td className="text-right p-3 border">438</td>
+                          <td className="text-right p-3 border text-red-600">(936)</td>
+                          <td className="text-right p-3 border">438</td>
+                          <td className="text-right p-3 border text-red-600">(855)</td>
+                          <td className="text-right p-3 border">0</td>
+                          <td className="text-right p-3 border">100%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">물품비 지출</td>
+                          <td className="text-right p-3 border text-red-600">(6,812)</td>
+                          <td className="text-right p-3 border text-red-600">(4,502)</td>
+                          <td className="text-right p-3 border">1,468</td>
+                          <td className="text-right p-3 border text-red-600">(4,520)</td>
+                          <td className="text-right p-3 border">1,632</td>
+                          <td className="text-right p-3 border">173</td>
+                          <td className="text-right p-3 border">98%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">비용지출</td>
+                          <td className="text-right p-3 border text-red-600">(14,830)</td>
+                          <td className="text-right p-3 border text-red-600">(24,017)</td>
+                          <td className="text-right p-3 border">616</td>
+                          <td className="text-right p-3 border text-red-600">(24,158)</td>
+                          <td className="text-right p-3 border">473</td>
+                          <td className="text-right p-3 border text-red-600">(142)</td>
+                          <td className="text-right p-3 border">101%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">인건비</td>
+                          <td className="text-right p-3 border text-red-600">(4,940)</td>
+                          <td className="text-right p-3 border text-red-600">(3,398)</td>
+                          <td className="text-right p-3 border">274</td>
+                          <td className="text-right p-3 border text-red-600">(5,289)</td>
+                          <td className="text-right p-3 border">201</td>
+                          <td className="text-right p-3 border text-red-600">(73)</td>
+                          <td className="text-right p-3 border">100%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">지급수수료</td>
+                          <td className="text-right p-3 border text-red-600">(6,261)</td>
+                          <td className="text-right p-3 border text-red-600">(5,329)</td>
+                          <td className="text-right p-3 border">947</td>
+                          <td className="text-right p-3 border text-red-600">(5,244)</td>
+                          <td className="text-right p-3 border">1,002</td>
+                          <td className="text-right p-3 border text-red-600">(44)</td>
+                          <td className="text-right p-3 border">101%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">광고선전비</td>
+                          <td className="text-right p-3 border text-red-600">(4,962)</td>
+                          <td className="text-right p-3 border text-red-600">(9,224)</td>
+                          <td className="text-right p-3 border text-red-600">(1,421)</td>
+                          <td className="text-right p-3 border text-red-600">(9,823)</td>
+                          <td className="text-right p-3 border text-red-600">(1,650)</td>
+                          <td className="text-right p-3 border text-red-600">(465)</td>
+                          <td className="text-right p-3 border">108%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">기타비용</td>
+                          <td className="text-right p-3 border text-red-600">(6,814)</td>
+                          <td className="text-right p-3 border text-red-600">(8,193)</td>
+                          <td className="text-right p-3 border">725</td>
+                          <td className="text-right p-3 border text-red-600">(7,777)</td>
+                          <td className="text-right p-3 border">1,141</td>
+                          <td className="text-right p-3 border">416</td>
+                          <td className="text-right p-3 border">96%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-8">재무활동</td>
                           <td className="text-right p-3 border">70,945</td>
                           <td className="text-right p-3 border">0</td>
                           <td className="text-right p-3 border text-red-600">(28,843)</td>
@@ -10278,7 +10278,7 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">STE납부</td>
+                          <td className="p-3 border pl-12">본사차입</td>
                           <td className="text-right p-3 border">0</td>
                           <td className="text-right p-3 border">16,000</td>
                           <td className="text-right p-3 border">16,000</td>
@@ -10289,7 +10289,7 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">STE진산</td>
+                          <td className="p-3 border pl-12">STE감자</td>
                           <td className="text-right p-3 border">0</td>
                           <td className="text-right p-3 border">5,805</td>
                           <td className="text-right p-3 border">5,805</td>
@@ -10300,7 +10300,7 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">STE전리배출채</td>
+                          <td className="p-3 border pl-12">STE청산</td>
                           <td className="text-right p-3 border text-red-600">(17,985)</td>
                           <td className="text-right p-3 border">0</td>
                           <td className="text-right p-3 border">17,985</td>
@@ -10311,7 +10311,7 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                          <td className="p-3 border pl-6">전반배우출채</td>
+                          <td className="p-3 border pl-12">STE지분매입</td>
                           <td className="text-right p-3 border">0</td>
                           <td className="text-right p-3 border text-red-600">(26,262)</td>
                           <td className="text-right p-3 border text-red-600">(26,262)</td>
@@ -10321,8 +10321,8 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border">101%</td>
                           <td className="text-right p-3 border"></td>
                         </tr>
-                        <tr className="bg-green-50 font-bold">
-                          <td className="p-3 border">기타현금</td>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-12">본사차입상환</td>
                           <td className="text-right p-3 border">7,463</td>
                           <td className="text-right p-3 border text-red-600">(4,458)</td>
                           <td className="text-right p-3 border text-red-600">(4,458)</td>
@@ -10330,6 +10330,17 @@ export default function DashboardPage() {
                           <td className="text-right p-3 border text-red-600">(4,856)</td>
                           <td className="text-right p-3 border text-red-600">(182)</td>
                           <td className="text-right p-3 border">54%</td>
+                          <td className="text-right p-3 border"></td>
+                        </tr>
+                        <tr className="hover:bg-gray-50">
+                          <td className="p-3 border pl-6">기말잔액</td>
+                          <td className="text-right p-3 border">3,576</td>
+                          <td className="text-right p-3 border text-red-600">(4,458)</td>
+                          <td className="text-right p-3 border text-red-600">(8,042)</td>
+                          <td className="text-right p-3 border text-red-600">(6,739)</td>
+                          <td className="text-right p-3 border text-red-600">(10,739)</td>
+                          <td className="text-right p-3 border text-red-600">(187)</td>
+                          <td className="text-right p-3 border">104%</td>
                           <td className="text-right p-3 border"></td>
                         </tr>
                         <tr className="bg-blue-100 font-bold">
