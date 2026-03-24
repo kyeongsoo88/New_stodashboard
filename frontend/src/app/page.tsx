@@ -9751,16 +9751,6 @@ export default function DashboardPage() {
         {/* 시뮬레이션 탭 콘텐츠 */}
         {activeTab === "시뮬레이션" && (
           <div className="space-y-6">
-            {/* 상단 안내 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>시뮬레이션</CardTitle>
-                <p className="text-sm text-blue-600 mt-2">
-                  💡 매출액을 조정하면 연동된 모든 재무제표가 자동으로 업데이트됩니다.
-                </p>
-              </CardHeader>
-            </Card>
-
             {/* PL (손익계산서) + 재고표 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 손익계산서 */}
