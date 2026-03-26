@@ -2596,14 +2596,16 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 size="sm" 
                 onClick={() => {
                   // JSON Export 로직
+                  console.log('Exporting csvData:', csvData);
                   const exportData = csvData.map(row => {
-                    const rowData: any = { 구분: row[0] };
+                    const rowData: any = { 구분: row.label };
                     headers.slice(1).forEach((header, i) => {
-                      rowData[header] = row[i + 1];
+                      rowData[header] = row.values[i] || '';
                     });
                     return rowData;
                   });
                   
+                  console.log('Export data:', exportData);
                   const jsonStr = JSON.stringify(exportData, null, 2);
                   const blob = new Blob([jsonStr], { type: 'application/json' });
                   const url = URL.createObjectURL(blob);
@@ -3486,14 +3488,16 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
             size="sm"
             onClick={() => {
               // JSON Export 로직
+              console.log('Exporting processedRows:', processedRows);
               const exportData = processedRows.map(row => {
                 const rowData: any = { 구분: row.label };
                 headers.slice(1).forEach((header, i) => {
-                  rowData[header] = row.values[i];
+                  rowData[header] = row.values[i] || '';
                 });
                 return rowData;
               });
               
+              console.log('Export data:', exportData);
               const jsonStr = JSON.stringify(exportData, null, 2);
               const blob = new Blob([jsonStr], { type: 'application/json' });
               const url = URL.createObjectURL(blob);
