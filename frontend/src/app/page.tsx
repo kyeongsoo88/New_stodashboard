@@ -10002,10 +10002,10 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-left p-3 font-semibold border">구분</th>
-                          <th className="text-center p-3 font-semibold border w-[150px]">25FY</th>
-                          <th className="text-center p-3 font-semibold border w-[150px]">26FY YTD</th>
-                          <th className="text-center p-3 font-semibold border w-[150px]">전년대비</th>
+                          <th className="text-left p-3 font-semibold border-2 border-gray-400">구분</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">25FY</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">26FY YTD</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">전년대비</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -10081,7 +10081,7 @@ export default function DashboardPage() {
                               style={isHidden ? { display: 'none' } : {}}
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
-                              <td className={`p-2 border ${indentClass}`}>
+                              <td className={`p-2 border-2 border-gray-300 ${indentClass}`}>
                                 {isSeasonItem ? (
                                   <div className="flex items-center gap-3">
                                     <span className="text-gray-600">{label}</span>
@@ -10090,7 +10090,7 @@ export default function DashboardPage() {
                                         type="range"
                                         min="-50"
                                         max="200"
-                                        defaultValue="0"
+                                        defaultValue="130"
                                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                         onChange={(e) => {
                                           const value = e.target.value;
@@ -10117,7 +10117,7 @@ export default function DashboardPage() {
                                         type="number"
                                         min="-50"
                                         max="200"
-                                        defaultValue="0"
+                                        defaultValue="130"
                                         className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
                                         onChange={(e) => {
                                           const value = e.target.value;
@@ -10150,7 +10150,7 @@ export default function DashboardPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="text-right p-2 border">
+                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/10">
                                 {(() => {
                                   const val = row.fy25;
                                   if (!val || val === '0') return '';
@@ -10161,14 +10161,14 @@ export default function DashboardPage() {
                                   // 음수 처리
                                   if (cleanVal.startsWith('-')) {
                                     const num = parseFloat(cleanVal);
-                                    if (!isNaN(num)) return num.toLocaleString();
+                                    if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
                                   }
                                   const num = parseFloat(cleanVal);
                                   if (!isNaN(num)) return num.toLocaleString();
                                   return val;
                                 })()}
                               </td>
-                              <td className="text-right p-2 border">
+                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-green-50/20">
                                 {(() => {
                                   const val = row.ytd26;
                                   if (!val || val === '0') return '';
@@ -10176,14 +10176,14 @@ export default function DashboardPage() {
                                   const cleanVal = val.replace(/,/g, '');
                                   if (cleanVal.startsWith('-')) {
                                     const num = parseFloat(cleanVal);
-                                    if (!isNaN(num)) return num.toLocaleString();
+                                    if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
                                   }
                                   const num = parseFloat(cleanVal);
                                   if (!isNaN(num)) return num.toLocaleString();
                                   return val;
                                 })()}
                               </td>
-                              <td className="text-right p-2 border">
+                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
                                   // 전년대비 = 26FY YTD - 25FY
                                   const fy25Val = row.fy25;
@@ -10211,7 +10211,8 @@ export default function DashboardPage() {
                                   }
                                   
                                   const diff = num26 - num25;
-                                  return diff.toLocaleString();
+                                  const colorClass = diff < 0 ? 'text-red-600' : 'text-blue-600';
+                                  return <span className={colorClass}>{diff.toLocaleString()}</span>;
                                 })()}
                               </td>
                             </tr>
@@ -10233,24 +10234,24 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white text-sm">
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">구분</th>
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">구분</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
                             기초<br/>
                             <span className="text-xs font-normal">(2025년기말)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
                             상품매입<br/>
                             <span className="text-xs font-normal">(연간)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
                             판매<br/>
                             <span className="text-xs font-normal">(연간)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
                             기말<br/>
                             <span className="text-xs font-normal">(2026년기말)</span>
                           </th>
-                          <th className="text-center p-3 font-semibold border w-[16.67%]">
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
                             증감<br/>
                             <span className="text-xs font-normal">(26년-25년)</span>
                           </th>
@@ -10270,7 +10271,7 @@ export default function DashboardPage() {
                             rowClass = 'bg-blue-50/30 hover:bg-blue-50/50'; // 연한 파스텔 블루
                           }
                           
-                          const borderClass = isFirstRow ? 'border border-gray-300' : 'border';
+                          const borderClass = 'border-2 border-gray-300';
                           
                           // 숫자 포맷팅 함수 (쉼표 제거 후 숫자로 변환)
                           const formatNumber = (val: string, isYOYRow: boolean = false) => {
@@ -10317,24 +10318,30 @@ export default function DashboardPage() {
                             return change !== 0 ? change.toLocaleString() : '';
                           };
                           
+                          // 음수 여부 확인
+                          const isNegativeChange = () => {
+                            const changeVal = calculateChange();
+                            return changeVal.startsWith('-');
+                          };
+                          
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`p-3 ${borderClass} ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
+                              <td className={`p-3 ${borderClass} border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
                                 {row.label}
                               </td>
-                              <td className={`text-right p-3 ${borderClass}`}>
+                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium`}>
                                 {formatNumber(row.initial, isYOY)}
                               </td>
-                              <td className={`text-right p-3 ${borderClass}`}>
+                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/30`}>
                                 {formatNumber(row.purchase, isYOY)}
                               </td>
-                              <td className={`text-right p-3 ${borderClass}`}>
+                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/20`}>
                                 {formatNumber(row.sales, isYOY)}
                               </td>
-                              <td className={`text-right p-3 ${borderClass}`}>
+                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-semibold bg-green-50/40`}>
                                 {calculateFinal()}
                               </td>
-                              <td className={`text-right p-3 ${borderClass}`}>
+                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-semibold ${isNegativeChange() ? 'text-red-600' : 'text-blue-600'}`}>
                                 {calculateChange()}
                               </td>
                             </tr>
@@ -10351,10 +10358,10 @@ export default function DashboardPage() {
                       <table className="w-full border-collapse table-fixed">
                         <thead>
                           <tr className="bg-[#2E5C8A] text-white text-sm">
-                            <th className="text-left p-3 font-semibold border w-[25%]">계정과목</th>
-                            <th className="text-center p-3 font-semibold border w-[25%]">2025년(기말)</th>
-                            <th className="text-center p-3 font-semibold border w-[25%]">2026년(YTD)</th>
-                            <th className="text-center p-3 font-semibold border w-[25%]">전년대비</th>
+                            <th className="text-left p-3 font-semibold border-2 border-gray-400 w-[25%]">계정과목</th>
+                            <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[25%]">2025년(기말)</th>
+                            <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[25%]">2026년(YTD)</th>
+                            <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[25%]">전년대비</th>
                           </tr>
                         </thead>
                         <tbody className="text-sm">
@@ -10372,16 +10379,24 @@ export default function DashboardPage() {
                               return num.toLocaleString();
                             };
                             
+                            // 음수 여부 확인
+                            const isNegative = (val: string) => {
+                              if (!val) return false;
+                              const cleanVal = val.replace(/,/g, '');
+                              const num = parseFloat(cleanVal);
+                              return !isNaN(num) && num < 0;
+                            };
+                            
                             return (
                               <tr key={`wc-row-${index}`} className={rowClass}>
-                                <td className="p-3 border">{row.label}</td>
-                                <td className={`text-right p-3 border ${textClass}`}>
+                                <td className="p-3 border-2 border-gray-300">{row.label}</td>
+                                <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium ${textClass} ${isNegative(row.col1) ? 'text-red-600' : ''}`}>
                                   {formatNumber(row.col1)}
                                 </td>
-                                <td className={`text-right p-3 border ${textClass}`}>
+                                <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium bg-green-50/20 ${textClass} ${isNegative(row.col2) ? 'text-red-600' : ''}`}>
                                   {formatNumber(row.col2)}
                                 </td>
-                                <td className={`text-right p-3 border ${textClass}`}>
+                                <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-semibold ${isTotal ? textClass : isNegative(row.col3) ? 'text-red-600' : 'text-blue-600'}`}>
                                   {formatNumber(row.col3)}
                                 </td>
                               </tr>
@@ -10407,18 +10422,18 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse text-sm table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-3 font-semibold border w-[20%]" rowSpan={2}>계정과목</th>
-                          <th className="text-center p-3 font-semibold border w-[10%]" rowSpan={2}>2025년(확정)</th>
-                          <th className="text-center p-3 font-semibold border w-[20%]" colSpan={2}>계획</th>
-                          <th className="text-center p-3 font-semibold border w-[50%]" colSpan={4}>2026년 Rolling</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" rowSpan={2}>계정과목</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[10%]" rowSpan={2}>2025년(확정)</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" colSpan={2}>계획</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[50%]" colSpan={4}>2026년 Rolling</th>
                         </tr>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-2 border w-[10%]">2026년(예상)</th>
-                          <th className="text-center p-2 border w-[10%]">계획-근거</th>
-                          <th className="text-center p-2 border w-[12.5%]">2026년(운영)</th>
-                          <th className="text-center p-2 border w-[12.5%]">Rolling-근거</th>
-                          <th className="text-center p-2 border w-[12.5%]">계획대비증감</th>
-                          <th className="text-center p-2 border w-[12.5%]">계획대비(%)</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">2026년(예상)</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">계획-근거</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">2026년(운영)</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">Rolling-근거</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">계획대비증감</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">계획대비(%)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -10441,9 +10456,14 @@ export default function DashboardPage() {
                           const specialRows = ['Net Cash'];
                           const isSpecialRow = specialRows.includes(label);
                           
+                          // 볼드체 적용 항목들
+                          const boldItems = ['기초현금', '영업활동', '재무활동', '기말잔액'];
+                          const isBoldItem = boldItems.includes(label);
+                          
                           // 행 클래스
                           let rowClass = 'hover:bg-gray-50';
                           if (isSpecialRow) rowClass = 'bg-blue-100 font-bold';
+                          if (isBoldItem) rowClass += ' font-bold';
                           if (isCollapsibleParent) rowClass += ' cursor-pointer';
                           
                           // 들여쓰기
@@ -10498,12 +10518,22 @@ export default function DashboardPage() {
                             return val; // 숫자가 아니면 원본 반환 (퍼센트 등)
                           };
                           
-                          // 셀 클래스 (빨간색 텍스트)
-                          const getCellClass = (val: string) => {
-                            if (val && (val.startsWith('(') || val.startsWith('-'))) {
-                              return 'text-right p-3 border text-red-600';
+                          // 셀 클래스 (빨간색 텍스트, 모노스페이스 폰트, 진한 테두리)
+                          const getCellClass = (val: string, colIndex: number) => {
+                            let baseClass = 'text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium';
+                            
+                            // 컬럼별 배경색
+                            if (colIndex === 3) { // 2026년(운영)
+                              baseClass += ' bg-green-50/20';
+                            } else if (colIndex === 4 || colIndex === 5) { // 계획대비증감, 계획대비(%)
+                              baseClass += ' bg-amber-50/20';
                             }
-                            return 'text-right p-3 border';
+                            
+                            // 음수는 빨간색
+                            if (val && (val.startsWith('(') || val.startsWith('-'))) {
+                              baseClass += ' text-red-600';
+                            }
+                            return baseClass;
                           };
                           
                           return (
@@ -10514,7 +10544,7 @@ export default function DashboardPage() {
                               {...(isHidden ? { style: { display: 'none' } } : {})}
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
-                              <td className={`p-3 border ${indentClass}`}>
+                              <td className={`p-3 border-2 border-gray-300 ${indentClass}`}>
                                 {isCollapsibleParent ? (
                                   <div className="flex items-center justify-between">
                                     <span>{label}</span>
@@ -10522,13 +10552,13 @@ export default function DashboardPage() {
                                   </div>
                                 ) : label}
                               </td>
-                              <td className={getCellClass(row.col1)}>{formatValue(row.col1)}</td>
-                              <td className={getCellClass(row.col2)}>{formatValue(row.col2)}</td>
-                              <td className={getCellClass(row.col3)}>{formatValue(row.col3)}</td>
-                              <td className={getCellClass(row.col4)}>{formatValue(row.col4)}</td>
-                              <td className={getCellClass(row.col5)}>{formatValue(row.col5)}</td>
-                              <td className={getCellClass(row.col6)}>{formatValue(row.col6)}</td>
-                              <td className={getCellClass(row.col7)}>{formatValue(row.col7)}</td>
+                              <td className={getCellClass(row.col1, 0)}>{formatValue(row.col1)}</td>
+                              <td className={getCellClass(row.col2, 1)}>{formatValue(row.col2)}</td>
+                              <td className={getCellClass(row.col3, 2)}>{formatValue(row.col3)}</td>
+                              <td className={getCellClass(row.col4, 3)}>{formatValue(row.col4)}</td>
+                              <td className={getCellClass(row.col5, 4)}>{formatValue(row.col5)}</td>
+                              <td className={getCellClass(row.col6, 5)}>{formatValue(row.col6)}</td>
+                              <td className={getCellClass(row.col7, 6)}>{formatValue(row.col7)}</td>
                             </tr>
                           );
                         })}
