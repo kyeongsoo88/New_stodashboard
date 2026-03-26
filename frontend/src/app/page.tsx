@@ -8597,13 +8597,34 @@ export default function DashboardPage() {
         const lines = csvText.split('\n').filter(line => line.trim());
         if (lines.length === 0) return;
         
+        // CSV 파싱 함수 (따옴표로 감싸진 값 처리)
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+        
         // 첫 번째 행은 헤더
-        const headerLine = lines[0].split(',');
+        const headerLine = parseCSVLine(lines[0]);
         setSimulCashHeaders(headerLine.slice(1)); // 첫 번째 컬럼(계정과목) 제외
         
         // 나머지 행은 데이터
         const data = lines.slice(1).map(line => {
-          const values = line.split(',');
+          const values = parseCSVLine(line);
           return {
             label: values[0] || '',
             col1: values[1] || '',
@@ -10422,18 +10443,25 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse text-sm table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" rowSpan={2}>계정과목</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[10%]" rowSpan={2}>2025년(확정)</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" colSpan={2}>계획</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[50%]" colSpan={4}>2026년 Rolling</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" rowSpan={2}>
+                            {simulCashHeaders[0]?.split('(')[0] || '계정과목'}
+                          </th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[10%]" rowSpan={2}>
+                            {simulCashHeaders[0] || '2025년(기말)'}
+                          </th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" colSpan={2}>
+                            {simulCashHeaders[1]?.includes('계획') ? '계획' : '계획'}
+                          </th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[50%]" colSpan={4}>
+                            {simulCashHeaders[3]?.includes('운영') ? '2026년 Rolling' : '2026년 Rolling'}
+                          </th>
                         </tr>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">2026년(예상)</th>
-                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">계획-근거</th>
-                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">2026년(운영)</th>
-                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">Rolling-근거</th>
-                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">계획대비증감</th>
-                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">계획대비(%)</th>
+                          {simulCashHeaders.slice(1, 7).map((header, i) => (
+                            <th key={i} className="text-center p-2 border-2 border-gray-400 w-[12.5%]">
+                              {header}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -10518,6 +10546,68 @@ export default function DashboardPage() {
                             return val; // 숫자가 아니면 원본 반환 (퍼센트 등)
                           };
                           
+                          // 계획-전년 자동 계산: 2026년(계획) - 2025년(기말)
+                          const calculatePlanDiff = () => {
+                            const col1Val = row.col1.replace(/,/g, '').replace(/[()]/g, '');
+                            const col2Val = row.col2.replace(/,/g, '').replace(/[()]/g, '');
+                            
+                            const num1 = parseFloat(col1Val) || 0;
+                            const num2 = parseFloat(col2Val) || 0;
+                            
+                            if (num1 === 0 && num2 === 0) return '';
+                            
+                            const diff = num2 - num1;
+                            if (diff === 0) return '';
+                            
+                            return diff.toLocaleString();
+                          };
+                          
+                          // Rolling-전년 자동 계산: 2026년(운영) - 2025년(기말)
+                          const calculateRollingDiff = () => {
+                            const col1Val = row.col1.replace(/,/g, '').replace(/[()]/g, '');
+                            const col4Val = row.col4.replace(/,/g, '').replace(/[()]/g, '');
+                            
+                            const num1 = parseFloat(col1Val) || 0;
+                            const num4 = parseFloat(col4Val) || 0;
+                            
+                            if (num1 === 0 && num4 === 0) return '';
+                            
+                            const diff = num4 - num1;
+                            if (diff === 0) return '';
+                            
+                            return diff.toLocaleString();
+                          };
+                          
+                          // 계획대비증감 자동 계산: 2026년(운영) - 2026년(계획)
+                          const calculatePlanVsActual = () => {
+                            const col2Val = row.col2.replace(/,/g, '').replace(/[()]/g, '');
+                            const col4Val = row.col4.replace(/,/g, '').replace(/[()]/g, '');
+                            
+                            const num2 = parseFloat(col2Val) || 0;
+                            const num4 = parseFloat(col4Val) || 0;
+                            
+                            if (num2 === 0 && num4 === 0) return '';
+                            
+                            const diff = num4 - num2;
+                            if (diff === 0) return '';
+                            
+                            return diff.toLocaleString();
+                          };
+                          
+                          // 계획대비(%) 자동 계산: 2026년(운영) / 2026년(계획) * 100
+                          const calculatePlanVsActualPercent = () => {
+                            const col2Val = row.col2.replace(/,/g, '').replace(/[()]/g, '');
+                            const col4Val = row.col4.replace(/,/g, '').replace(/[()]/g, '');
+                            
+                            const num2 = parseFloat(col2Val) || 0;
+                            const num4 = parseFloat(col4Val) || 0;
+                            
+                            if (num2 === 0) return '';
+                            
+                            const percent = (num4 / num2) * 100;
+                            return `${Math.round(percent)}%`;
+                          };
+                          
                           // 셀 클래스 (빨간색 텍스트, 모노스페이스 폰트, 진한 테두리)
                           const getCellClass = (val: string, colIndex: number) => {
                             let baseClass = 'text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium';
@@ -10554,11 +10644,34 @@ export default function DashboardPage() {
                               </td>
                               <td className={getCellClass(row.col1, 0)}>{formatValue(row.col1)}</td>
                               <td className={getCellClass(row.col2, 1)}>{formatValue(row.col2)}</td>
-                              <td className={getCellClass(row.col3, 2)}>{formatValue(row.col3)}</td>
+                              <td className={getCellClass(calculatePlanDiff(), 2)}>
+                                {(() => {
+                                  const diff = calculatePlanDiff();
+                                  if (!diff) return '';
+                                  const isNegative = diff.startsWith('-');
+                                  return <span className={isNegative ? 'text-red-600' : ''}>{diff}</span>;
+                                })()}
+                              </td>
                               <td className={getCellClass(row.col4, 3)}>{formatValue(row.col4)}</td>
-                              <td className={getCellClass(row.col5, 4)}>{formatValue(row.col5)}</td>
-                              <td className={getCellClass(row.col6, 5)}>{formatValue(row.col6)}</td>
-                              <td className={getCellClass(row.col7, 6)}>{formatValue(row.col7)}</td>
+                              <td className={getCellClass(calculateRollingDiff(), 4)}>
+                                {(() => {
+                                  const diff = calculateRollingDiff();
+                                  if (!diff) return '';
+                                  const isNegative = diff.startsWith('-');
+                                  return <span className={isNegative ? 'text-red-600' : ''}>{diff}</span>;
+                                })()}
+                              </td>
+                              <td className={getCellClass(calculatePlanVsActual(), 5)}>
+                                {(() => {
+                                  const diff = calculatePlanVsActual();
+                                  if (!diff) return '';
+                                  const isNegative = diff.startsWith('-');
+                                  return <span className={isNegative ? 'text-red-600' : ''}>{diff}</span>;
+                                })()}
+                              </td>
+                              <td className={getCellClass(calculatePlanVsActualPercent(), 6)}>
+                                {calculatePlanVsActualPercent()}
+                              </td>
                             </tr>
                           );
                         })}
