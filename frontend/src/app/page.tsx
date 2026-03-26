@@ -2594,6 +2594,34 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             <Button 
                 variant="outline" 
                 size="sm" 
+                onClick={() => {
+                  // JSON Export 로직
+                  const exportData = csvData.map(row => {
+                    const rowData: any = { 구분: row[0] };
+                    headers.slice(1).forEach((header, i) => {
+                      rowData[header] = row[i + 1];
+                    });
+                    return rowData;
+                  });
+                  
+                  const jsonStr = JSON.stringify(exportData, null, 2);
+                  const blob = new Blob([jsonStr], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = 'STO_손익계산서.json';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                }}
+                className="bg-green-100 hover:bg-green-200 text-green-700 border-green-300"
+            >
+                JSON Export
+            </Button>
+            <Button 
+                variant="outline" 
+                size="sm" 
                 onClick={() => setShowAllMonths(!showAllMonths)}
             >
                 {showAllMonths ? "월 접기" : "월 펼치기"}
@@ -3453,6 +3481,34 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
       <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STE 손익계산서 (단위 : K $)</CardTitle>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // JSON Export 로직
+              const exportData = processedRows.map(row => {
+                const rowData: any = { 구분: row.label };
+                headers.slice(1).forEach((header, i) => {
+                  rowData[header] = row.values[i];
+                });
+                return rowData;
+              });
+              
+              const jsonStr = JSON.stringify(exportData, null, 2);
+              const blob = new Blob([jsonStr], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'STE_손익계산서.json';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }}
+            className="bg-green-100 hover:bg-green-200 text-green-700 border-green-300"
+          >
+            JSON Export
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -8422,8 +8478,30 @@ export default function DashboardPage() {
       })
       .then(csvText => {
         const lines = csvText.split('\n').filter(line => line.trim());
+        
+        // CSV 파싱 함수 (따옴표로 감싸진 값 처리)
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+        
         const data = lines.slice(1).map(line => {
-          const values = line.split(',');
+          const values = parseCSVLine(line);
           return {
             label: values[0] || '',
             fy25: values[1] || '0',
@@ -8456,8 +8534,30 @@ export default function DashboardPage() {
       })
       .then(csvText => {
         const lines = csvText.split('\n').filter(line => line.trim());
+        
+        // CSV 파싱 함수 (따옴표로 감싸진 값 처리)
+        const parseCSVLine = (line: string): string[] => {
+          const result: string[] = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+        
         const data = lines.slice(1).map(line => {
-          const values = line.split(',');
+          const values = parseCSVLine(line);
           return {
             label: values[0] || '',
             initial: values[1] || '0',
@@ -10046,9 +10146,70 @@ export default function DashboardPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="text-right p-2 border">{row.fy25 || ''}</td>
-                              <td className="text-right p-2 border">{row.ytd26 || ''}</td>
-                              <td className="text-right p-2 border">{row.yoy || ''}</td>
+                              <td className="text-right p-2 border">
+                                {(() => {
+                                  const val = row.fy25;
+                                  if (!val || val === '0') return '';
+                                  // % 포함된 경우 그대로 반환
+                                  if (val.includes('%')) return val;
+                                  // 쉼표 제거 후 숫자로 변환
+                                  const cleanVal = val.replace(/,/g, '');
+                                  // 음수 처리
+                                  if (cleanVal.startsWith('-')) {
+                                    const num = parseFloat(cleanVal);
+                                    if (!isNaN(num)) return num.toLocaleString();
+                                  }
+                                  const num = parseFloat(cleanVal);
+                                  if (!isNaN(num)) return num.toLocaleString();
+                                  return val;
+                                })()}
+                              </td>
+                              <td className="text-right p-2 border">
+                                {(() => {
+                                  const val = row.ytd26;
+                                  if (!val || val === '0') return '';
+                                  if (val.includes('%')) return val;
+                                  const cleanVal = val.replace(/,/g, '');
+                                  if (cleanVal.startsWith('-')) {
+                                    const num = parseFloat(cleanVal);
+                                    if (!isNaN(num)) return num.toLocaleString();
+                                  }
+                                  const num = parseFloat(cleanVal);
+                                  if (!isNaN(num)) return num.toLocaleString();
+                                  return val;
+                                })()}
+                              </td>
+                              <td className="text-right p-2 border">
+                                {(() => {
+                                  // 전년대비 = 26FY YTD - 25FY
+                                  const fy25Val = row.fy25;
+                                  const ytd26Val = row.ytd26;
+                                  
+                                  // % 포함된 경우는 계산 안함
+                                  if (fy25Val.includes('%') || ytd26Val.includes('%')) {
+                                    return '';
+                                  }
+                                  
+                                  // 두 값 모두 있어야 계산
+                                  if (!fy25Val || fy25Val === '0' || !ytd26Val || ytd26Val === '0') {
+                                    return '';
+                                  }
+                                  
+                                  // 쉼표 제거 후 숫자로 변환
+                                  const cleanFy25 = fy25Val.replace(/,/g, '');
+                                  const cleanYtd26 = ytd26Val.replace(/,/g, '');
+                                  
+                                  const num25 = parseFloat(cleanFy25);
+                                  const num26 = parseFloat(cleanYtd26);
+                                  
+                                  if (isNaN(num25) || isNaN(num26)) {
+                                    return '';
+                                  }
+                                  
+                                  const diff = num26 - num25;
+                                  return diff.toLocaleString();
+                                })()}
+                              </td>
                             </tr>
                           );
                         })}
@@ -10094,28 +10255,83 @@ export default function DashboardPage() {
                       <tbody className="text-sm">
                         {simulInvenData.map((row, index) => {
                           const isFirstRow = index === 0;
-                          const rowClass = isFirstRow ? 'bg-blue-100' : 'hover:bg-gray-50';
+                          const isYOY = row.label === 'YOY' || row.label.includes('YOY');
+                          const isDetailRow = index >= 2; // 27SS부터 CORE까지
+                          
+                          // 행 배경색 설정
+                          let rowClass = 'hover:bg-gray-50';
+                          if (isFirstRow) {
+                            rowClass = 'bg-blue-100';
+                          } else if (isDetailRow) {
+                            rowClass = 'bg-blue-50/30 hover:bg-blue-50/50'; // 연한 파스텔 블루
+                          }
+                          
                           const borderClass = isFirstRow ? 'border border-gray-300' : 'border';
+                          
+                          // 숫자 포맷팅 함수 (쉼표 제거 후 숫자로 변환)
+                          const formatNumber = (val: string, isYOYRow: boolean = false) => {
+                            if (!val || val === '0') return '';
+                            // YOY 행이고 % 포함된 경우 그대로 반환
+                            if (isYOYRow && val.includes('%')) return val;
+                            // 쉼표 제거
+                            const cleanVal = val.replace(/,/g, '');
+                            const num = parseFloat(cleanVal);
+                            if (isNaN(num)) return val; // 숫자가 아니면 원본 반환
+                            return num.toLocaleString();
+                          };
+                          
+                          // 기말 자동 계산: 기초 + 상품매입 - 판매
+                          const calculateFinal = () => {
+                            if (isYOY) return formatNumber(row.final, true);
+                            
+                            const initialVal = row.initial.replace(/,/g, '');
+                            const purchaseVal = row.purchase.replace(/,/g, '');
+                            const salesVal = row.sales.replace(/,/g, '');
+                            
+                            const initial = parseFloat(initialVal) || 0;
+                            const purchase = parseFloat(purchaseVal) || 0;
+                            const sales = parseFloat(salesVal) || 0;
+                            
+                            const final = initial + purchase - sales;
+                            return final !== 0 ? final.toLocaleString() : '';
+                          };
+                          
+                          // 증감 자동 계산: 기말 - 기초
+                          const calculateChange = () => {
+                            if (isYOY) return formatNumber(row.change, true);
+                            
+                            const initialVal = row.initial.replace(/,/g, '');
+                            const purchaseVal = row.purchase.replace(/,/g, '');
+                            const salesVal = row.sales.replace(/,/g, '');
+                            
+                            const initial = parseFloat(initialVal) || 0;
+                            const purchase = parseFloat(purchaseVal) || 0;
+                            const sales = parseFloat(salesVal) || 0;
+                            
+                            const final = initial + purchase - sales;
+                            const change = final - initial;
+                            return change !== 0 ? change.toLocaleString() : '';
+                          };
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`p-3 ${borderClass} ${isFirstRow ? 'font-medium' : ''}`}>
+                              <td className={`p-3 ${borderClass} ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
                                 {row.label}
                               </td>
                               <td className={`text-right p-3 ${borderClass}`}>
-                                {row.initial !== '0' ? Number(row.initial).toLocaleString() : ''}
+                                {formatNumber(row.initial, isYOY)}
                               </td>
                               <td className={`text-right p-3 ${borderClass}`}>
-                                {row.purchase !== '0' ? Number(row.purchase).toLocaleString() : ''}
+                                {formatNumber(row.purchase, isYOY)}
                               </td>
                               <td className={`text-right p-3 ${borderClass}`}>
-                                {row.sales !== '0' ? Number(row.sales).toLocaleString() : ''}
+                                {formatNumber(row.sales, isYOY)}
                               </td>
                               <td className={`text-right p-3 ${borderClass}`}>
-                                {row.final !== '0' ? Number(row.final).toLocaleString() : ''}
+                                {calculateFinal()}
                               </td>
                               <td className={`text-right p-3 ${borderClass}`}>
-                                {row.change !== '0' ? Number(row.change).toLocaleString() : ''}
+                                {calculateChange()}
                               </td>
                             </tr>
                           );
@@ -10143,17 +10359,26 @@ export default function DashboardPage() {
                             const rowClass = isTotal ? 'bg-blue-50 font-bold' : 'hover:bg-gray-50';
                             const textClass = isTotal ? 'text-blue-600' : '';
                             
+                            // 숫자 포맷팅 함수
+                            const formatNumber = (val: string) => {
+                              if (!val) return '';
+                              const cleanVal = val.replace(/,/g, '');
+                              const num = parseFloat(cleanVal);
+                              if (isNaN(num)) return val;
+                              return num.toLocaleString();
+                            };
+                            
                             return (
                               <tr key={`wc-row-${index}`} className={rowClass}>
                                 <td className="p-3 border">{row.label}</td>
                                 <td className={`text-right p-3 border ${textClass}`}>
-                                  {row.col1 ? Number(row.col1).toLocaleString() : ''}
+                                  {formatNumber(row.col1)}
                                 </td>
                                 <td className={`text-right p-3 border ${textClass}`}>
-                                  {row.col2 ? Number(row.col2).toLocaleString() : ''}
+                                  {formatNumber(row.col2)}
                                 </td>
                                 <td className={`text-right p-3 border ${textClass}`}>
-                                  {row.col3 ? Number(row.col3).toLocaleString() : ''}
+                                  {formatNumber(row.col3)}
                                 </td>
                               </tr>
                             );
@@ -10250,11 +10475,23 @@ export default function DashboardPage() {
                           // 값 포맷팅 함수
                           const formatValue = (val: string) => {
                             if (!val || val === '') return '';
+                            // 쉼표 제거 후 숫자로 변환
+                            const cleanVal = val.replace(/,/g, '');
                             // 괄호로 둘러싸인 음수 처리
-                            if (val.startsWith('(') && val.endsWith(')')) {
-                              return val; // 이미 괄호로 둘러싸여 있음
+                            if (cleanVal.startsWith('(') && cleanVal.endsWith(')')) {
+                              const numStr = cleanVal.slice(1, -1);
+                              const num = parseFloat(numStr);
+                              if (!isNaN(num)) {
+                                return `(${num.toLocaleString()})`;
+                              }
+                              return val;
                             }
-                            return val;
+                            // 일반 숫자
+                            const num = parseFloat(cleanVal);
+                            if (!isNaN(num)) {
+                              return num.toLocaleString();
+                            }
+                            return val; // 숫자가 아니면 원본 반환 (퍼센트 등)
                           };
                           
                           // 셀 클래스 (빨간색 텍스트)
