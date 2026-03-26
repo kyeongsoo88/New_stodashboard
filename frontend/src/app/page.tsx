@@ -10450,18 +10450,19 @@ export default function DashboardPage() {
                             {simulCashHeaders[0] || '2025년(기말)'}
                           </th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[20%]" colSpan={2}>
-                            {simulCashHeaders[1]?.includes('계획') ? '계획' : '계획'}
+                            계획
                           </th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[50%]" colSpan={4}>
-                            {simulCashHeaders[3]?.includes('운영') ? '2026년 Rolling' : '2026년 Rolling'}
+                            2026년 Rolling
                           </th>
                         </tr>
                         <tr className="bg-[#2E5C8A] text-white">
-                          {simulCashHeaders.slice(1, 7).map((header, i) => (
-                            <th key={i} className="text-center p-2 border-2 border-gray-400 w-[12.5%]">
-                              {header}
-                            </th>
-                          ))}
+                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">{simulCashHeaders[1] || '2026년(계획)'}</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[10%]">{simulCashHeaders[2] || '계획-전년'}</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">{simulCashHeaders[3] || '2026년(운영)'}</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">{simulCashHeaders[4] || 'Rolling-근거'}</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">{simulCashHeaders[5] || '계획대비증감'}</th>
+                          <th className="text-center p-2 border-2 border-gray-400 w-[12.5%]">{simulCashHeaders[6] || '계획대비(%)'}</th>
                         </tr>
                       </thead>
                       <tbody>
