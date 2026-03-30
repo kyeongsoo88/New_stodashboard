@@ -10408,6 +10408,71 @@ export default function DashboardPage() {
                               return !isNaN(num) && num < 0;
                             };
                             
+                            // 운전자본 합계인 경우 자동 계산
+                            if (isTotal) {
+                              // 매출채권, 재고자산, 매입채무 찾기
+                              const receivables = simulWCData.find(r => r.label === '매출채권');
+                              const inventory = simulWCData.find(r => r.label === '재고자산');
+                              const payables = simulWCData.find(r => r.label === '매입채무');
+                              
+                              // 2025년(기말) 계산
+                              const calc2025 = () => {
+                                const r = parseFloat(receivables?.col1.replace(/,/g, '') || '0') || 0;
+                                const i = parseFloat(inventory?.col1.replace(/,/g, '') || '0') || 0;
+                                const p = parseFloat(payables?.col1.replace(/,/g, '') || '0') || 0;
+                                return r + i - p;
+                              };
+                              
+                              // 2026년(YTD) 계산
+                              const calc2026 = () => {
+                                const r = parseFloat(receivables?.col2.replace(/,/g, '') || '0') || 0;
+                                const i = parseFloat(inventory?.col2.replace(/,/g, '') || '0') || 0;
+                                const p = parseFloat(payables?.col2.replace(/,/g, '') || '0') || 0;
+                                return r + i - p;
+                              };
+                              
+                              // 전년대비 계산
+                              const calcDiff = () => {
+                                return calc2026() - calc2025();
+                              };
+                              
+                              const total2025 = calc2025();
+                              const total2026 = calc2026();
+                              const totalDiff = calcDiff();
+                              
+                              return (
+                                <tr key={`wc-row-${index}`} className={rowClass}>
+                                  <td className="p-3 border-2 border-gray-300">{row.label}</td>
+                                  <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium ${textClass}`}>
+                                    {total2025.toLocaleString()}
+                                  </td>
+                                  <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium bg-green-50/20 ${textClass}`}>
+                                    {total2026.toLocaleString()}
+                                  </td>
+                                  <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-semibold ${textClass}`}>
+                                    {totalDiff.toLocaleString()}
+                                  </td>
+                                </tr>
+                              );
+                            }
+                            
+                            // 일반 행 (매출채권, 재고자산, 매입채무)
+                            // 전년대비 = 2026년(YTD) - 2025년(기말)
+                            const calculateDiff = () => {
+                              const col1Val = row.col1.replace(/,/g, '');
+                              const col2Val = row.col2.replace(/,/g, '');
+                              
+                              const num1 = parseFloat(col1Val) || 0;
+                              const num2 = parseFloat(col2Val) || 0;
+                              
+                              if (num1 === 0 && num2 === 0) return '';
+                              
+                              const diff = num2 - num1;
+                              return diff.toLocaleString();
+                            };
+                            
+                            const diffValue = calculateDiff();
+                            
                             return (
                               <tr key={`wc-row-${index}`} className={rowClass}>
                                 <td className="p-3 border-2 border-gray-300">{row.label}</td>
@@ -10417,8 +10482,8 @@ export default function DashboardPage() {
                                 <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-medium bg-green-50/20 ${textClass} ${isNegative(row.col2) ? 'text-red-600' : ''}`}>
                                   {formatNumber(row.col2)}
                                 </td>
-                                <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-semibold ${isTotal ? textClass : isNegative(row.col3) ? 'text-red-600' : 'text-blue-600'}`}>
-                                  {formatNumber(row.col3)}
+                                <td className={`text-right p-3 border-2 border-gray-300 font-mono text-[15px] font-semibold ${isTotal ? textClass : diffValue.startsWith('-') ? 'text-red-600' : 'text-blue-600'}`}>
+                                  {diffValue}
                                 </td>
                               </tr>
                             );
