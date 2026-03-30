@@ -3628,8 +3628,8 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
 function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
   const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 2, 1)); // 2026-03-01
-  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 2, 12)); // 2026-03-12
-  
+  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 2, 26)); // 2026-03-26
+
   const [data2025, setData2025] = React.useState<any[]>([]);
   const [data2026, setData2026] = React.useState<any[]>([]);
   
