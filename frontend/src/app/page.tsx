@@ -8408,7 +8408,7 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-02",
+    "대시보드": "2026-03",
     "손익계산서": "2026-02",
     "재무상태표": "2026-02",
     "현금흐름표": "2026-02",
@@ -8681,7 +8681,7 @@ export default function DashboardPage() {
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan, 26-Feb)과 코드 형식(2025-01, 2025-02, ..., 2026-01, 2026-02) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan, 26-Feb, 26-Mar)과 코드 형식(2025-01, 2025-02, ..., 2026-01, 2026-02, 2026-03) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -8696,7 +8696,8 @@ export default function DashboardPage() {
       '2025-11': '25-Nov',
       '2025-12': '25-Dec',
       '2026-01': '26-Jan',
-      '2026-02': '26-Feb'
+      '2026-02': '26-Feb',
+      '2026-03': '26-Mar'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -8711,7 +8712,7 @@ export default function DashboardPage() {
   };
   
   const getSummaryValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
-    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan)과 코드 형식(2025-01, 2025-02, ..., 2026-01) 매핑
+    // CSV 헤더 형식(25-Jan, 25-Feb, ..., 25-Nov, 25-Dec, 26-Jan, 26-Feb, 26-Mar)과 코드 형식(2025-01, 2025-02, ..., 2026-01, 2026-02, 2026-03) 매핑
     const monthMapping: Record<string, string> = {
       '2025-01': '25-Jan',
       '2025-02': '25-Feb',
@@ -8726,7 +8727,8 @@ export default function DashboardPage() {
       '2025-11': '25-Nov',
       '2025-12': '25-Dec',
       '2026-01': '26-Jan',
-      '2026-02': '26-Feb'
+      '2026-02': '26-Feb',
+      '2026-03': '26-Mar'
     };
     
     const csvMonthKey = monthMapping[month] || month;
@@ -9664,7 +9666,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
     
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -9767,8 +9769,8 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월'];
       
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
@@ -9784,7 +9786,8 @@ export default function DashboardPage() {
         '2025-11': '25-Nov',
         '2025-12': '25-Dec',
         '2026-01': '26-Jan',
-        '2026-02': '26-Feb'
+        '2026-02': '26-Feb',
+        '2026-03': '26-Mar'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
@@ -9932,6 +9935,7 @@ export default function DashboardPage() {
               <SelectItem value="2025-12">2025년 12월</SelectItem>
               <SelectItem value="2026-01">2026년 01월</SelectItem>
               <SelectItem value="2026-02">2026년 02월</SelectItem>
+              <SelectItem value="2026-03">2026년 03월</SelectItem>
             </SelectContent>
           </Select>
         </div>
