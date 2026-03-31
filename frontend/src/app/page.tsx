@@ -8426,7 +8426,7 @@ export default function DashboardPage() {
   const [directProfitPopupData, setDirectProfitPopupData] = React.useState<DirectProfitPopupData | null>(null);
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
-  const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, ytd26: string, yoy: string, growth: string}>>([]);
+  const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, prevYtd26: string, ytd26: string, yoy: string, growth: string}>>([]);
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, initial: string, purchase: string, sales: string, final: string, change: string}>>([]);
   const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
@@ -8511,9 +8511,10 @@ export default function DashboardPage() {
           return {
             label: values[0] || '',
             fy25: values[1] || '0',
-            ytd26: values[2] || '0',
-            yoy: values[3] || '0',
-            growth: values[4] || '0'
+            prevYtd26: values[2] || '0',
+            ytd26: values[3] || '0',
+            yoy: values[4] || '0',
+            growth: values[5] || '0'
           };
         });
         setSimulPLData(data);
@@ -10030,9 +10031,10 @@ export default function DashboardPage() {
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
                           <th className="text-left p-3 font-semibold border-2 border-gray-400">구분</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">25FY</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">26FY YTD</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[150px]">전년대비</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">25FY</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[130px]">전월 보고 26YTD</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">26FY YTD</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">전년대비</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -10186,6 +10188,21 @@ export default function DashboardPage() {
                                   // 쉼표 제거 후 숫자로 변환
                                   const cleanVal = val.replace(/,/g, '');
                                   // 음수 처리
+                                  if (cleanVal.startsWith('-')) {
+                                    const num = parseFloat(cleanVal);
+                                    if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
+                                  }
+                                  const num = parseFloat(cleanVal);
+                                  if (!isNaN(num)) return num.toLocaleString();
+                                  return val;
+                                })()}
+                              </td>
+                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/20">
+                                {(() => {
+                                  const val = row.prevYtd26;
+                                  if (!val || val === '0') return '';
+                                  if (val.includes('%')) return val;
+                                  const cleanVal = val.replace(/,/g, '');
                                   if (cleanVal.startsWith('-')) {
                                     const num = parseFloat(cleanVal);
                                     if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
