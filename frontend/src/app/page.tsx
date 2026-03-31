@@ -10032,7 +10032,7 @@ export default function DashboardPage() {
                         <tr className="bg-[#2E5C8A] text-white">
                           <th className="text-left p-3 font-semibold border-2 border-gray-400">구분</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">25FY</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[130px]">전월 보고 26YTD</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[130px]">전월 보고 26FY YTD</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">26FY YTD</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[120px]">전년대비</th>
                         </tr>
