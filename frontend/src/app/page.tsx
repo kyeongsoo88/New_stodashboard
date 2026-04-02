@@ -10231,6 +10231,37 @@ export default function DashboardPage() {
                                     : 'bg-green-50/20'
                               }`}>
                                 {(() => {
+                                  // TAG매출 행의 26FY YTD는 온라인 + 홀세일
+                                  if (isTagSales) {
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    
+                                    // 온라인 값 계산 (시즌 합계)
+                                    let onlineValue = 0;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const num = parseFloat(cleanVal);
+                                          if (!isNaN(num)) onlineValue += num;
+                                        }
+                                      });
+                                    }
+                                    
+                                    // 홀세일 값
+                                    let wholesaleValue = 0;
+                                    if (wholesaleRow && wholesaleRow.ytd26) {
+                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) wholesaleValue = num;
+                                    }
+                                    
+                                    const total = onlineValue + wholesaleValue;
+                                    return total !== 0 ? total.toLocaleString() : '';
+                                  }
+                                  
                                   // 온라인 행의 26FY YTD는 시즌 항목들의 합계
                                   if (isEcom) {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
