@@ -8440,6 +8440,50 @@ export default function DashboardPage() {
     'CORE': 100,
     '과시즌': 100
   });
+  const [showReorderPopup, setShowReorderPopup] = React.useState(false);
+  const [reorderItems, setReorderItems] = React.useState<string[]>([]);
+  
+  // 성장률 변경 시 기말 재고 마이너스 체크
+  React.useEffect(() => {
+    if (activeTab !== "시뮬레이션" || simulInvenData.length === 0) return;
+    
+    const negativeItems: string[] = [];
+    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+    
+    simulInvenData.forEach(row => {
+      if (seasonLabels.includes(row.label)) {
+        // CSV 컬럼 인덱스: 0=기초, 1=상품매입, 2=홀세일 판매, 3=EC 판매, 4=기말, 5=증감
+        const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
+        const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
+        const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
+        const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
+        
+        // EC 판매에 성장률 적용
+        const growthRate = seasonGrowthRates[row.label] || 100;
+        const ecSales = ecSalesBaseVal * (growthRate / 100);
+        
+        // 기말 = 기초 + 상품매입 - 홀세일 판매 - EC 판매(성장률 적용)
+        const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
+        
+        console.log(`${row.label}: 기말=${Math.round(final)}, 기초=${initialVal}, 상품매입=${purchaseVal}, 홀세일=${wholesaleSalesVal}, EC판매=${Math.round(ecSales)} (기준=${ecSalesBaseVal}, 성장률=${growthRate}%)`);
+        
+        if (final < 0) {
+          negativeItems.push(row.label);
+          console.log(`⚠️ ${row.label} 기말 재고 마이너스 감지! 기말=${Math.round(final)}`);
+        }
+      }
+    });
+    
+    if (negativeItems.length > 0) {
+      console.log('🚨 Re-order 팝업 표시:', negativeItems);
+      setReorderItems(negativeItems);
+      setShowReorderPopup(true);
+    } else {
+      console.log('✅ 모든 항목 재고 정상');
+      setShowReorderPopup(false);
+      setReorderItems([]);
+    }
+  }, [seasonGrowthRates, simulInvenData, activeTab]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -10748,8 +10792,11 @@ export default function DashboardPage() {
                                 // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
                                 let borderClass = 'border-2 border-gray-300';
                                 if (isECCol) {
+                                  // 좌우 빨간 테두리는 모든 행에 적용
                                   borderClass = 'border-2 border-gray-300 !border-l-red-400 !border-r-red-400';
+                                  // 상단 빨간 테두리는 첫 행(재고자산 합계)에만
                                   if (isFirstRowInTable) borderClass += ' !border-t-red-400';
+                                  // 하단 빨간 테두리는 CORE 행에만
                                   if (isLastRowInTable) borderClass += ' !border-b-red-400';
                                 }
                                 // 홀세일 판매 컬럼의 오른쪽 테두리도 붉은색
@@ -11577,6 +11624,48 @@ export default function DashboardPage() {
           </>
         )}
       </main>
+
+      {/* Re-order 팝업 */}
+      {showReorderPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => {
+          if (e.target === e.currentTarget) setShowReorderPopup(false);
+        }}>
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-red-600">⚠️ Re-order 필요</h2>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowReorderPopup(false);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mb-4">
+              <p className="text-gray-700 mb-2">다음 항목의 기말 재고가 마이너스입니다:</p>
+              <ul className="list-disc list-inside space-y-1">
+                {reorderItems.map((item, idx) => (
+                  <li key={idx} className="text-red-600 font-semibold">{item}</li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              재고 부족으로 인해 추가 주문이 필요합니다.
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowReorderPopup(false);
+              }}
+              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
