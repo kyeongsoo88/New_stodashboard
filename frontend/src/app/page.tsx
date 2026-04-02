@@ -2641,10 +2641,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       </CardHeader>
       <CardContent className="p-0 overflow-x-auto">
         <div className="relative max-h-[800px] overflow-auto">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader className="sticky top-0 z-10 shadow-sm">
               <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
-                <TableHead className="w-[140px] text-left border border-gray-300 pl-4 sticky left-0 z-20 text-white font-bold" style={{ backgroundColor: '#2E5C8A' }}>
+                <TableHead className="w-[200px] text-left border border-gray-300 pl-4 sticky left-0 z-20 text-white font-bold" style={{ backgroundColor: '#2E5C8A' }}>
                   {headers[0]}
                 </TableHead>
                 {headers.slice(1).map((h, i) => {
@@ -2653,8 +2653,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   return (
                     <TableHead 
                       key={i} 
-                      className="text-center min-w-[80px] border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
-                      style={{ backgroundColor: '#2E5C8A' }}
+                      className="text-center border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
+                      style={{ backgroundColor: '#2E5C8A', width: showAllMonths ? 'auto' : '160px' }}
                     >
                       {h}
                     </TableHead>
