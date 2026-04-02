@@ -2456,17 +2456,17 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
   // 컬럼 표시 여부 확인
   const isColumnVisible = (idx: number) => {
-    // CSV 구조: 0: 26년 2월(실적), 1: 25년 2월(실적), 2: YoY
-    // 3: Mar-26F, 4: Apr-26F, ... 12: Dec-26F
-    // 13: 26년, 14: 연간 YoY
+    // CSV 구조: 0: 계정과목, 1: 25년 YTD, 2: 26년 1월(실적), 3: 26년 2월(실적), 4: Mar-26F, ..., 13: Dec-26F
+    // 14: 26년 YTD, 15: 연간대비, 16: good, 17: bad
     
     if (showAllMonths) return true;
     
-    // 월 접기 상태: 26년 2월(0), 25년 2월(1), YoY(2), 26년(13), 연간 YoY(14)만 표시
-    if (idx >= 0 && idx <= 2) return true;
-    if (idx >= 13) return true;
+    // 월 접기 상태: 계정과목(0), 25년 YTD(1), 26년 YTD(14), 연간대비(15), good(16), bad(17)만 표시
+    if (idx === 0) return true; // 계정과목
+    if (idx === 1) return true; // 25년 YTD
+    if (idx >= 14) return true; // 26년 YTD, 연간대비, good, bad
     
-    return false; // Mar-Dec 숨김
+    return false; // 26년 1월(실적) ~ Dec-26F 숨김
   };
 
   React.useEffect(() => {
@@ -2648,7 +2648,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   {headers[0]}
                 </TableHead>
                 {headers.slice(1).map((h, i) => {
-                  if (!isColumnVisible(i)) return null;
+                  if (!isColumnVisible(i + 1)) return null;
 
                   return (
                     <TableHead 
@@ -2781,7 +2781,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                       )}
                     </TableCell>
                     {row.values.map((val: string, vIdx: number) => {
-                      if (!isColumnVisible(vIdx)) return null;
+                      if (!isColumnVisible(vIdx + 1)) return null;
 
                       let cellTextColor = textStyle;
                       
@@ -3415,17 +3415,16 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
   };
 
   // 월 접기/펼치기 로직
-  // CSV 헤더: 구분, 25년 합계, 26년 1월, 26년 2월, ..., 26년 12월, 26년 합계, 연간 YoY
-  // 인덱스:   0,       1,        2,        3, ...,         13,        14,       15
-  // 접을 때 보여줄 컬럼: 구분(0), 25년 합계(1), 26년 2월(3), 26년 합계(14), 연간 YoY(15)
+  // CSV 헤더: 계정과목, 26년 1월(실적), 26년 2월(실적), Mar-26F, ..., Dec-26F, 26년 YTD, 연간 YoY
+  // 인덱스:   0,         1,              2,              3, ...,      12,       13,       14
+  // 접을 때 보여줄 컬럼: 계정과목(0), 26년 2월(실적)(2), 26년 YTD(13), 연간 YoY(14)
   // 펼칠 때 보여줄 컬럼: 모든 컬럼
   const visibleHeaderIndices = headers
     .map((h, idx) => ({ h, idx }))
     .filter(({ idx }) => {
       if (showAllMonths) return true;
-      // 월 접기: 구분(0), 25년 합계(1), 26년 2월(3), 26년 합계(14), 연간 YoY(15)
-      // 즉, 26년 1월(2), 26년 3월(4) ~ 26년 12월(13) 숨김
-      return idx <= 1 || idx === 3 || idx >= 14; 
+      // 월 접기: 계정과목(0), 26년 2월(실적)(2), 26년 YTD(13), 연간 YoY(14)
+      return idx === 0 || idx === 2 || idx === 13 || idx === 14; 
     })
     .map(({ idx }) => idx);
 
@@ -10354,9 +10353,10 @@ export default function DashboardPage() {
                             return num.toLocaleString();
                           };
                           
-                          // 기말 자동 계산: 기초 + 상품매입 - 판매 (CSV 인덱스 기준: 기초=0, 상품매입=1, 판매=2, 기말=3)
+                          // 기말 자동 계산: 기초 + 상품매입 - 홀세일 판매 - EC 판매
+                          // CSV 인덱스: 기초=0, 상품매입=1, 홀세일 판매=2, EC 판매=3, 기말=4, 증감=5
                           const calculateFinal = (colIdx: number) => {
-                            // 기말 컬럼인 경우만 계산 (일반적으로 4번째 컬럼, 인덱스 3)
+                            // 기말 컬럼인 경우만 계산
                             const headerName = simulInvenHeaders[colIdx + 1] || '';
                             if (!headerName.includes('기말')) {
                               return formatNumber(row.values[colIdx] || '0', isYOY);
@@ -10366,19 +10366,21 @@ export default function DashboardPage() {
                             
                             const initialVal = (row.values[0] || '0').replace(/,/g, '');
                             const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
-                            const salesVal = (row.values[2] || '0').replace(/,/g, '');
+                            const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
+                            const ecSalesVal = (row.values[3] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
-                            const sales = parseFloat(salesVal) || 0;
+                            const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
+                            const ecSales = parseFloat(ecSalesVal) || 0;
                             
-                            const final = initial + purchase - sales;
+                            const final = initial + purchase - wholesaleSales - ecSales;
                             return final !== 0 ? final.toLocaleString() : '';
                           };
                           
-                          // 증감 자동 계산: 기말 - 기초 (CSV 인덱스: 증감=4)
+                          // 증감 자동 계산: 기말 - 기초
                           const calculateChange = (colIdx: number) => {
-                            // 증감 컬럼인 경우만 계산 (일반적으로 5번째 컬럼, 인덱스 4)
+                            // 증감 컬럼인 경우만 계산
                             const headerName = simulInvenHeaders[colIdx + 1] || '';
                             if (!headerName.includes('증감')) {
                               return formatNumber(row.values[colIdx] || '0', isYOY);
@@ -10388,13 +10390,15 @@ export default function DashboardPage() {
                             
                             const initialVal = (row.values[0] || '0').replace(/,/g, '');
                             const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
-                            const salesVal = (row.values[2] || '0').replace(/,/g, '');
+                            const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
+                            const ecSalesVal = (row.values[3] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
-                            const sales = parseFloat(salesVal) || 0;
+                            const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
+                            const ecSales = parseFloat(ecSalesVal) || 0;
                             
-                            const final = initial + purchase - sales;
+                            const final = initial + purchase - wholesaleSales - ecSales;
                             const change = final - initial;
                             return change !== 0 ? change.toLocaleString() : '';
                           };
@@ -10410,8 +10414,6 @@ export default function DashboardPage() {
                           
                           // 컬럼별 테두리 색상 설정 (헤더 이름 기준)
                           const getColumnBorderClass = (colIdx: number) => {
-                            const headerName = simulInvenHeaders[colIdx + 1] || '';
-                            if (headerName === 'EC 판매' || headerName === 'EC판매') return 'border-red-300';
                             return 'border-gray-300';
                           };
                           
