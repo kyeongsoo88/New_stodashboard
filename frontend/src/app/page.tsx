@@ -8431,6 +8431,15 @@ export default function DashboardPage() {
   const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
   const [simulWCData, setSimulWCData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string}>>([]);
+  const [seasonGrowthRates, setSeasonGrowthRates] = React.useState<Record<string, number>>({
+    '27SS': 100,
+    '26FW': 100,
+    '26SS': 100,
+    '25FW': 100,
+    '25SS': 100,
+    'CORE': 100,
+    '과시즌': 100
+  });
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -10124,25 +10133,20 @@ export default function DashboardPage() {
                                         type="range"
                                         min="-50"
                                         max="200"
-                                        defaultValue="130"
+                                        value={seasonGrowthRates[label] || 100}
                                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                         onChange={(e) => {
-                                          const value = e.target.value;
-                                          const input = e.target.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                          if (input) input.value = value;
+                                          const value = parseInt(e.target.value);
+                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
                                         }}
                                       />
                                       <button
                                         className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                          const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                          if (slider && input) {
-                                            const newValue = Math.max(-50, parseInt(slider.value) - 1);
-                                            slider.value = newValue.toString();
-                                            input.value = newValue.toString();
-                                          }
+                                          const currentValue = seasonGrowthRates[label] || 100;
+                                          const newValue = Math.max(-50, currentValue - 1);
+                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
                                         }}
                                       >
                                         -
@@ -10151,12 +10155,11 @@ export default function DashboardPage() {
                                         type="number"
                                         min="-50"
                                         max="200"
-                                        defaultValue="130"
+                                        value={seasonGrowthRates[label] || 100}
                                         className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
                                         onChange={(e) => {
-                                          const value = e.target.value;
-                                          const slider = e.target.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                          if (slider) slider.value = value;
+                                          const value = parseInt(e.target.value) || 100;
+                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
                                         }}
                                       />
                                       <span className="text-xs">%</span>
@@ -10164,13 +10167,9 @@ export default function DashboardPage() {
                                         className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          const slider = e.currentTarget.parentElement?.querySelector('input[type="range"]') as HTMLInputElement;
-                                          const input = e.currentTarget.parentElement?.querySelector('input[type="number"]') as HTMLInputElement;
-                                          if (slider && input) {
-                                            const newValue = Math.min(200, parseInt(slider.value) + 1);
-                                            slider.value = newValue.toString();
-                                            input.value = newValue.toString();
-                                          }
+                                          const currentValue = seasonGrowthRates[label] || 100;
+                                          const newValue = Math.min(200, currentValue + 1);
+                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
                                         }}
                                       >
                                         +
@@ -10236,7 +10235,7 @@ export default function DashboardPage() {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
-                                    // 온라인 값 계산 (시즌 합계)
+                                    // 온라인 값 계산 (시즌 합계 with 성장률)
                                     let onlineValue = 0;
                                     if (onlineRow) {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
@@ -10244,8 +10243,11 @@ export default function DashboardPage() {
                                         const seasonRow = simulPLData.find(r => r.label === seasonLabel);
                                         if (seasonRow && seasonRow.ytd26) {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                          const num = parseFloat(cleanVal);
-                                          if (!isNaN(num)) onlineValue += num;
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
                                         }
                                       });
                                     }
@@ -10259,10 +10261,10 @@ export default function DashboardPage() {
                                     }
                                     
                                     const total = onlineValue + wholesaleValue;
-                                    return total !== 0 ? total.toLocaleString() : '';
+                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
                                   }
                                   
-                                  // 온라인 행의 26FY YTD는 시즌 항목들의 합계
+                                  // 온라인 행의 26FY YTD는 시즌 항목들의 합계 (with 성장률)
                                   if (isEcom) {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     let sum = 0;
@@ -10270,11 +10272,28 @@ export default function DashboardPage() {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
                                       if (seasonRow && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                        const num = parseFloat(cleanVal);
-                                        if (!isNaN(num)) sum += num;
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          sum += baseNum * (growthRate / 100);
+                                        }
                                       }
                                     });
-                                    return sum !== 0 ? sum.toLocaleString() : '';
+                                    return sum !== 0 ? Math.round(sum).toLocaleString() : '';
+                                  }
+                                  
+                                  // 시즌 항목들의 26FY YTD는 CSV 값 * 성장률
+                                  if (isSeasonItem) {
+                                    const val = row.ytd26;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const baseNum = parseFloat(cleanVal);
+                                    if (isNaN(baseNum)) return val;
+                                    
+                                    const growthRate = seasonGrowthRates[label] || 100;
+                                    const calculatedValue = baseNum * (growthRate / 100);
+                                    return Math.round(calculatedValue).toLocaleString();
                                   }
                                   
                                   const val = row.ytd26;
@@ -10294,64 +10313,208 @@ export default function DashboardPage() {
                                 {(() => {
                                   // 전년대비 = 26FY YTD - 25FY
                                   const fy25Val = row.fy25;
-                                  const ytd26Val = row.ytd26;
                                   
                                   // % 포함된 경우는 계산 안함
-                                  if (fy25Val.includes('%') || ytd26Val.includes('%')) {
+                                  if (fy25Val.includes('%')) {
                                     return '';
                                   }
                                   
-                                  // 두 값 모두 있어야 계산
-                                  if (!fy25Val || fy25Val === '0' || !ytd26Val || ytd26Val === '0') {
+                                  // 25FY 값이 없으면 계산 안함
+                                  if (!fy25Val || fy25Val === '0') {
                                     return '';
                                   }
                                   
-                                  // 쉼표 제거 후 숫자로 변환
+                                  // 25FY 값 파싱
                                   const cleanFy25 = fy25Val.replace(/,/g, '');
-                                  const cleanYtd26 = ytd26Val.replace(/,/g, '');
-                                  
                                   const num25 = parseFloat(cleanFy25);
-                                  const num26 = parseFloat(cleanYtd26);
-                                  
-                                  if (isNaN(num25) || isNaN(num26)) {
+                                  if (isNaN(num25)) {
                                     return '';
                                   }
                                   
-                                  const diff = num26 - num25;
+                                  // 26FY YTD 값 계산 (위의 26FY YTD 셀과 동일한 로직)
+                                  let num26 = 0;
+                                  
+                                  // TAG매출 행
+                                  if (isTagSales) {
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    
+                                    let onlineValue = 0;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
+                                    }
+                                    
+                                    let wholesaleValue = 0;
+                                    if (wholesaleRow && wholesaleRow.ytd26) {
+                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                      const wNum = parseFloat(cleanVal);
+                                      if (!isNaN(wNum)) wholesaleValue = wNum;
+                                    }
+                                    
+                                    num26 = onlineValue + wholesaleValue;
+                                  }
+                                  // 온라인 행
+                                  else if (isEcom) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          sum += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = sum;
+                                  }
+                                  // 시즌 항목들
+                                  else if (isSeasonItem) {
+                                    const val = row.ytd26;
+                                    if (!val || val === '0' || val.includes('%')) {
+                                      return '';
+                                    }
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const baseNum = parseFloat(cleanVal);
+                                    if (isNaN(baseNum)) {
+                                      return '';
+                                    }
+                                    const growthRate = seasonGrowthRates[label] || 100;
+                                    num26 = baseNum * (growthRate / 100);
+                                  }
+                                  // 일반 항목들
+                                  else {
+                                    const val = row.ytd26;
+                                    if (!val || val === '0' || val.includes('%')) {
+                                      return '';
+                                    }
+                                    const cleanVal = val.replace(/,/g, '');
+                                    num26 = parseFloat(cleanVal);
+                                    if (isNaN(num26)) {
+                                      return '';
+                                    }
+                                  }
+                                  
+                                  const diff = Math.round(num26) - num25;
                                   const colorClass = diff < 0 ? 'text-red-600' : 'text-blue-600';
-                                  return <span className={colorClass}>{diff.toLocaleString()}</span>;
+                                  return <span className={colorClass}>{Math.round(diff).toLocaleString()}</span>;
                                 })()}
                               </td>
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
                                   // 전월대비 = 26FY YTD - 전월 보고 26FY YTD
                                   const prevYtd26Val = row.prevYtd26;
-                                  const ytd26Val = row.ytd26;
                                   
                                   // % 포함된 경우는 계산 안함
-                                  if (prevYtd26Val.includes('%') || ytd26Val.includes('%')) {
+                                  if (prevYtd26Val.includes('%')) {
                                     return '';
                                   }
                                   
-                                  // 두 값 모두 있어야 계산
-                                  if (!prevYtd26Val || prevYtd26Val === '0' || !ytd26Val || ytd26Val === '0') {
+                                  // 전월 보고 값이 없으면 계산 안함
+                                  if (!prevYtd26Val || prevYtd26Val === '0') {
                                     return '';
                                   }
                                   
-                                  // 쉼표 제거 후 숫자로 변환
+                                  // 전월 보고 26FY YTD 값 파싱
                                   const cleanPrevYtd26 = prevYtd26Val.replace(/,/g, '');
-                                  const cleanYtd26 = ytd26Val.replace(/,/g, '');
-                                  
                                   const numPrev = parseFloat(cleanPrevYtd26);
-                                  const numCurr = parseFloat(cleanYtd26);
-                                  
-                                  if (isNaN(numPrev) || isNaN(numCurr)) {
+                                  if (isNaN(numPrev)) {
                                     return '';
                                   }
                                   
-                                  const diff = numCurr - numPrev;
+                                  // 26FY YTD 값 계산 (성장률 적용된 값, 전년대비와 동일한 로직)
+                                  let num26 = 0;
+                                  
+                                  // TAG매출 행
+                                  if (isTagSales) {
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    
+                                    let onlineValue = 0;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
+                                    }
+                                    
+                                    let wholesaleValue = 0;
+                                    if (wholesaleRow && wholesaleRow.ytd26) {
+                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                      const wNum = parseFloat(cleanVal);
+                                      if (!isNaN(wNum)) wholesaleValue = wNum;
+                                    }
+                                    
+                                    num26 = onlineValue + wholesaleValue;
+                                  }
+                                  // 온라인 행
+                                  else if (isEcom) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          sum += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = sum;
+                                  }
+                                  // 시즌 항목들
+                                  else if (isSeasonItem) {
+                                    const val = row.ytd26;
+                                    if (!val || val === '0' || val.includes('%')) {
+                                      return '';
+                                    }
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const baseNum = parseFloat(cleanVal);
+                                    if (isNaN(baseNum)) {
+                                      return '';
+                                    }
+                                    const growthRate = seasonGrowthRates[label] || 100;
+                                    num26 = baseNum * (growthRate / 100);
+                                  }
+                                  // 일반 항목들
+                                  else {
+                                    const val = row.ytd26;
+                                    if (!val || val === '0' || val.includes('%')) {
+                                      return '';
+                                    }
+                                    const cleanVal = val.replace(/,/g, '');
+                                    num26 = parseFloat(cleanVal);
+                                    if (isNaN(num26)) {
+                                      return '';
+                                    }
+                                  }
+                                  
+                                  const diff = Math.round(num26) - numPrev;
                                   const colorClass = diff < 0 ? 'text-red-600' : 'text-blue-600';
-                                  return <span className={colorClass}>{diff.toLocaleString()}</span>;
+                                  return <span className={colorClass}>{Math.round(diff).toLocaleString()}</span>;
                                 })()}
                               </td>
                             </tr>
