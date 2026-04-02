@@ -10176,6 +10176,27 @@ export default function DashboardPage() {
                                       </button>
                                     </div>
                                   </div>
+                                ) : isEcom ? (
+                                  <div className="flex items-center justify-between">
+                                    <span>{label}</span>
+                                    <button
+                                      className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSeasonGrowthRates({
+                                          '27SS': 100,
+                                          '26FW': 100,
+                                          '26SS': 100,
+                                          '25FW': 100,
+                                          '25SS': 100,
+                                          'CORE': 100,
+                                          '과시즌': 100
+                                        });
+                                      }}
+                                    >
+                                      RESET
+                                    </button>
+                                  </div>
                                 ) : (
                                   <div className="flex items-center justify-between">
                                     <span>{label}</span>
@@ -10592,15 +10613,22 @@ export default function DashboardPage() {
                             const initialVal = (row.values[0] || '0').replace(/,/g, '');
                             const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
                             const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
-                            const ecSalesVal = (row.values[3] || '0').replace(/,/g, '');
+                            const ecSalesBaseVal = (row.values[3] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
                             const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
-                            const ecSales = parseFloat(ecSalesVal) || 0;
+                            
+                            // EC 판매는 성장률 적용
+                            let ecSales = parseFloat(ecSalesBaseVal) || 0;
+                            const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                            if (seasonLabels.includes(row.label)) {
+                              const growthRate = seasonGrowthRates[row.label] || 100;
+                              ecSales = ecSales * (growthRate / 100);
+                            }
                             
                             const final = initial + purchase - wholesaleSales - ecSales;
-                            return final !== 0 ? final.toLocaleString() : '';
+                            return final !== 0 ? Math.round(final).toLocaleString() : '';
                           };
                           
                           // 증감 자동 계산: 기말 - 기초
@@ -10616,16 +10644,23 @@ export default function DashboardPage() {
                             const initialVal = (row.values[0] || '0').replace(/,/g, '');
                             const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
                             const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
-                            const ecSalesVal = (row.values[3] || '0').replace(/,/g, '');
+                            const ecSalesBaseVal = (row.values[3] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
                             const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
-                            const ecSales = parseFloat(ecSalesVal) || 0;
+                            
+                            // EC 판매는 성장률 적용
+                            let ecSales = parseFloat(ecSalesBaseVal) || 0;
+                            const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                            if (seasonLabels.includes(row.label)) {
+                              const growthRate = seasonGrowthRates[row.label] || 100;
+                              ecSales = ecSales * (growthRate / 100);
+                            }
                             
                             const final = initial + purchase - wholesaleSales - ecSales;
                             const change = final - initial;
-                            return change !== 0 ? change.toLocaleString() : '';
+                            return change !== 0 ? Math.round(change).toLocaleString() : '';
                           };
                           
                           // 컬럼별 배경색 설정 (헤더 이름 기준)
@@ -10674,6 +10709,35 @@ export default function DashboardPage() {
                                   displayValue = calculateFinal(colIdx);
                                 } else if (isChangeCol) {
                                   displayValue = calculateChange(colIdx);
+                                } else if (isECCol && !isYOY) {
+                                  // EC 판매 컬럼
+                                  if (isFirstRow) {
+                                    // 재고자산 합계 행: 모든 시즌의 EC 판매 합계
+                                    let sum = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.values[3]) {
+                                        const baseVal = (seasonRow.values[3] || '0').replace(/,/g, '');
+                                        const baseNum = parseFloat(baseVal) || 0;
+                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                        sum += baseNum * (growthRate / 100);
+                                      }
+                                    });
+                                    displayValue = sum !== 0 ? Math.round(sum).toLocaleString() : '';
+                                  } else {
+                                    // 시즌 항목에 성장률 적용
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    if (seasonLabels.includes(row.label)) {
+                                      const baseVal = (val || '0').replace(/,/g, '');
+                                      const baseNum = parseFloat(baseVal) || 0;
+                                      const growthRate = seasonGrowthRates[row.label] || 100;
+                                      const calculatedValue = baseNum * (growthRate / 100);
+                                      displayValue = calculatedValue !== 0 ? Math.round(calculatedValue).toLocaleString() : '';
+                                    } else {
+                                      displayValue = formatNumber(val, isYOY);
+                                    }
+                                  }
                                 } else {
                                   displayValue = formatNumber(val, isYOY);
                                 }
