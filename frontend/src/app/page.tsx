@@ -8427,7 +8427,8 @@ export default function DashboardPage() {
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
   const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, prevYtd26: string, ytd26: string, yoy: string, monthDiff: string, growth: string}>>([]);
-  const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, initial: string, purchase: string, sales: string, final: string, change: string}>>([]);
+  const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, values: string[]}>>([]);
+  const [simulInvenHeaders, setSimulInvenHeaders] = React.useState<string[]>([]);
   const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
   const [simulWCData, setSimulWCData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string}>>([]);
@@ -8564,15 +8565,17 @@ export default function DashboardPage() {
           return result;
         };
         
+        // 헤더 파싱
+        if (lines.length > 0) {
+          const headers = parseCSVLine(lines[0]);
+          setSimulInvenHeaders(headers);
+        }
+        
         const data = lines.slice(1).map(line => {
           const values = parseCSVLine(line);
           return {
             label: values[0] || '',
-            initial: values[1] || '0',
-            purchase: values[2] || '0',
-            sales: values[3] || '0',
-            final: values[4] || '0',
-            change: values[5] || '0'
+            values: values.slice(1)
           };
         });
         setSimulInvenData(data);
@@ -10312,27 +10315,15 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white text-sm">
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">구분</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
-                            기초<br/>
-                            <span className="text-xs font-normal">(2025년기말)</span>
-                          </th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
-                            상품매입<br/>
-                            <span className="text-xs font-normal">(연간)</span>
-                          </th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
-                            판매<br/>
-                            <span className="text-xs font-normal">(연간)</span>
-                          </th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
-                            기말<br/>
-                            <span className="text-xs font-normal">(2026년기말)</span>
-                          </th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">
-                            증감<br/>
-                            <span className="text-xs font-normal">(26년-25년)</span>
-                          </th>
+                          {simulInvenHeaders.map((header, idx) => (
+                            <th 
+                              key={`inven-header-${idx}`}
+                              className="text-center p-3 font-semibold border-2 border-gray-400"
+                              style={{ width: `${100 / simulInvenHeaders.length}%` }}
+                            >
+                              {header}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className="text-sm">
@@ -10363,13 +10354,19 @@ export default function DashboardPage() {
                             return num.toLocaleString();
                           };
                           
-                          // 기말 자동 계산: 기초 + 상품매입 - 판매
-                          const calculateFinal = () => {
-                            if (isYOY) return formatNumber(row.final, true);
+                          // 기말 자동 계산: 기초 + 상품매입 - 판매 (CSV 인덱스 기준: 기초=0, 상품매입=1, 판매=2, 기말=3)
+                          const calculateFinal = (colIdx: number) => {
+                            // 기말 컬럼인 경우만 계산 (일반적으로 4번째 컬럼, 인덱스 3)
+                            const headerName = simulInvenHeaders[colIdx + 1] || '';
+                            if (!headerName.includes('기말')) {
+                              return formatNumber(row.values[colIdx] || '0', isYOY);
+                            }
                             
-                            const initialVal = row.initial.replace(/,/g, '');
-                            const purchaseVal = row.purchase.replace(/,/g, '');
-                            const salesVal = row.sales.replace(/,/g, '');
+                            if (isYOY) return formatNumber(row.values[colIdx] || '0', true);
+                            
+                            const initialVal = (row.values[0] || '0').replace(/,/g, '');
+                            const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
+                            const salesVal = (row.values[2] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
@@ -10379,13 +10376,19 @@ export default function DashboardPage() {
                             return final !== 0 ? final.toLocaleString() : '';
                           };
                           
-                          // 증감 자동 계산: 기말 - 기초
-                          const calculateChange = () => {
-                            if (isYOY) return formatNumber(row.change, true);
+                          // 증감 자동 계산: 기말 - 기초 (CSV 인덱스: 증감=4)
+                          const calculateChange = (colIdx: number) => {
+                            // 증감 컬럼인 경우만 계산 (일반적으로 5번째 컬럼, 인덱스 4)
+                            const headerName = simulInvenHeaders[colIdx + 1] || '';
+                            if (!headerName.includes('증감')) {
+                              return formatNumber(row.values[colIdx] || '0', isYOY);
+                            }
                             
-                            const initialVal = row.initial.replace(/,/g, '');
-                            const purchaseVal = row.purchase.replace(/,/g, '');
-                            const salesVal = row.sales.replace(/,/g, '');
+                            if (isYOY) return formatNumber(row.values[colIdx] || '0', true);
+                            
+                            const initialVal = (row.values[0] || '0').replace(/,/g, '');
+                            const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
+                            const salesVal = (row.values[2] || '0').replace(/,/g, '');
                             
                             const initial = parseFloat(initialVal) || 0;
                             const purchase = parseFloat(purchaseVal) || 0;
@@ -10396,32 +10399,64 @@ export default function DashboardPage() {
                             return change !== 0 ? change.toLocaleString() : '';
                           };
                           
-                          // 음수 여부 확인
-                          const isNegativeChange = () => {
-                            const changeVal = calculateChange();
+                          // 컬럼별 배경색 설정 (헤더 이름 기준)
+                          const getColumnBgClass = (colIdx: number) => {
+                            const headerName = simulInvenHeaders[colIdx + 1] || '';
+                            if (headerName.includes('상품매입')) return 'bg-amber-50/30';
+                            if (headerName.includes('판매')) return 'bg-blue-50/20';
+                            if (headerName.includes('기말')) return 'bg-green-50/40';
+                            return '';
+                          };
+                          
+                          // 컬럼별 테두리 색상 설정 (헤더 이름 기준)
+                          const getColumnBorderClass = (colIdx: number) => {
+                            const headerName = simulInvenHeaders[colIdx + 1] || '';
+                            if (headerName === 'EC 판매' || headerName === 'EC판매') return 'border-red-300';
+                            return 'border-gray-300';
+                          };
+                          
+                          // 음수 여부 확인 (증감 컬럼용)
+                          const isNegativeValue = (colIdx: number) => {
+                            const headerName = simulInvenHeaders[colIdx + 1] || '';
+                            if (!headerName.includes('증감')) return false;
+                            
+                            const changeVal = calculateChange(colIdx);
                             return changeVal.startsWith('-');
                           };
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`p-3 ${borderClass} border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
+                              <td className={`p-3 border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
                                 {row.label}
                               </td>
-                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium`}>
-                                {formatNumber(row.initial, isYOY)}
-                              </td>
-                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/30`}>
-                                {formatNumber(row.purchase, isYOY)}
-                              </td>
-                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/20`}>
-                                {formatNumber(row.sales, isYOY)}
-                              </td>
-                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-semibold bg-green-50/40`}>
-                                {calculateFinal()}
-                              </td>
-                              <td className={`text-right p-3 ${borderClass} border-2 border-gray-300 font-mono text-[15px] font-semibold ${isNegativeChange() ? 'text-red-600' : 'text-blue-600'}`}>
-                                {calculateChange()}
-                              </td>
+                              {row.values.map((val, colIdx) => {
+                                const headerName = simulInvenHeaders[colIdx + 1] || '';
+                                const bgClass = getColumnBgClass(colIdx);
+                                const borderColorClass = getColumnBorderClass(colIdx);
+                                const isFinalCol = headerName.includes('기말');
+                                const isChangeCol = headerName.includes('증감');
+                                
+                                let displayValue = '';
+                                if (isFinalCol) {
+                                  displayValue = calculateFinal(colIdx);
+                                } else if (isChangeCol) {
+                                  displayValue = calculateChange(colIdx);
+                                } else {
+                                  displayValue = formatNumber(val, isYOY);
+                                }
+                                
+                                const textColorClass = isChangeCol && isNegativeValue(colIdx) ? 'text-red-600' : isChangeCol ? 'text-blue-600' : '';
+                                const fontWeight = isFinalCol || isChangeCol ? 'font-semibold' : 'font-medium';
+                                
+                                return (
+                                  <td 
+                                    key={`inven-col-${colIdx}`}
+                                    className={`text-right p-3 border-2 ${borderColorClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass}`}
+                                  >
+                                    {displayValue}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}
