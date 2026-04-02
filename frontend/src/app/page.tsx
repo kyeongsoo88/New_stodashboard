@@ -3327,7 +3327,7 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
   const [rows, setRows] = React.useState<Array<{ label: string; originalLabel?: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
-  const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접힘
+  const [showAllMonths, setShowAllMonths] = React.useState(true); // 기본값: 펼침
 
   const toggleRow = (label: string) => {
     setExpandedRows((prev) => {
@@ -10407,7 +10407,8 @@ export default function DashboardPage() {
                           const getColumnBgClass = (colIdx: number) => {
                             const headerName = simulInvenHeaders[colIdx + 1] || '';
                             if (headerName.includes('상품매입')) return 'bg-amber-50/30';
-                            if (headerName.includes('판매')) return 'bg-blue-50/20';
+                            if (headerName === 'EC 판매' || headerName === 'EC판매') return 'bg-red-50/40';
+                            if (headerName.includes('홀세일 판매') || headerName.includes('홀세일판매')) return 'bg-blue-50/20';
                             if (headerName.includes('기말')) return 'bg-green-50/40';
                             return '';
                           };
