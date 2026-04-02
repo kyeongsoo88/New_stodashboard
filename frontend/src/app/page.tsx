@@ -2528,7 +2528,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           const label = values[0].trim();
           
           // 메인 카테고리인지 확인
-          const mainCategories = ['TAG 판매가', '실판 매출', '매출원가', '직접비용', '영업비', '영업이익', 
+          const mainCategories = ['TAG 판매가', '실판 매출', '매출원가', '매출총이익', '직접비용', '직접이익', '영업비', '영업이익', 
                                   'Gross Profit', 'Direct Profit', 'Operating Profit'];
           const isMainCategory = mainCategories.includes(label) || /^\d+\./.test(label);
           
@@ -10327,15 +10327,18 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse table-fixed">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white text-sm">
-                          {simulInvenHeaders.map((header, idx) => (
-                            <th 
-                              key={`inven-header-${idx}`}
-                              className="text-center p-3 font-semibold border-2 border-gray-400"
-                              style={{ width: `${100 / simulInvenHeaders.length}%` }}
-                            >
-                              {header}
-                            </th>
-                          ))}
+                          {simulInvenHeaders.map((header, idx) => {
+                            const isECHeader = header === 'EC 판매' || header === 'EC판매';
+                            return (
+                              <th 
+                                key={`inven-header-${idx}`}
+                                className={`text-center p-3 font-semibold border-2 ${isECHeader ? 'border-gray-400 !border-b-red-400' : 'border-gray-400'}`}
+                                style={{ width: `${100 / simulInvenHeaders.length}%` }}
+                              >
+                                {header}
+                              </th>
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody className="text-sm">
@@ -10448,9 +10451,14 @@ export default function DashboardPage() {
                               {row.values.map((val, colIdx) => {
                                 const headerName = simulInvenHeaders[colIdx + 1] || '';
                                 const bgClass = getColumnBgClass(colIdx);
-                                const borderColorClass = getColumnBorderClass(colIdx);
                                 const isFinalCol = headerName.includes('기말');
                                 const isChangeCol = headerName.includes('증감');
+                                const isECCol = headerName === 'EC 판매' || headerName === 'EC판매';
+                                
+                                // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용 (재고자산 합계 ~ CORE)
+                                const isFirstRowInTable = index === 0; // 재고자산 합계
+                                const isLastRowInTable = row.label === 'CORE';
+                                const isWholesaleCol = headerName.includes('홀세일 판매') || headerName.includes('홀세일판매');
                                 
                                 let displayValue = '';
                                 if (isFinalCol) {
@@ -10464,10 +10472,22 @@ export default function DashboardPage() {
                                 const textColorClass = isChangeCol && isNegativeValue(colIdx) ? 'text-red-600' : isChangeCol ? 'text-blue-600' : '';
                                 const fontWeight = isFinalCol || isChangeCol ? 'font-semibold' : 'font-medium';
                                 
+                                // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
+                                let borderClass = 'border-2 border-gray-300';
+                                if (isECCol) {
+                                  borderClass = 'border-2 border-gray-300 !border-l-red-400 !border-r-red-400';
+                                  if (isFirstRowInTable) borderClass += ' !border-t-red-400';
+                                  if (isLastRowInTable) borderClass += ' !border-b-red-400';
+                                }
+                                // 홀세일 판매 컬럼의 오른쪽 테두리도 붉은색
+                                if (isWholesaleCol) {
+                                  borderClass = 'border-2 border-gray-300 !border-r-red-400';
+                                }
+                                
                                 return (
                                   <td 
                                     key={`inven-col-${colIdx}`}
-                                    className={`text-right p-3 border-2 ${borderColorClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass}`}
+                                    className={`text-right p-3 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass}`}
                                   >
                                     {displayValue}
                                   </td>
