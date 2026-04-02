@@ -10053,6 +10053,7 @@ export default function DashboardPage() {
                           const isCollapsibleParent = collapsibleParents.includes(label);
                           const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
                           const isEcom = label === '온라인' && index === tagSalesIdx + 1;
+                          const isTagSales = label === 'TAG매출';
                           const seasonItems = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                           const isSeasonItem = seasonItems.includes(label);
                           const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
@@ -10201,7 +10202,11 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/20">
+                              <td className={`text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/20 ${
+                                isSeasonItem || isEcom 
+                                  ? '!border-r-red-400' + (label === '온라인' ? ' !border-t-red-400' : '') 
+                                  : ''
+                              }`}>
                                 {(() => {
                                   const val = row.prevYtd26;
                                   if (!val || val === '0') return '';
@@ -10221,7 +10226,9 @@ export default function DashboardPage() {
                                   ? 'bg-red-50/30 !border-l-red-400 !border-r-red-400' + 
                                     (label === '온라인' ? ' !border-t-red-400' : '') + 
                                     (label === '과시즌' ? ' !border-b-red-400' : '')
-                                  : 'bg-green-50/20'
+                                  : isTagSales 
+                                    ? 'bg-green-50/20 !border-b-red-400'
+                                    : 'bg-green-50/20'
                               }`}>
                                 {(() => {
                                   const val = row.ytd26;
