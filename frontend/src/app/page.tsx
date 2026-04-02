@@ -10231,6 +10231,21 @@ export default function DashboardPage() {
                                     : 'bg-green-50/20'
                               }`}>
                                 {(() => {
+                                  // 온라인 행의 26FY YTD는 시즌 항목들의 합계
+                                  if (isEcom) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const num = parseFloat(cleanVal);
+                                        if (!isNaN(num)) sum += num;
+                                      }
+                                    });
+                                    return sum !== 0 ? sum.toLocaleString() : '';
+                                  }
+                                  
                                   const val = row.ytd26;
                                   if (!val || val === '0') return '';
                                   if (val.includes('%')) return val;
