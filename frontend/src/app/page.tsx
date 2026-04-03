@@ -8443,7 +8443,7 @@ export default function DashboardPage() {
   const [showReorderPopup, setShowReorderPopup] = React.useState(false);
   const [reorderItems, setReorderItems] = React.useState<string[]>([]);
   
-  // 성장률 변경 시 기말 재고 마이너스 체크
+  // 성장률 변경 시 기말 재고 마이너스 체크 (콘솔 로그만)
   React.useEffect(() => {
     if (activeTab !== "시뮬레이션" || simulInvenData.length === 0) return;
     
@@ -8475,12 +8475,12 @@ export default function DashboardPage() {
     });
     
     if (negativeItems.length > 0) {
-      console.log('🚨 Re-order 팝업 표시:', negativeItems);
+      console.log('⚠️ 재고 부족 항목:', negativeItems);
       setReorderItems(negativeItems);
-      setShowReorderPopup(true);
+      // 팝업은 표시하지 않음 - 신호등으로만 표시
+      // setShowReorderPopup(true);
     } else {
       console.log('✅ 모든 항목 재고 정상');
-      setShowReorderPopup(false);
       setReorderItems([]);
     }
   }, [seasonGrowthRates, simulInvenData, activeTab]);
@@ -10607,12 +10607,19 @@ export default function DashboardPage() {
                               <th 
                                 key={`inven-header-${idx}`}
                                 className={`text-center p-3 font-semibold border-2 ${isECHeader ? 'border-gray-400 !border-b-red-400' : 'border-gray-400'}`}
-                                style={{ width: `${100 / simulInvenHeaders.length}%` }}
+                                style={{ width: `${100 / (simulInvenHeaders.length + 1)}%` }}
                               >
                                 {header}
                               </th>
                             );
                           })}
+                          {/* 상태 컬럼 추가 */}
+                          <th 
+                            className="text-center p-3 font-semibold border-2 border-gray-400"
+                            style={{ width: `${100 / (simulInvenHeaders.length + 1)}%` }}
+                          >
+                            상태
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="text-sm">
@@ -10813,6 +10820,36 @@ export default function DashboardPage() {
                                   </td>
                                 );
                               })}
+                              
+                              {/* 상태 컬럼 추가 */}
+                              <td className="text-center p-3 border-2 border-gray-300">
+                                {(() => {
+                                  // YOY 행이나 재고자산 합계 행은 상태 표시 안함
+                                  if (isYOY || isFirstRow) return '';
+                                  
+                                  // 시즌 항목만 상태 표시
+                                  const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                  if (!seasonLabels.includes(row.label)) return '';
+                                  
+                                  // 기말 재고 계산
+                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
+                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
+                                  const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
+                                  const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
+                                  
+                                  const growthRate = seasonGrowthRates[row.label] || 100;
+                                  const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                  
+                                  const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
+                                  
+                                  // 신호등 표시
+                                  if (final < 0) {
+                                    return <span className="text-2xl">🔴</span>; // 빨간불
+                                  } else {
+                                    return <span className="text-2xl">🟢</span>; // 초록불
+                                  }
+                                })()}
+                              </td>
                             </tr>
                           );
                         })}
