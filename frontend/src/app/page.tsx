@@ -10287,12 +10287,12 @@ export default function DashboardPage() {
                               </td>
                               <td className={`text-right p-2 font-mono text-[15px] font-medium ${
                                 isSeasonItem || isEcom 
-                                  ? 'bg-red-50/30 border-l-[3px] !border-l-red-400 border-r-[3px] !border-r-red-400' + 
-                                    (label === '온라인' ? ' border-t-[3px] !border-t-red-400 border-b-2 border-b-gray-300' : '') + 
-                                    (label === 'CORE' ? ' border-b-[3px] !border-b-red-400 border-t-2 border-t-gray-300' : 
+                                  ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' + 
+                                    (label === '온라인' ? ' border-t-[7px] !border-t-red-400 border-b-2 border-b-gray-300' : '') + 
+                                    (label === 'CORE' ? ' border-b-[7px] !border-b-red-400 border-t-2 border-t-gray-300' : 
                                      !isEcom ? ' border-t-2 border-t-gray-300 border-b-2 border-b-gray-300' : '')
                                   : isTagSales 
-                                    ? 'bg-green-50/20 border-2 border-gray-300 border-b-[3px] !border-b-red-400'
+                                    ? 'bg-green-50/20 border-2 border-gray-300 border-b-[7px] !border-b-red-400'
                                     : 'bg-green-50/20 border-2 border-gray-300'
                               }`}>
                                 {(() => {
@@ -10800,16 +10800,16 @@ export default function DashboardPage() {
                                 // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
                                 let borderClass = 'border-2 border-gray-300';
                                 if (isECCol) {
-                                  // 좌우 빨간 테두리는 모든 행에 적용
-                                  borderClass = 'border-2 border-gray-300 !border-l-red-400 !border-r-red-400';
+                                  // 좌우 빨간 테두리는 모든 행에 적용 (굵게)
+                                  borderClass = 'border-2 border-gray-300 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400';
                                   // 상단 빨간 테두리는 첫 행(재고자산 합계)에만
-                                  if (isFirstRowInTable) borderClass += ' !border-t-red-400';
+                                  if (isFirstRowInTable) borderClass += ' border-t-[7px] !border-t-red-400';
                                   // 하단 빨간 테두리는 CORE 행에만
-                                  if (isLastRowInTable) borderClass += ' !border-b-red-400';
+                                  if (isLastRowInTable) borderClass += ' border-b-[7px] !border-b-red-400';
                                 }
                                 // 홀세일 판매 컬럼의 오른쪽 테두리도 붉은색
                                 if (isWholesaleCol) {
-                                  borderClass = 'border-2 border-gray-300 !border-r-red-400';
+                                  borderClass = 'border-2 border-gray-300 border-r-[7px] !border-r-red-400';
                                 }
                                 
                                 return (
