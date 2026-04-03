@@ -10741,7 +10741,7 @@ export default function DashboardPage() {
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`p-3 border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
+                              <td className={`p-2 border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
                                 {row.label}
                               </td>
                               {row.values.map((val, colIdx) => {
@@ -10887,7 +10887,7 @@ export default function DashboardPage() {
                                 return (
                                   <td 
                                     key={`inven-col-${colIdx}`}
-                                    className={`text-right p-3 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass} ${finalTextColor}`}
+                                    className={`text-right p-2 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass} ${finalTextColor}`}
                                   >
                                     {displayValue}
                                   </td>
@@ -10895,7 +10895,7 @@ export default function DashboardPage() {
                               })}
                               
                               {/* 상태 컬럼 추가 */}
-                              <td className="text-center p-3 border-2 border-gray-300">
+                              <td className="text-center p-2 border-2 border-gray-300">
                                 {(() => {
                                   // YOY 행이나 재고자산 합계 행은 상태 표시 안함
                                   if (isYOY || isFirstRow) return '';
