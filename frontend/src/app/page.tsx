@@ -2516,7 +2516,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         let currentSubCategory = '';
         
         // E-com의 하위 항목들 (TAG 판매가 아래의 E-com만 해당)
-        const ecomSubItems = ['26FW', '26SS', '25FW', '25SS', 'FW과시즌', 'SW과시즌', 'CORE'];
+        const ecomSubItems = ['26FW', '26SS', '25FW', '25SS', '과시즌', 'FW과시즌', 'SW과시즌', 'CORE'];
         
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];
