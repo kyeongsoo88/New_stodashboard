@@ -10608,18 +10608,25 @@ export default function DashboardPage() {
                               <th 
                                 key={`inven-header-${idx}`}
                                 className={`text-center p-3 font-semibold border-2 ${isECHeader ? 'border-gray-400 !border-b-red-400' : 'border-gray-400'}`}
-                                style={{ width: `${100 / (simulInvenHeaders.length + 1)}%` }}
+                                style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
                               >
                                 {header}
                               </th>
                             );
                           })}
+                          {/* 판매율 컬럼 추가 */}
+                          <th 
+                            className="text-center p-3 font-semibold border-2 border-gray-400"
+                            style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
+                          >
+                            판매율
+                          </th>
                           {/* 상태 컬럼 추가 */}
                           <th 
                             className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 1)}%` }}
+                            style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
                           >
-                            상태
+                            기말 재고 상태
                           </th>
                         </tr>
                       </thead>
@@ -10893,6 +10900,63 @@ export default function DashboardPage() {
                                   </td>
                                 );
                               })}
+                              
+                              {/* 판매율 컬럼 추가 */}
+                              <td className="text-center p-2 border-2 border-gray-300 font-mono text-[15px] font-medium">
+                                {(() => {
+                                  // YOY 행은 판매율 표시 안함
+                                  if (isYOY) return '';
+                                  
+                                  // 기초 + 상품매입 값
+                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
+                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
+                                  const totalInput = initialVal + purchaseVal;
+                                  
+                                  if (totalInput === 0) return '';
+                                  
+                                  // 재고자산 합계 행
+                                  if (isFirstRow) {
+                                    // 모든 시즌의 기말 합계 계산
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
+                                    let totalFinal = 0;
+                                    
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
+                                      if (seasonRow) {
+                                        const sInitialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
+                                        const sPurchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
+                                        const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
+                                        const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+                                        
+                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                        const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                        
+                                        totalFinal += sInitialVal + sPurchaseVal - wholesaleSalesVal - ecSales;
+                                      }
+                                    });
+                                    
+                                    const sellRate = 1 - (totalFinal / totalInput);
+                                    return (Math.round(sellRate * 100)) + '%';
+                                  }
+                                  
+                                  // 시즌 항목들
+                                  const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                  if (seasonLabels.includes(row.label)) {
+                                    const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
+                                    const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
+                                    
+                                    // EC 판매에 성장률 적용
+                                    const growthRate = seasonGrowthRates[row.label] || 100;
+                                    const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                    
+                                    const finalVal = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
+                                    const sellRate = 1 - (finalVal / totalInput);
+                                    return (Math.round(sellRate * 100)) + '%';
+                                  }
+                                  
+                                  return '';
+                                })()}
+                              </td>
                               
                               {/* 상태 컬럼 추가 */}
                               <td className="text-center p-2 border-2 border-gray-300">
