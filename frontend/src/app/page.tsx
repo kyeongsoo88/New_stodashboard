@@ -10758,7 +10758,67 @@ export default function DashboardPage() {
                                 
                                 let displayValue = '';
                                 if (isFinalCol) {
-                                  displayValue = calculateFinal(colIdx);
+                                  // 재고자산 합계 행의 기말 컬럼: 모든 시즌 항목의 기말 합계
+                                  if (isFirstRow) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
+                                    let totalFinal = 0;
+                                    
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
+                                      if (seasonRow) {
+                                        const initialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
+                                        const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
+                                        const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
+                                        const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+                                        
+                                        // EC 판매에 성장률 적용
+                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                        const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                        
+                                        const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
+                                        totalFinal += final;
+                                      }
+                                    });
+                                    
+                                    displayValue = totalFinal !== 0 ? Math.round(totalFinal).toLocaleString() : '';
+                                  }
+                                  // YOY 행의 기말 컬럼: (재고자산 합계의 기말 / 재고자산 합계의 기초) × 100
+                                  else if (isYOY) {
+                                    const totalRow = simulInvenData[0]; // 재고자산 합계
+                                    if (totalRow) {
+                                      // 기초 값 (첫 번째 컬럼)
+                                      const initialVal = parseFloat((totalRow.values[0] || '0').replace(/,/g, '')) || 0;
+                                      
+                                      // 기말 값 계산 (모든 시즌의 기말 합계)
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
+                                      let finalVal = 0;
+                                      
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
+                                        if (seasonRow) {
+                                          const sInitialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
+                                          const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
+                                          const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
+                                          const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+                                          
+                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                          
+                                          finalVal += sInitialVal + purchaseVal - wholesaleSalesVal - ecSales;
+                                        }
+                                      });
+                                      
+                                      // YOY 계산: (기말 / 기초) × 100
+                                      if (initialVal !== 0) {
+                                        const yoyPercent = (finalVal / initialVal) * 100;
+                                        displayValue = Math.round(yoyPercent) + '%';
+                                      } else {
+                                        displayValue = '';
+                                      }
+                                    }
+                                  } else {
+                                    displayValue = calculateFinal(colIdx);
+                                  }
                                 } else if (isChangeCol) {
                                   displayValue = calculateChange(colIdx);
                                 } else if (isECCol && !isYOY) {
