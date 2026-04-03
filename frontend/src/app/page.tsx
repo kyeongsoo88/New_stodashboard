@@ -10797,6 +10797,18 @@ export default function DashboardPage() {
                                 const textColorClass = isChangeCol && isNegativeValue(colIdx) ? 'text-red-600' : isChangeCol ? 'text-blue-600' : '';
                                 const fontWeight = isFinalCol || isChangeCol ? 'font-semibold' : 'font-medium';
                                 
+                                // 기말 컬럼 색상 추가
+                                let finalTextColor = '';
+                                if (isFinalCol && !isYOY) {
+                                  const finalValue = calculateFinal(colIdx);
+                                  if (finalValue && finalValue !== '') {
+                                    const numValue = parseFloat(finalValue.replace(/,/g, ''));
+                                    if (!isNaN(numValue)) {
+                                      finalTextColor = numValue < 0 ? 'text-red-700' : 'text-green-700';
+                                    }
+                                  }
+                                }
+                                
                                 // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
                                 let borderClass = 'border-2 border-gray-300';
                                 if (isECCol) {
@@ -10815,7 +10827,7 @@ export default function DashboardPage() {
                                 return (
                                   <td 
                                     key={`inven-col-${colIdx}`}
-                                    className={`text-right p-3 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass}`}
+                                    className={`text-right p-3 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass} ${finalTextColor}`}
                                   >
                                     {displayValue}
                                   </td>
