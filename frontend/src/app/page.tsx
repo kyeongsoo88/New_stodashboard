@@ -10285,14 +10285,15 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={`text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium ${
+                              <td className={`text-right p-2 font-mono text-[15px] font-medium ${
                                 isSeasonItem || isEcom 
-                                  ? 'bg-red-50/30 !border-l-red-400 !border-r-red-400' + 
-                                    (label === '온라인' ? ' !border-t-red-400' : '') + 
-                                    (label === '과시즌' ? ' !border-b-red-400' : '')
+                                  ? 'bg-red-50/30 border-l-[3px] !border-l-red-400 border-r-[3px] !border-r-red-400' + 
+                                    (label === '온라인' ? ' border-t-[3px] !border-t-red-400 border-b-2 border-b-gray-300' : '') + 
+                                    (label === 'CORE' ? ' border-b-[3px] !border-b-red-400 border-t-2 border-t-gray-300' : 
+                                     !isEcom ? ' border-t-2 border-t-gray-300 border-b-2 border-b-gray-300' : '')
                                   : isTagSales 
-                                    ? 'bg-green-50/20 !border-b-red-400'
-                                    : 'bg-green-50/20'
+                                    ? 'bg-green-50/20 border-2 border-gray-300 border-b-[3px] !border-b-red-400'
+                                    : 'bg-green-50/20 border-2 border-gray-300'
                               }`}>
                                 {(() => {
                                   // TAG매출 행의 26FY YTD는 온라인 + 홀세일
