@@ -2629,6 +2629,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         const parsed: any[] = [];
         const tagSubItems = ['E-com', 'Wholesale']; // TAG판매가의 하위 항목들
         const salesSubItems = ['License Revenue', 'Others']; // 실판 매출의 하위 항목들
+        const cogsSubItems = ['Others']; // 매출원가의 하위 항목들 (E-com, Wholesale은 자동 포함)
+        const directCostSubItems = ['광고비', '운반비', '수수료', '물류비', '기타']; // 직접비용의 하위 항목들
+        const opexSubItems = ['급여', '임차료', '감가상각비', '광고비', '지급수수료', '출장비/식대', '기타']; // 영업비의 하위 항목들
         let lastParent = ''; // 마지막 부모 항목 추적
         
         for (let i = 1; i < lines.length; i++) {
@@ -2641,9 +2644,12 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           const label = values[0].trim();
           
           // 부모 항목 판단
-          const isTagParent = label === 'TAG판매가';
+          const isTagParent = label === 'TAG 판매가' || label === 'TAG판매가';
           const isSalesParent = label === '실판 매출';
-          const isParent = isTagParent || isSalesParent;
+          const isCogsParent = label === '매출원가';
+          const isDirectCostParent = label === '직접비용';
+          const isOpexParent = label === '영업비';
+          const isParent = isTagParent || isSalesParent || isCogsParent || isDirectCostParent || isOpexParent;
           
           // 부모 항목이면 lastParent 업데이트
           if (isParent) {
@@ -2654,12 +2660,21 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           let isSubItem = false;
           let parentKey = '';
           
-          if (lastParent === 'TAG판매가' && tagSubItems.includes(label)) {
+          if ((lastParent === 'TAG 판매가' || lastParent === 'TAG판매가') && tagSubItems.includes(label)) {
             isSubItem = true;
-            parentKey = 'TAG판매가';
+            parentKey = lastParent;
           } else if (lastParent === '실판 매출' && (label === 'E-com' || label === 'Wholesale' || salesSubItems.includes(label))) {
             isSubItem = true;
             parentKey = '실판 매출';
+          } else if (lastParent === '매출원가' && (label === 'E-com' || label === 'Wholesale' || cogsSubItems.includes(label))) {
+            isSubItem = true;
+            parentKey = '매출원가';
+          } else if (lastParent === '직접비용' && directCostSubItems.includes(label)) {
+            isSubItem = true;
+            parentKey = '직접비용';
+          } else if (lastParent === '영업비' && opexSubItems.includes(label)) {
+            isSubItem = true;
+            parentKey = '영업비';
           }
           
           parsed.push({
@@ -2926,20 +2941,20 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           }}
         >
           <div className="bg-white rounded-lg shadow-xl w-[98vw] h-[96vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
-              <h2 className="text-lg font-bold">시나리오 PL 비교</h2>
+            <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
+              <h2 className="text-xl font-bold">시나리오 PL 비교</h2>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowSPLPopup(false);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-xl leading-none"
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
               >
                 ✕
               </button>
             </div>
             
-            <div className="p-3 overflow-auto flex-1">
+            <div className="p-4 overflow-auto flex-1">
               {splData.length > 0 ? (
                 <div className="overflow-x-auto h-full">
                   <table className="w-full border-collapse text-xs table-fixed">
@@ -2954,7 +2969,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                         {splHeaders.map((header, idx) => (
                           <th 
                             key={idx} 
-                            className="border border-gray-300 px-2 py-1.5 text-center text-white font-bold text-[11px] whitespace-nowrap"
+                            className="border border-gray-300 px-2 py-2 text-center text-white font-bold text-xs whitespace-nowrap"
                           >
                             {header}
                           </th>
@@ -2970,7 +2985,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                         
                         return (
                           <tr key={rowIdx} className="hover:bg-gray-50">
-                            <td className={`border border-gray-300 px-2 py-1 font-semibold bg-gray-50 text-[11px] ${row.isSubItem ? 'pl-6' : ''}`}>
+                            <td className={`border border-gray-300 px-2 py-1.5 font-semibold bg-gray-50 text-xs ${row.isSubItem ? 'pl-6' : ''}`}>
                               <div className="flex items-center justify-between">
                                 <span>{row.label}</span>
                                 {row.isParent && (
@@ -3022,7 +3037,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               return (
                                 <td 
                                   key={valIdx} 
-                                  className={`border border-gray-300 px-2 py-1 text-right font-mono text-[11px] ${
+                                  className={`border border-gray-300 px-2 py-1.5 text-right font-mono text-xs ${
                                     isYOY ? 'bg-blue-50/30' : isPercentage ? 'bg-amber-50/20' : ''
                                   }`}
                                 >
@@ -3041,13 +3056,13 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
               )}
             </div>
 
-            <div className="px-4 py-2 border-t flex justify-end bg-gray-50">
+            <div className="px-4 py-3 border-t flex justify-end bg-gray-50">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowSPLPopup(false);
                 }}
-                className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                className="px-5 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >
                 닫기
               </button>
