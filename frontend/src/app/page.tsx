@@ -3009,33 +3009,65 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     <thead className="sticky top-0 z-10">
                       <tr style={{ backgroundColor: '#2E5C8A' }}>
                         {splHeaders.map((header, idx) => {
-                          // 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
-                          const isMonthColumn = header.includes('26년 1월') || header.includes('26년 2월') ||
+                          // 26년 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
+                          const is26MonthColumn = header.includes('26년 1월') || header.includes('26년 2월') ||
                                               header.includes('Mar-26') || header.includes('Apr-26') ||
                                               header.includes('May-26') || header.includes('Jun-26') ||
                                               header.includes('Jul-26') || header.includes('Aug-26') ||
                                               header.includes('Sep-26') || header.includes('Oct-26') ||
                                               header.includes('Nov-26') || header.includes('Dec-26');
                           
-                          // 월 접기 상태이고 월별 컬럼이면 숨김
-                          if (!splShowAllMonths && isMonthColumn) {
+                          // 25년 월별 컬럼인지 판단 (부정계획 섹션의 1월~12월)
+                          const is25MonthColumnRed = idx >= 3 && idx <= 14 && 
+                                                ((header.includes('1월(실적)') && !header.includes('26년')) || 
+                                                (header.includes('2월(실적)') && !header.includes('26년')) ||
+                                                (header.includes('3월') && !header.includes('26년')) || 
+                                                (header.includes('4월') && !header.includes('26년')) ||
+                                                (header.includes('5월') && !header.includes('26년')) || 
+                                                (header.includes('6월') && !header.includes('26년')) ||
+                                                (header.includes('7월') && !header.includes('26년')) || 
+                                                (header.includes('8월') && !header.includes('26년')) ||
+                                                (header.includes('9월') && !header.includes('26년')) || 
+                                                (header.includes('10월') && !header.includes('26년')) ||
+                                                (header.includes('11월') && !header.includes('26년')) || 
+                                                (header.includes('12월') && !header.includes('26년')));
+                          
+                          // 긍정계획 섹션의 월별 컬럼인지 판단 (1월~12월)
+                          const is25MonthColumnGreen = idx >= 32 && idx <= 43 && 
+                                                ((header.includes('1월(실적)') && !header.includes('26년')) || 
+                                                (header.includes('2월(실적)') && !header.includes('26년')) ||
+                                                (header.includes('3월') && !header.includes('26년')) || 
+                                                (header.includes('4월') && !header.includes('26년')) ||
+                                                (header.includes('5월') && !header.includes('26년')) || 
+                                                (header.includes('6월') && !header.includes('26년')) ||
+                                                (header.includes('7월') && !header.includes('26년')) || 
+                                                (header.includes('8월') && !header.includes('26년')) ||
+                                                (header.includes('9월') && !header.includes('26년')) || 
+                                                (header.includes('10월') && !header.includes('26년')) ||
+                                                (header.includes('11월') && !header.includes('26년')) || 
+                                                (header.includes('12월') && !header.includes('26년')));
+                          
+                          // 월 접기 상태이고 월별 컬럼이면 숨김 (26년 + 25년 둘 다)
+                          if (!splShowAllMonths && (is26MonthColumn || is25MonthColumnRed || is25MonthColumnGreen)) {
                             return null;
                           }
                           
-                          // 부정계획, YOY, 기존계획대비 컬럼 판단 (분홍색)
+                          // 부정계획 오른쪽 1월(실적) ~ 기존계획대비까지 (분홍색)
                           const isRedHeader = header.includes('부정계획') || header.includes('방문보고') || 
-                                            (header.includes('YOY') && idx === 3) || 
-                                            (header.includes('기존계획대비') && idx === 4);
+                                            is25MonthColumnRed ||
+                                            (header.includes('기존계획대비') && idx < 17) || 
+                                            (header.includes('YOY') && idx === 16);
                           
-                          // 26년 1월(실적) ~ 26년 YTD(Rolling) + YOY 컬럼 판단 (파란색)
-                          const isBlueHeader = isMonthColumn ||
+                          // 26년 1월(실적) ~ 26년 YTD(Rolling) + 바로 다음 YOY 컬럼 판단 (파란색)
+                          const isBlueHeader = is26MonthColumn ||
                                              header.includes('26년 YTD(Rolling)') ||
-                                             (header.includes('YOY') && idx > 4 && idx < 20);
+                                             (header.includes('YOY') && idx >= 28 && idx <= 30);
                           
-                          // 긍정계획, YOY, 기존계획대비 컬럼 판단 (초록색)
+                          // 긍정계획, 긍정계획 섹션 월별, YOY, 기존계획대비 컬럼 판단 (초록색)
                           const isGreenHeader = header.includes('긍정계획') || header.includes('긍정') ||
-                                              (header.includes('YOY') && idx >= 20) ||
-                                              (header.includes('기존계획대비') && idx >= 20);
+                                              is25MonthColumnGreen ||
+                                              (header.includes('YOY') && idx >= 44) ||
+                                              (header.includes('기존계획대비') && idx >= 44);
                           
                           return (
                             <th 
@@ -3100,33 +3132,65 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               const isYOY = colHeader.includes('YOY');
                               const isPercentage = colHeader.includes('(%)');
                               
-                              // 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
-                              const isMonthColumn = colHeader.includes('26년 1월') || colHeader.includes('26년 2월') ||
+                              // 26년 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
+                              const is26MonthColumn = colHeader.includes('26년 1월') || colHeader.includes('26년 2월') ||
                                                   colHeader.includes('Mar-26') || colHeader.includes('Apr-26') ||
                                                   colHeader.includes('May-26') || colHeader.includes('Jun-26') ||
                                                   colHeader.includes('Jul-26') || colHeader.includes('Aug-26') ||
                                                   colHeader.includes('Sep-26') || colHeader.includes('Oct-26') ||
                                                   colHeader.includes('Nov-26') || colHeader.includes('Dec-26');
                               
-                              // 월 접기 상태이고 월별 컬럼이면 숨김
-                              if (!splShowAllMonths && isMonthColumn) {
+                              // 25년 월별 컬럼인지 판단 (부정계획 섹션의 1월~12월)
+                              const is25MonthColumnRed = valIdx >= 2 && valIdx <= 13 && 
+                                                    ((colHeader.includes('1월(실적)') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('2월(실적)') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('3월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('4월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('5월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('6월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('7월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('8월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('9월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('10월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('11월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('12월') && !colHeader.includes('26년')));
+                              
+                              // 긍정계획 섹션의 월별 컬럼인지 판단 (1월~12월)
+                              const is25MonthColumnGreen = valIdx >= 31 && valIdx <= 42 && 
+                                                    ((colHeader.includes('1월(실적)') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('2월(실적)') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('3월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('4월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('5월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('6월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('7월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('8월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('9월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('10월') && !colHeader.includes('26년')) ||
+                                                    (colHeader.includes('11월') && !colHeader.includes('26년')) || 
+                                                    (colHeader.includes('12월') && !colHeader.includes('26년')));
+                              
+                              // 월 접기 상태이고 월별 컬럼이면 숨김 (26년 + 25년 둘 다)
+                              if (!splShowAllMonths && (is26MonthColumn || is25MonthColumnRed || is25MonthColumnGreen)) {
                                 return null;
                               }
                               
-                              // 부정계획, YOY, 기존계획대비 컬럼 판단 (분홍색)
+                              // 부정계획 오른쪽 1월(실적) ~ 기존계획대비까지 (분홍색)
                               const isRedColumn = colHeader.includes('부정계획') || colHeader.includes('방문보고') || 
-                                                (colHeader.includes('YOY') && valIdx === 2) || 
-                                                (colHeader.includes('기존계획대비') && valIdx === 3);
+                                                is25MonthColumnRed ||
+                                                (colHeader.includes('기존계획대비') && valIdx < 16) || 
+                                                (colHeader.includes('YOY') && valIdx === 15);
                               
-                              // 26년 1월(실적) ~ 26년 YTD(Rolling) + YOY 컬럼 판단 (파란색)
-                              const isBlueColumn = isMonthColumn ||
+                              // 26년 1월(실적) ~ 26년 YTD(Rolling) + 바로 다음 YOY 컬럼 판단 (파란색)
+                              const isBlueColumn = is26MonthColumn ||
                                                  colHeader.includes('26년 YTD(Rolling)') ||
-                                                 (colHeader.includes('YOY') && valIdx > 3 && valIdx < 19);
+                                                 (colHeader.includes('YOY') && valIdx >= 27 && valIdx <= 29);
                               
-                              // 긍정계획, YOY, 기존계획대비 컬럼 판단 (초록색)
+                              // 긍정계획, 긍정계획 섹션 월별, YOY, 기존계획대비 컬럼 판단 (초록색)
                               const isGreenColumn = colHeader.includes('긍정계획') || colHeader.includes('긍정') ||
-                                                  (colHeader.includes('YOY') && valIdx >= 19) ||
-                                                  (colHeader.includes('기존계획대비') && valIdx >= 19);
+                                                  is25MonthColumnGreen ||
+                                                  (colHeader.includes('YOY') && valIdx >= 43) ||
+                                                  (colHeader.includes('기존계획대비') && valIdx >= 43);
                               
                               // 숫자 정리 및 포맷팅
                               let displayValue = val;
