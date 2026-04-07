@@ -3019,22 +3019,18 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
               {splData.length > 0 ? (
                 <div className="overflow-x-auto h-full">
                   {/* 분석 요약 섹션 */}
-                  <div className="mb-4 grid grid-cols-4 gap-4 text-sm">
-                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded min-h-[110px]">
-                      <div className="font-bold text-red-700 mb-2">25년 YTD 대비</div>
-                      <div className="text-gray-700 leading-relaxed text-xs">TAG판매가 84.27% 성장, 실판매출 97.31% 증가로 전년 대비 약 2배 수준의 폭발적 성장세를 보이고 있습니다.</div>
-                    </div>
+                  <div className="mb-4 grid grid-cols-3 gap-4 text-sm">
                     <div className="bg-pink-50 border-l-4 border-pink-500 p-4 rounded min-h-[110px]">
                       <div className="font-bold text-pink-700 mb-2">부정계획</div>
-                      <div className="text-gray-700 leading-relaxed text-xs">보수적 시나리오로 TAG판매가 37,161K USD(-3,731), 실판매출 22,206K USD(-2,225)를 목표로 설정했습니다.</div>
+                      <div className="text-gray-700 leading-relaxed text-xs">보수적 시나리오로 TAG판매가 37,161K USD(-3,731), 실판매출 22,206K USD(-2,225)를 목표로 설정했습니다. 할인율은 40.2%로 유지하며, 매출총이익률은 66.7%를 예상하고 있습니다.</div>
                     </div>
                     <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded min-h-[110px]">
                       <div className="font-bold text-blue-700 mb-2">26년 YTD(Rolling)</div>
-                      <div className="text-gray-700 leading-relaxed text-xs">현재 실적 기반 연간 예측치는 TAG판매가 40,892K USD(YOY 93%), 실판매출 24,431K USD(YOY 107%)로 추정됩니다.</div>
+                      <div className="text-gray-700 leading-relaxed text-xs">현재 실적 기반 연간 예측치는 TAG판매가 40,892K USD(YOY 93%), 실판매출 24,431K USD(YOY 107%)로 추정됩니다. 할인율 40.3%, 매출총이익률 66.0%로 안정적인 수익성을 보이고 있습니다.</div>
                     </div>
                     <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded min-h-[110px]">
                       <div className="font-bold text-green-700 mb-2">긍정계획</div>
-                      <div className="text-gray-700 leading-relaxed text-xs">적극적 시나리오로 TAG판매가 46,488K USD(YOY 105%), 실판매출 27,768K USD(YOY 122%)를 목표로 수립했습니다.</div>
+                      <div className="text-gray-700 leading-relaxed text-xs">적극적 시나리오로 TAG판매가 46,488K USD(YOY 105%), 실판매출 27,768K USD(YOY 122%)를 목표로 수립했습니다. 할인율 40.3%, 매출총이익률 66.6%를 유지하며 직접비용을 최적화하여 수익성을 극대화합니다.</div>
                     </div>
                   </div>
                   
