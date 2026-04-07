@@ -2426,6 +2426,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [allExpanded, setAllExpanded] = React.useState(false); // 기본값: 축소
   const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접기 (Feb-Dec 숨김)
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set()); // 개별 카테고리 펼치기 상태
+  const [showSPLPopup, setShowSPLPopup] = React.useState(false);
+  const [splData, setSplData] = React.useState<any[]>([]);
+  const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
+  const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
 
   // 숫자가 포함된 문자열을 숫자로 변환 (천단위 콤마 제거) 및 포맷팅
   const formatNumber = (val: string) => {
@@ -2584,6 +2588,73 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       });
   }, [selectedMonth]);
 
+  // SPL.csv 로드
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/SPL.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+
+        // BOM/인코딩 감지
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          return new TextDecoder('utf-16le').decode(bytes);
+        }
+        if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          return new TextDecoder('utf-8').decode(bytes);
+        }
+        try {
+          return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+        } catch {
+          return new TextDecoder('euc-kr').decode(bytes);
+        }
+      })
+      .then(text => {
+        const lines = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line);
+        
+        if (lines.length < 2) return;
+        
+        // 헤더 파싱
+        const headerLine = lines[0];
+        const parsedHeaders = parseCSVLine(headerLine);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
+        setSplHeaders(parsedHeaders);
+        
+        // 데이터 파싱
+        const parsed: any[] = [];
+        const subItems = ['E-com', 'Wholesale']; // TAG판매가의 하위 항목들
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          
+          const values = parseCSVLine(line);
+          if (values.length < 2 || !values[0]) continue;
+          
+          const label = values[0].trim();
+          const isSubItem = subItems.includes(label);
+          const isParent = label === 'TAG판매가';
+          
+          parsed.push({
+            label: label,
+            values: values.slice(1),
+            isSubItem: isSubItem,
+            isParent: isParent
+          });
+        }
+        
+        setSplData(parsed);
+      })
+      .catch(err => {
+        console.error("Failed to load SPL CSV:", err);
+      });
+  }, []);
+
   if (loading) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
   }
@@ -2622,6 +2693,14 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 className="bg-green-100 hover:bg-green-200 text-green-700 border-green-300"
             >
                 JSON Export
+            </Button>
+            <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowSPLPopup(true)}
+                className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+            >
+                시나리오 PL 비교
             </Button>
             <Button 
                 variant="outline" 
@@ -2814,6 +2893,139 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           </Table>
         </div>
       </CardContent>
+
+      {/* 시나리오 PL 비교 팝업 */}
+      {showSPLPopup && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowSPLPopup(false);
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-xl font-bold">시나리오 PL 비교</h2>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSPLPopup(false);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-auto flex-1">
+              {splData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr style={{ backgroundColor: '#2E5C8A' }}>
+                        {splHeaders.map((header, idx) => (
+                          <th 
+                            key={idx} 
+                            className="border-2 border-gray-300 p-3 text-center text-white font-bold text-sm whitespace-nowrap"
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {splData.map((row, rowIdx) => {
+                        // 하위 항목이면서 부모가 접혀있으면 숨김
+                        if (row.isSubItem && !splExpandedRows.has('TAG판매가')) {
+                          return null;
+                        }
+                        
+                        return (
+                          <tr key={rowIdx}>
+                            <td className={`border-2 border-gray-300 p-2 font-semibold bg-gray-50 ${row.isSubItem ? 'pl-8' : ''}`}>
+                              <div className="flex items-center justify-between">
+                                <span>{row.label}</span>
+                                {row.isParent && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSplExpandedRows(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(row.label)) {
+                                          newSet.delete(row.label);
+                                        } else {
+                                          newSet.add(row.label);
+                                        }
+                                        return newSet;
+                                      });
+                                    }}
+                                    className="text-gray-600 hover:text-gray-800"
+                                  >
+                                    {splExpandedRows.has(row.label) ? (
+                                      <ChevronDownIcon className="w-4 h-4" />
+                                    ) : (
+                                      <ChevronRightIcon className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                            {row.values.map((val: string, valIdx: number) => {
+                              const colHeader = splHeaders[valIdx + 1] || '';
+                              const isYOY = colHeader.includes('YOY');
+                              const isPercentage = colHeader.includes('(%)');
+                              
+                              // 숫자 정리 및 포맷팅
+                              let displayValue = val;
+                              if (val && val.trim() !== '' && val.trim() !== '-') {
+                                // 이미 %나 p가 포함된 경우
+                                if (val.includes('%') || val.includes('p')) {
+                                  displayValue = val;
+                                } else {
+                                  // 천단위 콤마 제거 후 숫자로 변환
+                                  const cleanVal = val.replace(/,/g, '').replace(/"/g, '');
+                                  const num = parseFloat(cleanVal);
+                                  if (!isNaN(num)) {
+                                    displayValue = num.toLocaleString();
+                                  }
+                                }
+                              }
+                              
+                              return (
+                                <td 
+                                  key={valIdx} 
+                                  className={`border-2 border-gray-300 p-2 text-right font-mono text-sm ${
+                                    isYOY ? 'bg-blue-50/30' : isPercentage ? 'bg-amber-50/20' : ''
+                                  }`}
+                                >
+                                  {displayValue}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">데이터를 불러오는 중...</div>
+              )}
+            </div>
+
+            <div className="p-4 border-t flex justify-end">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSPLPopup(false);
+                }}
+                className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
