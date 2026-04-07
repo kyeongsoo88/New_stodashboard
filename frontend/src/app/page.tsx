@@ -2430,7 +2430,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [splData, setSplData] = React.useState<any[]>([]);
   const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
   const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
-  const [splShowAllMonths, setSplShowAllMonths] = React.useState(true); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 펼친 상태)
+  const [splShowAllMonths, setSplShowAllMonths] = React.useState(false); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 접힌 상태)
 
   // 숫자가 포함된 문자열을 숫자로 변환 (천단위 콤마 제거) 및 포맷팅
   const formatNumber = (val: string) => {
@@ -2941,7 +2941,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             if (e.target === e.currentTarget) setShowSPLPopup(false);
           }}
         >
-          <div className="bg-white rounded-lg shadow-xl w-[98vw] h-[96vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-lg shadow-xl w-[99vw] h-[98vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
               <h2 className="text-xl font-bold">시나리오 PL 비교</h2>
               <div className="flex items-center gap-3">
@@ -3018,6 +3018,26 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             <div className="p-4 overflow-auto flex-1">
               {splData.length > 0 ? (
                 <div className="overflow-x-auto h-full">
+                  {/* 분석 요약 섹션 */}
+                  <div className="mb-4 grid grid-cols-4 gap-3 text-sm">
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded min-h-[100px]">
+                      <div className="font-bold text-red-700 mb-1.5">📊 25년 YTD 대비</div>
+                      <div className="text-gray-700 leading-relaxed">TAG판매가 84.27% 성장, 실판매출 97.31% 증가로 전년 대비 약 2배 수준의 폭발적 성장세를 보이고 있습니다.</div>
+                    </div>
+                    <div className="bg-pink-50 border-l-4 border-pink-500 p-4 rounded min-h-[100px]">
+                      <div className="font-bold text-pink-700 mb-1.5">📉 부정계획</div>
+                      <div className="text-gray-700 leading-relaxed">보수적 시나리오로 TAG판매가 37,161K USD(-3,731), 실판매출 22,206K USD(-2,225)를 목표로 설정했습니다.</div>
+                    </div>
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded min-h-[100px]">
+                      <div className="font-bold text-blue-700 mb-1.5">📈 26년 YTD(Rolling)</div>
+                      <div className="text-gray-700 leading-relaxed">현재 실적 기반 연간 예측치는 TAG판매가 40,892K USD(YOY 93%), 실판매출 24,431K USD(YOY 107%)로 추정됩니다.</div>
+                    </div>
+                    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded min-h-[100px]">
+                      <div className="font-bold text-green-700 mb-1.5">🎯 긍정계획</div>
+                      <div className="text-gray-700 leading-relaxed">적극적 시나리오로 TAG판매가 46,488K USD(YOY 105%), 실판매출 27,768K USD(YOY 122%)를 목표로 수립했습니다.</div>
+                    </div>
+                  </div>
+                  
                   <table className={`w-full border-collapse ${splShowAllMonths ? 'text-xs' : 'text-sm'} table-fixed`}>
                     <colgroup>
                       <col style={{ width: splShowAllMonths ? '180px' : '220px' }} />
