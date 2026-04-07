@@ -2627,7 +2627,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
         
         // 데이터 파싱
         const parsed: any[] = [];
-        const subItems = ['E-com', 'Wholesale']; // TAG판매가의 하위 항목들
+        const tagSubItems = ['E-com', 'Wholesale']; // TAG판매가의 하위 항목들
+        const salesSubItems = ['License Revenue', 'Others']; // 실판 매출의 하위 항목들
+        let lastParent = ''; // 마지막 부모 항목 추적
         
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i];
@@ -2637,14 +2639,35 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           if (values.length < 2 || !values[0]) continue;
           
           const label = values[0].trim();
-          const isSubItem = subItems.includes(label);
-          const isParent = label === 'TAG판매가';
+          
+          // 부모 항목 판단
+          const isTagParent = label === 'TAG판매가';
+          const isSalesParent = label === '실판 매출';
+          const isParent = isTagParent || isSalesParent;
+          
+          // 부모 항목이면 lastParent 업데이트
+          if (isParent) {
+            lastParent = label;
+          }
+          
+          // 하위 항목 판단 (부모에 따라 다르게 처리)
+          let isSubItem = false;
+          let parentKey = '';
+          
+          if (lastParent === 'TAG판매가' && tagSubItems.includes(label)) {
+            isSubItem = true;
+            parentKey = 'TAG판매가';
+          } else if (lastParent === '실판 매출' && (label === 'E-com' || label === 'Wholesale' || salesSubItems.includes(label))) {
+            isSubItem = true;
+            parentKey = '실판 매출';
+          }
           
           parsed.push({
             label: label,
             values: values.slice(1),
             isSubItem: isSubItem,
-            isParent: isParent
+            isParent: isParent,
+            parentKey: parentKey
           });
         }
         
@@ -2897,35 +2920,41 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       {/* 시나리오 PL 비교 팝업 */}
       {showSPLPopup && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2" 
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowSPLPopup(false);
           }}
         >
-          <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-xl font-bold">시나리오 PL 비교</h2>
+          <div className="bg-white rounded-lg shadow-xl w-[98vw] h-[96vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50">
+              <h2 className="text-lg font-bold">시나리오 PL 비교</h2>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowSPLPopup(false);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                className="text-gray-500 hover:text-gray-700 text-xl leading-none"
               >
                 ✕
               </button>
             </div>
             
-            <div className="p-4 overflow-auto flex-1">
+            <div className="p-3 overflow-auto flex-1">
               {splData.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
+                <div className="overflow-x-auto h-full">
+                  <table className="w-full border-collapse text-xs table-fixed">
+                    <colgroup>
+                      <col style={{ width: '180px' }} />
+                      {splHeaders.slice(1).map((_, idx) => (
+                        <col key={idx} style={{ width: '95px' }} />
+                      ))}
+                    </colgroup>
+                    <thead className="sticky top-0 z-10">
                       <tr style={{ backgroundColor: '#2E5C8A' }}>
                         {splHeaders.map((header, idx) => (
                           <th 
                             key={idx} 
-                            className="border-2 border-gray-300 p-3 text-center text-white font-bold text-sm whitespace-nowrap"
+                            className="border border-gray-300 px-2 py-1.5 text-center text-white font-bold text-[11px] whitespace-nowrap"
                           >
                             {header}
                           </th>
@@ -2935,13 +2964,13 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     <tbody>
                       {splData.map((row, rowIdx) => {
                         // 하위 항목이면서 부모가 접혀있으면 숨김
-                        if (row.isSubItem && !splExpandedRows.has('TAG판매가')) {
+                        if (row.isSubItem && row.parentKey && !splExpandedRows.has(row.parentKey)) {
                           return null;
                         }
                         
                         return (
-                          <tr key={rowIdx}>
-                            <td className={`border-2 border-gray-300 p-2 font-semibold bg-gray-50 ${row.isSubItem ? 'pl-8' : ''}`}>
+                          <tr key={rowIdx} className="hover:bg-gray-50">
+                            <td className={`border border-gray-300 px-2 py-1 font-semibold bg-gray-50 text-[11px] ${row.isSubItem ? 'pl-6' : ''}`}>
                               <div className="flex items-center justify-between">
                                 <span>{row.label}</span>
                                 {row.isParent && (
@@ -2961,9 +2990,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                                     className="text-gray-600 hover:text-gray-800"
                                   >
                                     {splExpandedRows.has(row.label) ? (
-                                      <ChevronDownIcon className="w-4 h-4" />
+                                      <ChevronDownIcon className="w-3 h-3" />
                                     ) : (
-                                      <ChevronRightIcon className="w-4 h-4" />
+                                      <ChevronRightIcon className="w-3 h-3" />
                                     )}
                                   </button>
                                 )}
@@ -2993,7 +3022,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               return (
                                 <td 
                                   key={valIdx} 
-                                  className={`border-2 border-gray-300 p-2 text-right font-mono text-sm ${
+                                  className={`border border-gray-300 px-2 py-1 text-right font-mono text-[11px] ${
                                     isYOY ? 'bg-blue-50/30' : isPercentage ? 'bg-amber-50/20' : ''
                                   }`}
                                 >
@@ -3012,13 +3041,13 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
               )}
             </div>
 
-            <div className="p-4 border-t flex justify-end">
+            <div className="px-4 py-2 border-t flex justify-end bg-gray-50">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowSPLPopup(false);
                 }}
-                className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >
                 닫기
               </button>
