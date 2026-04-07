@@ -2957,6 +2957,22 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    // 모든 부모 항목 토글
+                    if (splExpandedRows.size > 0) {
+                      // 하나라도 열려있으면 모두 닫기
+                      setSplExpandedRows(new Set());
+                    } else {
+                      // 모두 닫혀있으면 모두 열기
+                      setSplExpandedRows(new Set(['TAG 판매가', 'TAG판매가', '실판 매출', '매출원가', '직접비용', '영업비']));
+                    }
+                  }}
+                  className="px-4 py-1.5 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                >
+                  {splExpandedRows.size > 0 ? "계정 접기" : "계정 상세"}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowSPLPopup(false);
                   }}
                   className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
