@@ -2948,6 +2948,39 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    // JSON 데이터 생성
+                    const exportData = {
+                      headers: splHeaders,
+                      data: splData.map(row => ({
+                        label: row.label,
+                        values: row.values,
+                        isParent: row.isParent || false,
+                        isSubItem: row.isSubItem || false,
+                        parentKey: row.parentKey || ''
+                      }))
+                    };
+                    
+                    // JSON 문자열로 변환
+                    const jsonStr = JSON.stringify(exportData, null, 2);
+                    
+                    // Blob 생성 및 다운로드
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `SPL_시나리오PL비교_${new Date().toISOString().slice(0, 10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="px-4 py-1.5 text-sm bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+                >
+                  JSON Export
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSplShowAllMonths(!splShowAllMonths);
                   }}
                   className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
