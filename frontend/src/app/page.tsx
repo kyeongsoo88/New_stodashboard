@@ -2430,6 +2430,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [splData, setSplData] = React.useState<any[]>([]);
   const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
   const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
+  const [splShowAllMonths, setSplShowAllMonths] = React.useState(true); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 펼친 상태)
 
   // 숫자가 포함된 문자열을 숫자로 변환 (천단위 콤마 제거) 및 포맷팅
   const formatNumber = (val: string) => {
@@ -2943,37 +2944,100 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           <div className="bg-white rounded-lg shadow-xl w-[98vw] h-[96vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
               <h2 className="text-xl font-bold">시나리오 PL 비교</h2>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSPLPopup(false);
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSplShowAllMonths(!splShowAllMonths);
+                  }}
+                  className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  {splShowAllMonths ? "월 접기" : "월 펼치기"}
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSPLPopup(false);
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             <div className="p-4 overflow-auto flex-1">
               {splData.length > 0 ? (
                 <div className="overflow-x-auto h-full">
-                  <table className="w-full border-collapse text-xs table-fixed">
+                  <table className={`w-full border-collapse ${splShowAllMonths ? 'text-xs' : 'text-sm'} table-fixed`}>
                     <colgroup>
-                      <col style={{ width: '180px' }} />
-                      {splHeaders.slice(1).map((_, idx) => (
-                        <col key={idx} style={{ width: '95px' }} />
-                      ))}
+                      <col style={{ width: splShowAllMonths ? '180px' : '220px' }} />
+                      {splHeaders.slice(1).map((header, idx) => {
+                        const isMonthColumn = header.includes('26년 1월') || header.includes('26년 2월') ||
+                                            header.includes('Mar-26') || header.includes('Apr-26') ||
+                                            header.includes('May-26') || header.includes('Jun-26') ||
+                                            header.includes('Jul-26') || header.includes('Aug-26') ||
+                                            header.includes('Sep-26') || header.includes('Oct-26') ||
+                                            header.includes('Nov-26') || header.includes('Dec-26');
+                        
+                        // 월 접기 상태이고 월별 컬럼이면 건너뛰기
+                        if (!splShowAllMonths && isMonthColumn) {
+                          return null;
+                        }
+                        
+                        return (
+                          <col key={idx} style={{ width: splShowAllMonths ? '95px' : '130px' }} />
+                        );
+                      })}
                     </colgroup>
                     <thead className="sticky top-0 z-10">
                       <tr style={{ backgroundColor: '#2E5C8A' }}>
-                        {splHeaders.map((header, idx) => (
-                          <th 
-                            key={idx} 
-                            className="border border-gray-300 px-2 py-2 text-center text-white font-bold text-xs whitespace-nowrap"
-                          >
-                            {header}
-                          </th>
-                        ))}
+                        {splHeaders.map((header, idx) => {
+                          // 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
+                          const isMonthColumn = header.includes('26년 1월') || header.includes('26년 2월') ||
+                                              header.includes('Mar-26') || header.includes('Apr-26') ||
+                                              header.includes('May-26') || header.includes('Jun-26') ||
+                                              header.includes('Jul-26') || header.includes('Aug-26') ||
+                                              header.includes('Sep-26') || header.includes('Oct-26') ||
+                                              header.includes('Nov-26') || header.includes('Dec-26');
+                          
+                          // 월 접기 상태이고 월별 컬럼이면 숨김
+                          if (!splShowAllMonths && isMonthColumn) {
+                            return null;
+                          }
+                          
+                          // 부정계획, YOY, 기존계획대비 컬럼 판단 (분홍색)
+                          const isRedHeader = header.includes('부정계획') || header.includes('방문보고') || 
+                                            (header.includes('YOY') && idx === 3) || 
+                                            (header.includes('기존계획대비') && idx === 4);
+                          
+                          // 26년 1월(실적) ~ 26년 YTD(Rolling) + YOY 컬럼 판단 (파란색)
+                          const isBlueHeader = isMonthColumn ||
+                                             header.includes('26년 YTD(Rolling)') ||
+                                             (header.includes('YOY') && idx > 4 && idx < 20);
+                          
+                          // 긍정계획, YOY, 기존계획대비 컬럼 판단 (초록색)
+                          const isGreenHeader = header.includes('긍정계획') || header.includes('긍정') ||
+                                              (header.includes('YOY') && idx >= 20) ||
+                                              (header.includes('기존계획대비') && idx >= 20);
+                          
+                          return (
+                            <th 
+                              key={idx} 
+                              className={`border border-gray-300 px-2 text-center font-bold whitespace-nowrap ${
+                                splShowAllMonths ? 'py-2 text-xs' : 'py-3 text-sm'
+                              } ${
+                                isRedHeader ? 'bg-red-50 text-red-600' :
+                                isBlueHeader ? 'bg-blue-50 text-blue-600' :
+                                isGreenHeader ? 'bg-green-50 text-green-600' :
+                                'text-white'
+                              }`}
+                              style={!isRedHeader && !isBlueHeader && !isGreenHeader ? { backgroundColor: '#2E5C8A' } : {}}
+                            >
+                              {header}
+                            </th>
+                          );
+                        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -2985,7 +3049,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                         
                         return (
                           <tr key={rowIdx} className="hover:bg-gray-50">
-                            <td className={`border border-gray-300 px-2 py-1.5 font-semibold bg-gray-50 text-xs ${row.isSubItem ? 'pl-6' : ''}`}>
+                            <td className={`border border-gray-300 px-2 font-semibold bg-gray-50 ${
+                              splShowAllMonths ? 'py-1.5 text-xs' : 'py-2 text-sm'
+                            } ${row.isSubItem ? 'pl-6' : ''}`}>
                               <div className="flex items-center justify-between">
                                 <span>{row.label}</span>
                                 {row.isParent && (
@@ -3018,6 +3084,34 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               const isYOY = colHeader.includes('YOY');
                               const isPercentage = colHeader.includes('(%)');
                               
+                              // 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
+                              const isMonthColumn = colHeader.includes('26년 1월') || colHeader.includes('26년 2월') ||
+                                                  colHeader.includes('Mar-26') || colHeader.includes('Apr-26') ||
+                                                  colHeader.includes('May-26') || colHeader.includes('Jun-26') ||
+                                                  colHeader.includes('Jul-26') || colHeader.includes('Aug-26') ||
+                                                  colHeader.includes('Sep-26') || colHeader.includes('Oct-26') ||
+                                                  colHeader.includes('Nov-26') || colHeader.includes('Dec-26');
+                              
+                              // 월 접기 상태이고 월별 컬럼이면 숨김
+                              if (!splShowAllMonths && isMonthColumn) {
+                                return null;
+                              }
+                              
+                              // 부정계획, YOY, 기존계획대비 컬럼 판단 (분홍색)
+                              const isRedColumn = colHeader.includes('부정계획') || colHeader.includes('방문보고') || 
+                                                (colHeader.includes('YOY') && valIdx === 2) || 
+                                                (colHeader.includes('기존계획대비') && valIdx === 3);
+                              
+                              // 26년 1월(실적) ~ 26년 YTD(Rolling) + YOY 컬럼 판단 (파란색)
+                              const isBlueColumn = isMonthColumn ||
+                                                 colHeader.includes('26년 YTD(Rolling)') ||
+                                                 (colHeader.includes('YOY') && valIdx > 3 && valIdx < 19);
+                              
+                              // 긍정계획, YOY, 기존계획대비 컬럼 판단 (초록색)
+                              const isGreenColumn = colHeader.includes('긍정계획') || colHeader.includes('긍정') ||
+                                                  (colHeader.includes('YOY') && valIdx >= 19) ||
+                                                  (colHeader.includes('기존계획대비') && valIdx >= 19);
+                              
                               // 숫자 정리 및 포맷팅
                               let displayValue = val;
                               if (val && val.trim() !== '' && val.trim() !== '-') {
@@ -3037,7 +3131,12 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               return (
                                 <td 
                                   key={valIdx} 
-                                  className={`border border-gray-300 px-2 py-1.5 text-right font-mono text-xs ${
+                                  className={`border border-gray-300 px-2 text-right font-mono ${
+                                    splShowAllMonths ? 'py-1.5 text-xs' : 'py-2 text-sm'
+                                  } ${
+                                    isRedColumn ? 'bg-red-50/50 text-red-600 font-semibold' :
+                                    isBlueColumn ? 'bg-blue-50/50 text-blue-600 font-semibold' :
+                                    isGreenColumn ? 'bg-green-50/50 text-green-600 font-semibold' :
                                     isYOY ? 'bg-blue-50/30' : isPercentage ? 'bg-amber-50/20' : ''
                                   }`}
                                 >
