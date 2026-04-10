@@ -10654,6 +10654,12 @@ export default function DashboardPage() {
                           const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
                           const isEcom = label === '온라인' && index === tagSalesIdx + 1;  // TAG매출 바로 아래 온라인
                           const isTagSales = label === 'TAG매출';
+                          const isCOGS = label === '매출원가';  // 매출원가 식별
+                          const isNetSales = label === '실판매출';  // 실판매출 식별
+                          const isGrossProfit = label === '매출총이익';  // 매출총이익 식별
+                          const isDirectCost = label === '직접비';  // 직접비 식별
+                          const isDirectProfit = label === '직접이익';  // 직접이익 식별
+                          const isOperatingProfit = label === '영업이익';  // 영업이익 식별
                           const seasonItems = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                           const isSeasonItem = seasonItems.includes(label);
                           const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
@@ -10661,6 +10667,9 @@ export default function DashboardPage() {
                           const cogsIdx = simulPLData.findIndex(r => r.label === '매출원가');
                           const isNetSalesChild = index > netSalesIdx && index < cogsIdx && !['실판매출', '매출원가'].includes(label);
                           const isNetSalesOnline = label === '온라인(아래 적용 할인율)' || (label === '온라인' && index > netSalesIdx && index < cogsIdx);  // 실판매출 아래 온라인
+                          const isNetSalesWholesale = label === '홀세일' && index > netSalesIdx && index < cogsIdx;
+                          const isNetSalesLicense = label === '라이센스' && index > netSalesIdx && index < cogsIdx;
+                          const isNetSalesEtc = label === '기타' && index > netSalesIdx && index < cogsIdx;
                           const grossProfitIdx = simulPLData.findIndex(r => r.label === '매출총이익');
                           const isCogsChild = index > cogsIdx && index < grossProfitIdx && !['매출원가', '매출총이익'].includes(label);
                           const directCostIdx = simulPLData.findIndex(r => r.label === '직접비');
@@ -10844,6 +10853,21 @@ export default function DashboardPage() {
                               </td>
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/10">
                                 {(() => {
+                                  // 실판매출 행 - CSV 값 표시
+                                  if (isNetSales) {
+                                    const val = row.fy25;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    if (cleanVal.startsWith('-')) {
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
+                                    }
+                                    const num = parseFloat(cleanVal);
+                                    if (!isNaN(num)) return num.toLocaleString();
+                                    return val;
+                                  }
+                                  
                                   const val = row.fy25;
                                   if (!val || val === '0') return '';
                                   // % 포함된 경우 그대로 반환
@@ -10866,6 +10890,21 @@ export default function DashboardPage() {
                                   : ''
                               }`}>
                                 {(() => {
+                                  // 실판매출 행 - CSV 값 표시
+                                  if (isNetSales) {
+                                    const val = row.prevYtd26;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    if (cleanVal.startsWith('-')) {
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
+                                    }
+                                    const num = parseFloat(cleanVal);
+                                    if (!isNaN(num)) return num.toLocaleString();
+                                    return val;
+                                  }
+                                  
                                   const val = row.prevYtd26;
                                   if (!val || val === '0') return '';
                                   if (val.includes('%')) return val;
@@ -10880,7 +10919,8 @@ export default function DashboardPage() {
                                 })()}
                               </td>
                               <td className={`text-right p-2 font-mono text-[15px] font-medium ${
-                                isSeasonItem || isEcom 
+                                // TAG매출 섹션의 시즌 항목과 온라인만 붉은 테두리
+                                (isSeasonItem || isEcom) && !isNetSalesSeasonItem && !isNetSalesOnline
                                   ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' + 
                                     (label === '온라인' ? ' border-t-[7px] !border-t-red-400 border-b-2 border-b-gray-300' : '') + 
                                     (label === 'CORE' ? ' border-b-[7px] !border-b-red-400 border-t-2 border-t-gray-300' : 
@@ -10890,6 +10930,402 @@ export default function DashboardPage() {
                                     : 'bg-green-50/20 border-2 border-gray-300'
                               }`}>
                                 {(() => {
+                                  // 매출원가 = TAG매출 26FY YTD × 19.93%
+                                  if (isCOGS) {
+                                    const tagSalesRow = simulPLData.find(r => r.label === 'TAG매출');
+                                    if (tagSalesRow) {
+                                      const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                      const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                      
+                                      let onlineValue = 0;
+                                      if (onlineRow) {
+                                        const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                        seasonLabels.forEach(seasonLabel => {
+                                          const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                          if (seasonRow && seasonRow.ytd26) {
+                                            const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                            const baseNum = parseFloat(cleanVal);
+                                            if (!isNaN(baseNum)) {
+                                              const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                              onlineValue += baseNum * (growthRate / 100);
+                                            }
+                                          }
+                                        });
+                                      }
+                                      
+                                      let wholesaleValue = 0;
+                                      if (wholesaleRow && wholesaleRow.ytd26) {
+                                        const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                        const num = parseFloat(cleanVal);
+                                        if (!isNaN(num)) wholesaleValue = num;
+                                      }
+                                      
+                                      const tagSalesTotal = onlineValue + wholesaleValue;
+                                      const cogsValue = tagSalesTotal * 0.1993;
+                                      return cogsValue !== 0 ? Math.round(cogsValue).toLocaleString() : '';
+                                    }
+                                  }
+                                  
+                                  // 실판매출 = 온라인(할인율 적용) + 홀세일 + 라이센스 + 기타
+                                  if (isNetSales) {
+                                    // 온라인(아래 적용 할인율) 값 계산
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    // 홀세일, 라이센스, 기타 값 찾기
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    const total = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
+                                  }
+                                  
+                                  // 매출총이익 = 실판매출 - 매출원가
+                                  if (isGrossProfit) {
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    const grossProfit = netSalesValue - cogsValue;
+                                    return grossProfit !== 0 ? Math.round(grossProfit).toLocaleString() : '';
+                                  }
+                                  
+                                  // 직접비 = SEM + 운반비 + 보관료 + 지급수수료
+                                  if (isDirectCost) {
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostTotal = semValue + shippingValue + storageValue + feeValue;
+                                    return directCostTotal !== 0 ? Math.round(directCostTotal).toLocaleString() : '';
+                                  }
+                                  
+                                  // 직접이익 = 매출총이익 - 직접비
+                                  if (isDirectProfit) {
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    const directProfit = grossProfitValue - directCostValue;
+                                    return directProfit !== 0 ? Math.round(directProfit).toLocaleString() : '';
+                                  }
+                                  
+                                  // 영업이익 = 직접이익 - 영업비
+                                  if (isOperatingProfit) {
+                                    // 직접이익 계산 (매출총이익 - 직접비)
+                                    let directProfitValue = 0;
+                                    
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    directProfitValue = grossProfitValue - directCostValue;
+                                    
+                                    // 영업비 계산
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    let operatingExpenseValue = 0;
+                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                      const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) operatingExpenseValue = num;
+                                    }
+                                    
+                                    const operatingProfit = directProfitValue - operatingExpenseValue;
+                                    return operatingProfit !== 0 ? Math.round(operatingProfit).toLocaleString() : '';
+                                  }
+                                  
                                   // TAG매출 행의 26FY YTD는 온라인(성장률 적용) + 홀세일
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
@@ -11050,8 +11486,387 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (위의 26FY YTD 셀과 동일한 로직)
                                   let num26 = 0;
                                   
+                                  // 매출원가 = TAG매출 26FY YTD × 19.93%
+                                  if (isCOGS) {
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    
+                                    let onlineValue = 0;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
+                                    }
+                                    
+                                    let wholesaleValue = 0;
+                                    if (wholesaleRow && wholesaleRow.ytd26) {
+                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) wholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = onlineValue + wholesaleValue;
+                                    num26 = tagSalesTotal * 0.1993;
+                                  }
+                                  // 실판매출 = 온라인(할인율 적용) + 홀세일 + 라이센스 + 기타
+                                  else if (isNetSales) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    num26 = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                  }
+                                  // 매출총이익 = 실판매출 - 매출원가
+                                  else if (isGrossProfit) {
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    num26 = netSalesValue - cogsValue;
+                                  }
+                                  // 직접비 = SEM + 운반비 + 보관료 + 지급수수료
+                                  else if (isDirectCost) {
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    num26 = semValue + shippingValue + storageValue + feeValue;
+                                  }
+                                  // 직접이익 = 매출총이익 - 직접비
+                                  else if (isDirectProfit) {
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    num26 = grossProfitValue - directCostValue;
+                                  }
+                                  // 영업이익 = 직접이익 - 영업비
+                                  else if (isOperatingProfit) {
+                                    // 직접이익 계산 (매출총이익 - 직접비)
+                                    let directProfitValue = 0;
+                                    
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    directProfitValue = grossProfitValue - directCostValue;
+                                    
+                                    // 영업비 계산
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    let operatingExpenseValue = 0;
+                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                      const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) operatingExpenseValue = num;
+                                    }
+                                    
+                                    num26 = directProfitValue - operatingExpenseValue;
+                                  }
                                   // TAG매출 행 - 온라인(TAG 성장률 적용) + 홀세일
-                                  if (isTagSales) {
+                                  else if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
@@ -11193,8 +12008,39 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (성장률 적용된 값, 전년대비와 동일한 로직)
                                   let num26 = 0;
                                   
+                                  // 매출원가 = TAG매출 26FY YTD × 19.93%
+                                  if (isCOGS) {
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
+                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    
+                                    let onlineValue = 0;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
+                                    }
+                                    
+                                    let wholesaleValue = 0;
+                                    if (wholesaleRow && wholesaleRow.ytd26) {
+                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) wholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = onlineValue + wholesaleValue;
+                                    num26 = tagSalesTotal * 0.1993;
+                                  }
                                   // TAG매출 행 - 온라인(TAG 성장률 적용) + 홀세일
-                                  if (isTagSales) {
+                                  else if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
@@ -11258,6 +12104,354 @@ export default function DashboardPage() {
                                       }
                                     });
                                     num26 = sum;
+                                  }
+                                  // 실판매출 = 온라인(할인율 적용) + 홀세일 + 라이센스 + 기타
+                                  else if (isNetSales) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    num26 = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                  }
+                                  // 매출총이익 = 실판매출 - 매출원가
+                                  else if (isGrossProfit) {
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    num26 = netSalesValue - cogsValue;
+                                  }
+                                  // 직접비 = SEM + 운반비 + 보관료 + 지급수수료
+                                  else if (isDirectCost) {
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    num26 = semValue + shippingValue + storageValue + feeValue;
+                                  }
+                                  // 직접이익 = 매출총이익 - 직접비
+                                  else if (isDirectProfit) {
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    num26 = grossProfitValue - directCostValue;
+                                  }
+                                  // 영업이익 = 직접이익 - 영업비
+                                  else if (isOperatingProfit) {
+                                    // 직접이익 계산 (매출총이익 - 직접비)
+                                    let directProfitValue = 0;
+                                    
+                                    // 매출총이익 계산
+                                    let grossProfitValue = 0;
+                                    
+                                    // 실판매출 계산
+                                    let netSalesValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          netSalesValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    netSalesValue += wholesaleValue + licenseValue + etcValue;
+                                    
+                                    // 매출원가 계산 (TAG매출 × 19.93%)
+                                    let tagOnlineValue = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          tagOnlineValue += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    
+                                    const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
+                                    let tagWholesaleValue = 0;
+                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                      const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) tagWholesaleValue = num;
+                                    }
+                                    
+                                    const tagSalesTotal = tagOnlineValue + tagWholesaleValue;
+                                    const cogsValue = tagSalesTotal * 0.1993;
+                                    
+                                    grossProfitValue = netSalesValue - cogsValue;
+                                    
+                                    // 직접비 계산
+                                    const semRow = simulPLData.find(r => r.label === 'SEM');
+                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
+                                    const storageRow = simulPLData.find(r => r.label === '보관료');
+                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
+                                    
+                                    let semValue = 0;
+                                    let shippingValue = 0;
+                                    let storageValue = 0;
+                                    let feeValue = 0;
+                                    
+                                    if (semRow && semRow.ytd26) {
+                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) semValue = num;
+                                    }
+                                    
+                                    if (shippingRow && shippingRow.ytd26) {
+                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) shippingValue = num;
+                                    }
+                                    
+                                    if (storageRow && storageRow.ytd26) {
+                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) storageValue = num;
+                                    }
+                                    
+                                    if (feeRow && feeRow.ytd26) {
+                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) feeValue = num;
+                                    }
+                                    
+                                    const directCostValue = semValue + shippingValue + storageValue + feeValue;
+                                    
+                                    directProfitValue = grossProfitValue - directCostValue;
+                                    
+                                    // 영업비 계산
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    let operatingExpenseValue = 0;
+                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                      const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
+                                      const num = parseFloat(cleanVal);
+                                      if (!isNaN(num)) operatingExpenseValue = num;
+                                    }
+                                    
+                                    num26 = directProfitValue - operatingExpenseValue;
                                   }
                                   // 시즌 항목들
                                   else if (isSeasonItem) {
