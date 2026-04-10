@@ -1306,6 +1306,7 @@ function ShippingCostDialog({ data }: { data: any }) {
                             <TableHead className="text-center">12월</TableHead>
                             <TableHead className="text-center">1월</TableHead>
                             <TableHead className="text-center">2월</TableHead>
+                            <TableHead className="text-center">3월</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -4111,7 +4112,7 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
 function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
   const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 3, 1)); // 2026-04-01
-  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 3, 7)); // 2026-04-07
+  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 3, 5)); // 2026-04-05
 
   const [data2025, setData2025] = React.useState<any[]>([]);
   const [data2026, setData2026] = React.useState<any[]>([]);
@@ -4141,26 +4142,67 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
           fetch(`/data/2026daily.csv?t=${timestamp}`).then(r => r.text())
         ]);
 
-        // CSV 파싱
+        // CSV 파싱 - 쌍따옴표로 감싸진 필드 올바르게 처리
         const parse = (csvText: string) => {
           const lines = csvText.split('\n').filter(line => line.trim());
-          const headers = lines[0].split(',');
-          return lines.slice(1).map(line => {
-            const values = line.split(',');
+          
+          // CSV 라인을 올바르게 파싱 (RFC 4180)
+          const parseCSVLine = (line: string): string[] => {
+            const result: string[] = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                result.push(current);
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            result.push(current);
+            return result;
+          };
+          
+          const data = lines.slice(1).map(line => {
+            const values = parseCSVLine(line);
+            
+            // 쌍따옴표와 쉼표 제거 후 숫자 파싱
+            const cleanNumber = (str: string) => {
+              if (!str) return 0;
+              return parseFloat(str.replace(/[",]/g, '')) || 0;
+            };
+            
             return {
-              date: values[0],
-              season: values[1],
-              item: values[2],
-              msrp: parseFloat(values[3]) || 0,
-              netsale: parseFloat(values[4]) || 0,
-              cogs: parseFloat(values[5]) || 0,
-              discount: parseFloat(values[6]?.replace('%', '')) || 0
+              date: values[0]?.trim() || '',
+              season: values[1]?.trim() || '',
+              item: values[2]?.trim() || '',
+              msrp: cleanNumber(values[3]),
+              netsale: cleanNumber(values[4]),
+              cogs: cleanNumber(values[5]),
+              discount: cleanNumber(values[6]?.replace('%', ''))
             };
           });
+          
+          console.log('Total CSV rows parsed:', data.length);
+          console.log('Sample parsed data:', data.slice(0, 3));
+          console.log('Last parsed data:', data.slice(-3));
+          
+          return data;
         };
 
         const parsed2025 = parse(res2025);
         const parsed2026 = parse(res2026);
+        
+        console.log('=== CSV Data Loaded ===');
+        console.log('2026 data total rows:', parsed2026.length);
+        console.log('2025 data total rows:', parsed2025.length);
+        console.log('First row of 2026:', parsed2026[0]);
+        console.log('Last row of 2026:', parsed2026[parsed2026.length - 1]);
         
         setData2025(parsed2025);
         setData2026(parsed2026);
@@ -4190,9 +4232,15 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
     const filtered2026 = data2026.filter(d => d.date >= start && d.date <= end);
     const filtered2025 = data2025.filter(d => d.date >= start2025 && d.date <= end2025);
 
+    console.log('Date range:', start, 'to', end);
+    console.log('Filtered 2026 rows:', filtered2026.length);
+    console.log('Sample data:', filtered2026.slice(0, 3));
+
     // 기간매출 계산
     const revenue2026 = filtered2026.reduce((sum, d) => sum + d.netsale, 0);
     const revenue2025 = filtered2025.reduce((sum, d) => sum + d.netsale, 0);
+    
+    console.log('Revenue 2026:', revenue2026);
     
     // 기간 YoY 계산
     const yoy = revenue2025 > 0 ? (revenue2026 / revenue2025) * 100 : 0;
@@ -10412,7 +10460,7 @@ export default function DashboardPage() {
     };
 
     const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '26년 1월', '26년 2월', '26년 3월'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월'];
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
