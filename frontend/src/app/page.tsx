@@ -4110,8 +4110,8 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
 // 당월 추세 컴포넌트
 function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
-  const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 2, 1)); // 2026-03-01
-  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 2, 26)); // 2026-03-26
+  const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 3, 1)); // 2026-04-01
+  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 3, 7)); // 2026-04-07
 
   const [data2025, setData2025] = React.useState<any[]>([]);
   const [data2026, setData2026] = React.useState<any[]>([]);
@@ -10345,10 +10345,10 @@ export default function DashboardPage() {
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
-    // 3월부터 2월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 25-Dec -> 12월, 26-Jan -> 1월, 26-Feb -> 2월)
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월'];
+    // 3월부터 3월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Feb -> 2월, 26-Mar -> 3월)
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월'];
     // CSV 헤더와 매핑
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb'];
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -10367,8 +10367,11 @@ export default function DashboardPage() {
       const past = parseFloat(getValue('팝업_재고소진계획_CORE_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const total = parseFloat(getValue('팝업_재고소진계획_테이블_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       
+      // 26년 3월은 구분을 위해 다른 라벨 사용
+      const displayMonth = (monthLabel === '3월' && idx === 12) ? '3월' : monthLabel;
+      
       inventoryChartData.push({
-        month: monthLabel,
+        month: displayMonth,
         ss26,
         fw25,
         ss25,
@@ -10387,6 +10390,8 @@ export default function DashboardPage() {
         period = '26.1실적';
       } else if (monthLabel === '2월') {
         period = '26.2실적';
+      } else if (monthLabel === '3월' && idx === 12) {
+        period = '26.3실적';
       } else {
         const periodLabel = monthLabel.replace('월', '');
         period = `25.${periodLabel}실적`;
