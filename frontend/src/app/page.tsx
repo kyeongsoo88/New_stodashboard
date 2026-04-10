@@ -8964,13 +8964,13 @@ export default function DashboardPage() {
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
   const [simulWCData, setSimulWCData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string}>>([]);
   const [seasonGrowthRates, setSeasonGrowthRates] = React.useState<Record<string, number>>({
-    '27SS': 100,
-    '26FW': 100,
-    '26SS': 100,
-    '25FW': 100,
-    '25SS': 100,
-    'CORE': 100,
-    '과시즌': 100
+    '27SS': 100, // 슬라이더 없음
+    '26FW': 37,
+    '26SS': 27,
+    '25FW': 50,
+    '25SS': 61,
+    'CORE': 16,
+    '과시즌': 70
   });
   const [showReorderPopup, setShowReorderPopup] = React.useState(false);
   const [reorderItems, setReorderItems] = React.useState<string[]>([]);
@@ -10705,7 +10705,7 @@ export default function DashboardPage() {
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
                               <td className={`p-2 border-2 border-gray-300 ${indentClass}`}>
-                                {isSeasonItem ? (
+                                {isSeasonItem && label !== '27SS' ? (
                                   <div className="flex items-center gap-3">
                                     <span className="text-gray-600">{label}</span>
                                     <div className="flex items-center gap-2 flex-1">
@@ -10756,6 +10756,10 @@ export default function DashboardPage() {
                                       </button>
                                     </div>
                                   </div>
+                                ) : label === '27SS' ? (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-gray-600">{label}</span>
+                                  </div>
                                 ) : isEcom ? (
                                   <div className="flex items-center justify-between">
                                     <span>{label}</span>
@@ -10765,12 +10769,12 @@ export default function DashboardPage() {
                                         e.stopPropagation();
                                         setSeasonGrowthRates({
                                           '27SS': 100,
-                                          '26FW': 100,
-                                          '26SS': 100,
-                                          '25FW': 100,
-                                          '25SS': 100,
-                                          'CORE': 100,
-                                          '과시즌': 100
+                                          '26FW': 37,
+                                          '26SS': 27,
+                                          '25FW': 50,
+                                          '25SS': 61,
+                                          'CORE': 16,
+                                          '과시즌': 70
                                         });
                                       }}
                                     >
@@ -10936,25 +10940,16 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (위의 26FY YTD 셀과 동일한 로직)
                                   let num26 = 0;
                                   
-                                  // TAG매출 행
+                                  // TAG매출 행 - 성장률 적용하지 않음 (온라인 원본 값 + 홀세일)
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
                                     let onlineValue = 0;
-                                    if (onlineRow) {
-                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                      seasonLabels.forEach(seasonLabel => {
-                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
-                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                          const baseNum = parseFloat(cleanVal);
-                                          if (!isNaN(baseNum)) {
-                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
-                                            onlineValue += baseNum * (growthRate / 100);
-                                          }
-                                        }
-                                      });
+                                    if (onlineRow && onlineRow.ytd26) {
+                                      const cleanVal = onlineRow.ytd26.replace(/,/g, '');
+                                      const oNum = parseFloat(cleanVal);
+                                      if (!isNaN(oNum)) onlineValue = oNum;
                                     }
                                     
                                     let wholesaleValue = 0;
@@ -11040,25 +11035,16 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (성장률 적용된 값, 전년대비와 동일한 로직)
                                   let num26 = 0;
                                   
-                                  // TAG매출 행
+                                  // TAG매출 행 - 성장률 적용하지 않음 (온라인 원본 값 + 홀세일)
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
                                     let onlineValue = 0;
-                                    if (onlineRow) {
-                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                      seasonLabels.forEach(seasonLabel => {
-                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
-                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                          const baseNum = parseFloat(cleanVal);
-                                          if (!isNaN(baseNum)) {
-                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
-                                            onlineValue += baseNum * (growthRate / 100);
-                                          }
-                                        }
-                                      });
+                                    if (onlineRow && onlineRow.ytd26) {
+                                      const cleanVal = onlineRow.ytd26.replace(/,/g, '');
+                                      const oNum = parseFloat(cleanVal);
+                                      if (!isNaN(oNum)) onlineValue = oNum;
                                     }
                                     
                                     let wholesaleValue = 0;
