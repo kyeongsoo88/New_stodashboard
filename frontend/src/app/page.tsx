@@ -13446,7 +13446,52 @@ export default function DashboardPage() {
                               
                               {/* 시즌YOY 컬럼 추가 */}
                               <td className="text-center p-2 border-2 border-gray-300 font-mono text-[15px] font-medium">
-                                {/* 시즌YOY 값 표시 (추후 구현) */}
+                                {(() => {
+                                  // YOY 행이나 재고자산 합계 행은 표시 안함
+                                  if (isYOY || isFirstRow) return '';
+                                  
+                                  // 시즌별 YOY 계산
+                                  // 27SS: 기말 27SS / 기초 26SS
+                                  // 26FW: 기말 26FW / 기초 25FW
+                                  // 26SS: 기말 26SS / 기초 25SS
+                                  // 25FW: 기말 25FW / 기초 24FW (데이터 없으면 공백)
+                                  // 25SS: 기말 25SS / 기초 24SS (데이터 없으면 공백)
+                                  // 과시즌, CORE: 표시 안함
+                                  
+                                  const seasonMapping: Record<string, string> = {
+                                    '27SS': '26SS',
+                                    '26FW': '25FW',
+                                    '26SS': '25SS',
+                                    '25FW': '24FW',
+                                    '25SS': '24SS'
+                                  };
+                                  
+                                  const prevSeason = seasonMapping[row.label];
+                                  if (!prevSeason) return ''; // 과시즌, CORE는 표시 안함
+                                  
+                                  // 현재 시즌의 기말 값 계산
+                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
+                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
+                                  const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
+                                  const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
+                                  
+                                  const growthRate = tagSeasonGrowthRates[row.label] || 100;
+                                  const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                  
+                                  const currentFinal = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
+                                  
+                                  // 전년도 시즌의 기초 값 찾기
+                                  const prevSeasonRow = simulInvenData.find(r => r.label === prevSeason);
+                                  if (!prevSeasonRow) return ''; // 전년도 시즌 데이터 없음
+                                  
+                                  const prevInitialVal = parseFloat((prevSeasonRow.values[0] || '0').replace(/,/g, '')) || 0;
+                                  
+                                  if (prevInitialVal === 0) return '0%'; // 분모가 0이면 0%
+                                  
+                                  // YOY 비율 계산 (기말 / 전년 기초)
+                                  const yoyRatio = (currentFinal / prevInitialVal);
+                                  return (Math.round(yoyRatio * 100)) + '%';
+                                })()}
                               </td>
                               
                               {/* 상태 컬럼 추가 */}
