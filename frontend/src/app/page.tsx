@@ -8963,8 +8963,19 @@ export default function DashboardPage() {
   const [simulCashData, setSimulCashData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string, col4: string, col5: string, col6: string, col7: string}>>([]);
   const [simulCashHeaders, setSimulCashHeaders] = React.useState<string[]>([]);
   const [simulWCData, setSimulWCData] = React.useState<Array<{label: string, col1: string, col2: string, col3: string}>>([]);
-  const [seasonGrowthRates, setSeasonGrowthRates] = React.useState<Record<string, number>>({
-    '27SS': 100, // 슬라이더 없음
+  // TAG매출용 시즌별 성장률
+  const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
+    '27SS': 100,
+    '26FW': 100,
+    '26SS': 100,
+    '25FW': 100,
+    '25SS': 100,
+    'CORE': 100,
+    '과시즌': 100
+  });
+  // 실판매출용 시즌별 성장률
+  const [netSeasonGrowthRates, setNetSeasonGrowthRates] = React.useState<Record<string, number>>({
+    '27SS': 100,
     '26FW': 37,
     '26SS': 27,
     '25FW': 50,
@@ -8989,11 +9000,11 @@ export default function DashboardPage() {
         const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
         const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
         const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
-        
-        // EC 판매에 성장률 적용
-        const growthRate = seasonGrowthRates[row.label] || 100;
+
+        // EC 판매에 TAG 성장률 적용
+        const growthRate = tagSeasonGrowthRates[row.label] || 100;
         const ecSales = ecSalesBaseVal * (growthRate / 100);
-        
+
         // 기말 = 기초 + 상품매입 - 홀세일 판매 - EC 판매(성장률 적용)
         const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
         
@@ -9015,7 +9026,7 @@ export default function DashboardPage() {
       console.log('✅ 모든 항목 재고 정상');
       setReorderItems([]);
     }
-  }, [seasonGrowthRates, simulInvenData, activeTab]);
+  }, [tagSeasonGrowthRates, simulInvenData, activeTab]);
   
   // CSV 파일 로딩
   React.useEffect(() => {
@@ -10641,7 +10652,7 @@ export default function DashboardPage() {
                           const collapsibleParents = ['실판매출', '매출원가', '직접비'];
                           const isCollapsibleParent = collapsibleParents.includes(label);
                           const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
-                          const isEcom = label === '온라인' && index === tagSalesIdx + 1;
+                          const isEcom = label === '온라인' && index === tagSalesIdx + 1;  // TAG매출 바로 아래 온라인
                           const isTagSales = label === 'TAG매출';
                           const seasonItems = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                           const isSeasonItem = seasonItems.includes(label);
@@ -10649,6 +10660,7 @@ export default function DashboardPage() {
                           const isWholesale = label === '홀세일' && index > tagSalesIdx && index < netSalesIdx;
                           const cogsIdx = simulPLData.findIndex(r => r.label === '매출원가');
                           const isNetSalesChild = index > netSalesIdx && index < cogsIdx && !['실판매출', '매출원가'].includes(label);
+                          const isNetSalesOnline = label === '온라인(아래 적용 할인율)' || (label === '온라인' && index > netSalesIdx && index < cogsIdx);  // 실판매출 아래 온라인
                           const grossProfitIdx = simulPLData.findIndex(r => r.label === '매출총이익');
                           const isCogsChild = index > cogsIdx && index < grossProfitIdx && !['매출원가', '매출총이익'].includes(label);
                           const directCostIdx = simulPLData.findIndex(r => r.label === '직접비');
@@ -10666,8 +10678,13 @@ export default function DashboardPage() {
                           }
                           
                           let indentClass = '';
-                          if (isSeasonItem) {
+                          // 실판매출 섹션의 시즌 아이템인지 확인
+                          const isNetSalesSeasonItem = isSeasonItem && index > netSalesIdx && index < cogsIdx;
+                          
+                          if (isNetSalesSeasonItem) {
                             indentClass = 'pl-12';
+                          } else if (isSeasonItem) {
+                            indentClass = 'pl-12';  // TAG매출 섹션의 시즌
                           } else if (isEcom || isWholesale || isNetSalesChild || isCogsChild || isDirectCostChild) {
                             indentClass = 'pl-6';
                           }
@@ -10713,20 +10730,28 @@ export default function DashboardPage() {
                                         type="range"
                                         min="-50"
                                         max="200"
-                                        value={seasonGrowthRates[label] || 100}
+                                        value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
                                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                         onChange={(e) => {
                                           const value = parseInt(e.target.value);
-                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          if (isNetSalesSeasonItem) {
+                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          } else {
+                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          }
                                         }}
                                       />
                                       <button
                                         className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          const currentValue = seasonGrowthRates[label] || 100;
+                                          const currentValue = isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100);
                                           const newValue = Math.max(-50, currentValue - 1);
-                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          if (isNetSalesSeasonItem) {
+                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          } else {
+                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          }
                                         }}
                                       >
                                         -
@@ -10735,11 +10760,15 @@ export default function DashboardPage() {
                                         type="number"
                                         min="-50"
                                         max="200"
-                                        value={seasonGrowthRates[label] || 100}
+                                        value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
                                         className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
                                         onChange={(e) => {
                                           const value = parseInt(e.target.value) || 100;
-                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          if (isNetSalesSeasonItem) {
+                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          } else {
+                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
+                                          }
                                         }}
                                       />
                                       <span className="text-xs">%</span>
@@ -10747,9 +10776,13 @@ export default function DashboardPage() {
                                         className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          const currentValue = seasonGrowthRates[label] || 100;
+                                          const currentValue = isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100);
                                           const newValue = Math.min(200, currentValue + 1);
-                                          setSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          if (isNetSalesSeasonItem) {
+                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          } else {
+                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
+                                          }
                                         }}
                                       >
                                         +
@@ -10767,7 +10800,28 @@ export default function DashboardPage() {
                                       className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setSeasonGrowthRates({
+                                        setTagSeasonGrowthRates({
+                                          '27SS': 100,
+                                          '26FW': 100,
+                                          '26SS': 100,
+                                          '25FW': 100,
+                                          '25SS': 100,
+                                          'CORE': 100,
+                                          '과시즌': 100
+                                        });
+                                      }}
+                                    >
+                                      RESET
+                                    </button>
+                                  </div>
+                                ) : isNetSalesOnline ? (
+                                  <div className="flex items-center justify-between">
+                                    <span>{label}</span>
+                                    <button
+                                      className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setNetSeasonGrowthRates({
                                           '27SS': 100,
                                           '26FW': 37,
                                           '26SS': 27,
@@ -10836,12 +10890,12 @@ export default function DashboardPage() {
                                     : 'bg-green-50/20 border-2 border-gray-300'
                               }`}>
                                 {(() => {
-                                  // TAG매출 행의 26FY YTD는 온라인 + 홀세일
+                                  // TAG매출 행의 26FY YTD는 온라인(성장률 적용) + 홀세일
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
-                                    // 온라인 값 계산 (시즌 합계 with 성장률)
+                                    // 온라인 값 계산 (시즌 합계 with TAG 성장률)
                                     let onlineValue = 0;
                                     if (onlineRow) {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
@@ -10851,7 +10905,7 @@ export default function DashboardPage() {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                           const baseNum = parseFloat(cleanVal);
                                           if (!isNaN(baseNum)) {
-                                            const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                             onlineValue += baseNum * (growthRate / 100);
                                           }
                                         }
@@ -10870,7 +10924,7 @@ export default function DashboardPage() {
                                     return total !== 0 ? Math.round(total).toLocaleString() : '';
                                   }
                                   
-                                  // 온라인 행의 26FY YTD는 시즌 항목들의 합계 (with 성장률)
+                                  // TAG매출 아래 온라인 행의 26FY YTD는 시즌 항목들의 합계 (with TAG 성장률)
                                   if (isEcom) {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     let sum = 0;
@@ -10880,7 +10934,7 @@ export default function DashboardPage() {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
-                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                           sum += baseNum * (growthRate / 100);
                                         }
                                       }
@@ -10888,7 +10942,29 @@ export default function DashboardPage() {
                                     return sum !== 0 ? Math.round(sum).toLocaleString() : '';
                                   }
                                   
-                                  // 시즌 항목들의 26FY YTD는 CSV 값 * 성장률
+                                  // 실판매출 아래 온라인 - TAG매출 온라인 값에 할인율 적용 (1 - 할인율)
+                                  if (isNetSalesOnline) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          // TAG매출의 성장률 먼저 적용
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          // 할인율 적용: TAG값 * (1 - 할인율)
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          sum += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    return sum !== 0 ? Math.round(sum).toLocaleString() : '';
+                                  }
+                                  
+                                  // 시즌 항목들의 26FY YTD
                                   if (isSeasonItem) {
                                     const val = row.ytd26;
                                     if (!val || val === '0') return '';
@@ -10897,9 +10973,19 @@ export default function DashboardPage() {
                                     const baseNum = parseFloat(cleanVal);
                                     if (isNaN(baseNum)) return val;
                                     
-                                    const growthRate = seasonGrowthRates[label] || 100;
-                                    const calculatedValue = baseNum * (growthRate / 100);
-                                    return Math.round(calculatedValue).toLocaleString();
+                                    // TAG매출 섹션의 시즌 항목 - TAG 성장률 적용
+                                    if (!isNetSalesSeasonItem) {
+                                      const growthRate = tagSeasonGrowthRates[label] || 100;
+                                      const calculatedValue = baseNum * (growthRate / 100);
+                                      return Math.round(calculatedValue).toLocaleString();
+                                    } else {
+                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
+                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      const discountRate = netSeasonGrowthRates[label] || 0;
+                                      const calculatedValue = tagValue * (1 - discountRate / 100);
+                                      return Math.round(calculatedValue).toLocaleString();
+                                    }
                                   }
                                   
                                   const val = row.ytd26;
@@ -10940,16 +11026,25 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (위의 26FY YTD 셀과 동일한 로직)
                                   let num26 = 0;
                                   
-                                  // TAG매출 행 - 성장률 적용하지 않음 (온라인 원본 값 + 홀세일)
+                                  // TAG매출 행 - 온라인(TAG 성장률 적용) + 홀세일
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
                                     let onlineValue = 0;
-                                    if (onlineRow && onlineRow.ytd26) {
-                                      const cleanVal = onlineRow.ytd26.replace(/,/g, '');
-                                      const oNum = parseFloat(cleanVal);
-                                      if (!isNaN(oNum)) onlineValue = oNum;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
                                     }
                                     
                                     let wholesaleValue = 0;
@@ -10961,7 +11056,7 @@ export default function DashboardPage() {
                                     
                                     num26 = onlineValue + wholesaleValue;
                                   }
-                                  // 온라인 행
+                                  // TAG매출 아래 온라인 행 - TAG 성장률 적용
                                   else if (isEcom) {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     let sum = 0;
@@ -10971,8 +11066,27 @@ export default function DashboardPage() {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
-                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                           sum += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = sum;
+                                  }
+                                  // 실판매출 아래 온라인 행 - TAG값에 할인율 적용
+                                  else if (isNetSalesOnline) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          sum += tagValue * (1 - discountRate / 100);
                                         }
                                       }
                                     });
@@ -10989,8 +11103,17 @@ export default function DashboardPage() {
                                     if (isNaN(baseNum)) {
                                       return '';
                                     }
-                                    const growthRate = seasonGrowthRates[label] || 100;
-                                    num26 = baseNum * (growthRate / 100);
+                                    // TAG매출 섹션의 시즌 항목 - TAG 성장률 적용
+                                    if (!isNetSalesSeasonItem) {
+                                      const growthRate = tagSeasonGrowthRates[label] || 100;
+                                      num26 = baseNum * (growthRate / 100);
+                                    } else {
+                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
+                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      const discountRate = netSeasonGrowthRates[label] || 0;
+                                      num26 = tagValue * (1 - discountRate / 100);
+                                    }
                                   }
                                   // 일반 항목들
                                   else {
@@ -11035,16 +11158,25 @@ export default function DashboardPage() {
                                   // 26FY YTD 값 계산 (성장률 적용된 값, 전년대비와 동일한 로직)
                                   let num26 = 0;
                                   
-                                  // TAG매출 행 - 성장률 적용하지 않음 (온라인 원본 값 + 홀세일)
+                                  // TAG매출 행 - 온라인(TAG 성장률 적용) + 홀세일
                                   if (isTagSales) {
                                     const onlineRow = simulPLData.find(r => r.label === '온라인');
                                     const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     
                                     let onlineValue = 0;
-                                    if (onlineRow && onlineRow.ytd26) {
-                                      const cleanVal = onlineRow.ytd26.replace(/,/g, '');
-                                      const oNum = parseFloat(cleanVal);
-                                      if (!isNaN(oNum)) onlineValue = oNum;
+                                    if (onlineRow) {
+                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                      seasonLabels.forEach(seasonLabel => {
+                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                        if (seasonRow && seasonRow.ytd26) {
+                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                          const baseNum = parseFloat(cleanVal);
+                                          if (!isNaN(baseNum)) {
+                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                            onlineValue += baseNum * (growthRate / 100);
+                                          }
+                                        }
+                                      });
                                     }
                                     
                                     let wholesaleValue = 0;
@@ -11056,7 +11188,7 @@ export default function DashboardPage() {
                                     
                                     num26 = onlineValue + wholesaleValue;
                                   }
-                                  // 온라인 행
+                                  // TAG매출 아래 온라인 행 - TAG 성장률 적용
                                   else if (isEcom) {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     let sum = 0;
@@ -11066,8 +11198,27 @@ export default function DashboardPage() {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
-                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                           sum += baseNum * (growthRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = sum;
+                                  }
+                                  // 실판매출 아래 온라인 행 - TAG값에 할인율 적용
+                                  else if (isNetSalesOnline) {
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    let sum = 0;
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          sum += tagValue * (1 - discountRate / 100);
                                         }
                                       }
                                     });
@@ -11084,8 +11235,17 @@ export default function DashboardPage() {
                                     if (isNaN(baseNum)) {
                                       return '';
                                     }
-                                    const growthRate = seasonGrowthRates[label] || 100;
-                                    num26 = baseNum * (growthRate / 100);
+                                    // TAG매출 섹션의 시즌 항목 - TAG 성장률 적용
+                                    if (!isNetSalesSeasonItem) {
+                                      const growthRate = tagSeasonGrowthRates[label] || 100;
+                                      num26 = baseNum * (growthRate / 100);
+                                    } else {
+                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
+                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      const discountRate = netSeasonGrowthRates[label] || 0;
+                                      num26 = tagValue * (1 - discountRate / 100);
+                                    }
                                   }
                                   // 일반 항목들
                                   else {
@@ -11204,7 +11364,7 @@ export default function DashboardPage() {
                             let ecSales = parseFloat(ecSalesBaseVal) || 0;
                             const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                             if (seasonLabels.includes(row.label)) {
-                              const growthRate = seasonGrowthRates[row.label] || 100;
+                              const growthRate = tagSeasonGrowthRates[row.label] || 100;
                               ecSales = ecSales * (growthRate / 100);
                             }
                             
@@ -11235,7 +11395,7 @@ export default function DashboardPage() {
                             let ecSales = parseFloat(ecSalesBaseVal) || 0;
                             const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                             if (seasonLabels.includes(row.label)) {
-                              const growthRate = seasonGrowthRates[row.label] || 100;
+                              const growthRate = tagSeasonGrowthRates[row.label] || 100;
                               ecSales = ecSales * (growthRate / 100);
                             }
                             
@@ -11299,9 +11459,9 @@ export default function DashboardPage() {
                                         const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
                                         const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
                                         const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
-                                        
-                                        // EC 판매에 성장률 적용
-                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
+
+                                        // EC 판매에 TAG 성장률 적용
+                                        const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                         const ecSales = ecSalesBaseVal * (growthRate / 100);
                                         
                                         const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
@@ -11329,8 +11489,8 @@ export default function DashboardPage() {
                                           const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
                                           const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
                                           const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
-                                          
-                                          const growthRate = seasonGrowthRates[seasonLabel] || 100;
+
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                           const ecSales = ecSalesBaseVal * (growthRate / 100);
                                           
                                           finalVal += sInitialVal + purchaseVal - wholesaleSalesVal - ecSales;
@@ -11361,7 +11521,7 @@ export default function DashboardPage() {
                                       if (seasonRow && seasonRow.values[3]) {
                                         const baseVal = (seasonRow.values[3] || '0').replace(/,/g, '');
                                         const baseNum = parseFloat(baseVal) || 0;
-                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
+                                        const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
                                         sum += baseNum * (growthRate / 100);
                                       }
                                     });
@@ -11372,7 +11532,7 @@ export default function DashboardPage() {
                                     if (seasonLabels.includes(row.label)) {
                                       const baseVal = (val || '0').replace(/,/g, '');
                                       const baseNum = parseFloat(baseVal) || 0;
-                                      const growthRate = seasonGrowthRates[row.label] || 100;
+                                      const growthRate = tagSeasonGrowthRates[row.label] || 100;
                                       const calculatedValue = baseNum * (growthRate / 100);
                                       displayValue = calculatedValue !== 0 ? Math.round(calculatedValue).toLocaleString() : '';
                                     } else {
@@ -11447,11 +11607,11 @@ export default function DashboardPage() {
                                       if (seasonRow) {
                                         const sInitialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
                                         const sPurchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
-                                        const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
-                                        const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
-                                        
-                                        const growthRate = seasonGrowthRates[seasonLabel] || 100;
-                                        const ecSales = ecSalesBaseVal * (growthRate / 100);
+                                          const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
+                                          const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+
+                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const ecSales = ecSalesBaseVal * (growthRate / 100);
                                         
                                         totalFinal += sInitialVal + sPurchaseVal - wholesaleSalesVal - ecSales;
                                       }
@@ -11467,8 +11627,8 @@ export default function DashboardPage() {
                                     const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
                                     const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
                                     
-                                    // EC 판매에 성장률 적용
-                                    const growthRate = seasonGrowthRates[row.label] || 100;
+                                    // EC 판매에 TAG 성장률 적용
+                                    const growthRate = tagSeasonGrowthRates[row.label] || 100;
                                     const ecSales = ecSalesBaseVal * (growthRate / 100);
                                     
                                     const finalVal = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
@@ -11495,8 +11655,8 @@ export default function DashboardPage() {
                                   const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
                                   const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
                                   const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
-                                  
-                                  const growthRate = seasonGrowthRates[row.label] || 100;
+
+                                  const growthRate = tagSeasonGrowthRates[row.label] || 100;
                                   const ecSales = ecSalesBaseVal * (growthRate / 100);
                                   
                                   const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
