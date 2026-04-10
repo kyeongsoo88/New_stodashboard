@@ -10979,11 +10979,35 @@ export default function DashboardPage() {
                                       const calculatedValue = baseNum * (growthRate / 100);
                                       return Math.round(calculatedValue).toLocaleString();
                                     } else {
-                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
-                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
-                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      // 실판매출 섹션의 시즌 항목 - TAG매출 섹션의 계산된 값에 할인율 적용
+                                      // TAG매출 섹션의 같은 시즌을 찾아서 그 계산된 값을 사용
+                                      const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
+                                      const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
+                                      
+                                      // TAG매출 섹션에서 같은 label의 row 찾기
+                                      let tagSeasonValue = baseNum; // 기본값은 원본
+                                      for (let i = tagSalesIdx + 1; i < netSalesIdx; i++) {
+                                        if (simulPLData[i].label === label) {
+                                          // TAG 성장률이 적용된 값 계산
+                                          const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                          const seasonBaseNum = parseFloat(simulPLData[i].ytd26?.replace(/,/g, '') || '0');
+                                          tagSeasonValue = seasonBaseNum * (tagGrowthRate / 100);
+                                          break;
+                                        }
+                                      }
+                                      
                                       const discountRate = netSeasonGrowthRates[label] || 0;
-                                      const calculatedValue = tagValue * (1 - discountRate / 100);
+                                      const calculatedValue = tagSeasonValue * (1 - discountRate / 100);
+                                      
+                                      // 디버깅
+                                      if (label === '26FW') {
+                                        console.log('=== 실판매출 26FW 계산 (수정됨) ===');
+                                        console.log('tagSeasonValue (TAG매출 계산값):', tagSeasonValue);
+                                        console.log('discountRate:', discountRate);
+                                        console.log('(1 - discountRate / 100):', (1 - discountRate / 100));
+                                        console.log('calculatedValue:', calculatedValue);
+                                      }
+                                      
                                       return Math.round(calculatedValue).toLocaleString();
                                     }
                                   }
@@ -11108,11 +11132,22 @@ export default function DashboardPage() {
                                       const growthRate = tagSeasonGrowthRates[label] || 100;
                                       num26 = baseNum * (growthRate / 100);
                                     } else {
-                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
-                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
-                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      // 실판매출 섹션의 시즌 항목 - TAG매출 섹션의 계산된 값에 할인율 적용
+                                      const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
+                                      const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
+                                      
+                                      let tagSeasonValue = baseNum;
+                                      for (let i = tagSalesIdx + 1; i < netSalesIdx; i++) {
+                                        if (simulPLData[i].label === label) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                          const seasonBaseNum = parseFloat(simulPLData[i].ytd26?.replace(/,/g, '') || '0');
+                                          tagSeasonValue = seasonBaseNum * (tagGrowthRate / 100);
+                                          break;
+                                        }
+                                      }
+                                      
                                       const discountRate = netSeasonGrowthRates[label] || 0;
-                                      num26 = tagValue * (1 - discountRate / 100);
+                                      num26 = tagSeasonValue * (1 - discountRate / 100);
                                     }
                                   }
                                   // 일반 항목들
@@ -11240,11 +11275,22 @@ export default function DashboardPage() {
                                       const growthRate = tagSeasonGrowthRates[label] || 100;
                                       num26 = baseNum * (growthRate / 100);
                                     } else {
-                                      // 실판매출 섹션의 시즌 항목 - TAG값에 할인율 적용
-                                      const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
-                                      const tagValue = baseNum * (tagGrowthRate / 100);
+                                      // 실판매출 섹션의 시즌 항목 - TAG매출 섹션의 계산된 값에 할인율 적용
+                                      const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
+                                      const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
+                                      
+                                      let tagSeasonValue = baseNum;
+                                      for (let i = tagSalesIdx + 1; i < netSalesIdx; i++) {
+                                        if (simulPLData[i].label === label) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
+                                          const seasonBaseNum = parseFloat(simulPLData[i].ytd26?.replace(/,/g, '') || '0');
+                                          tagSeasonValue = seasonBaseNum * (tagGrowthRate / 100);
+                                          break;
+                                        }
+                                      }
+                                      
                                       const discountRate = netSeasonGrowthRates[label] || 0;
-                                      num26 = tagValue * (1 - discountRate / 100);
+                                      num26 = tagSeasonValue * (1 - discountRate / 100);
                                     }
                                   }
                                   // 일반 항목들
