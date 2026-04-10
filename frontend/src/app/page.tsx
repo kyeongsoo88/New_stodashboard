@@ -11554,25 +11554,23 @@ export default function DashboardPage() {
                                 {(() => {
                                   // 전년대비 = 26FY YTD - 25FY
                                   const fy25Val = row.fy25;
+                                  const ytd26Val = row.ytd26;
                                   
                                   // % 포함된 경우는 계산 안함
-                                  if (fy25Val.includes('%')) {
+                                  if (fy25Val?.includes('%') || ytd26Val?.includes('%')) {
                                     return '';
                                   }
                                   
-                                  // 25FY 값이 없으면 계산 안함
-                                  if (!fy25Val || fy25Val === '0') {
+                                  // 값이 없으면 계산 안함
+                                  if (!fy25Val || fy25Val === '0' || !ytd26Val || ytd26Val === '0') {
                                     return '';
                                   }
                                   
                                   // 25FY 값 파싱
                                   const cleanFy25 = fy25Val.replace(/,/g, '');
                                   const num25 = parseFloat(cleanFy25);
-                                  if (isNaN(num25)) {
-                                    return '';
-                                  }
                                   
-                                  // 26FY YTD 값 계산 (위의 26FY YTD 셀과 동일한 로직)
+                                  // 26FY YTD 값 파싱 (간단히 - 동적 계산된 행들은 별도 처리)
                                   let num26 = 0;
                                   
                                   // 매출원가 = TAG매출 26FY YTD × 19.93%
