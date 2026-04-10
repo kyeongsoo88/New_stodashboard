@@ -10853,19 +10853,32 @@ export default function DashboardPage() {
                               </td>
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/10">
                                 {(() => {
-                                  // 실판매출 행 - CSV 값 표시
+                                  // 실판매출 행 - 동적 계산 (온라인 + 홀세일 + 라이센스 + 기타)
                                   if (isNetSales) {
-                                    const val = row.fy25;
-                                    if (!val || val === '0') return '';
-                                    if (val.includes('%')) return val;
-                                    const cleanVal = val.replace(/,/g, '');
-                                    if (cleanVal.startsWith('-')) {
+                                    // 온라인(아래 적용 할인율) 값
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인(아래 적용 할인율)');
+                                    let onlineValue = 0;
+                                    if (onlineRow && onlineRow.fy25) {
+                                      const cleanVal = onlineRow.fy25.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
+                                      if (!isNaN(num)) onlineValue = num;
                                     }
-                                    const num = parseFloat(cleanVal);
-                                    if (!isNaN(num)) return num.toLocaleString();
-                                    return val;
+                                    
+                                    // 홀세일, 라이센스, 기타 값 찾기
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.fy25?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    const total = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
                                   }
                                   
                                   const val = row.fy25;
@@ -10890,19 +10903,32 @@ export default function DashboardPage() {
                                   : ''
                               }`}>
                                 {(() => {
-                                  // 실판매출 행 - CSV 값 표시
+                                  // 실판매출 행 - 동적 계산 (온라인 + 홀세일 + 라이센스 + 기타)
                                   if (isNetSales) {
-                                    const val = row.prevYtd26;
-                                    if (!val || val === '0') return '';
-                                    if (val.includes('%')) return val;
-                                    const cleanVal = val.replace(/,/g, '');
-                                    if (cleanVal.startsWith('-')) {
+                                    // 온라인(아래 적용 할인율) 값
+                                    const onlineRow = simulPLData.find(r => r.label === '온라인(아래 적용 할인율)');
+                                    let onlineValue = 0;
+                                    if (onlineRow && onlineRow.prevYtd26) {
+                                      const cleanVal = onlineRow.prevYtd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) return <span className="text-red-600">{num.toLocaleString()}</span>;
+                                      if (!isNaN(num)) onlineValue = num;
                                     }
-                                    const num = parseFloat(cleanVal);
-                                    if (!isNaN(num)) return num.toLocaleString();
-                                    return val;
+                                    
+                                    // 홀세일, 라이센스, 기타 값 찾기
+                                    let wholesaleValue = 0;
+                                    let licenseValue = 0;
+                                    let etcValue = 0;
+                                    
+                                    for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
+                                      const childRow = simulPLData[i];
+                                      const childVal = parseFloat(childRow.prevYtd26?.replace(/,/g, '') || '0');
+                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
+                                      else if (childRow.label === '기타') etcValue = childVal;
+                                    }
+                                    
+                                    const total = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
                                   }
                                   
                                   const val = row.prevYtd26;
@@ -10993,12 +11019,21 @@ export default function DashboardPage() {
                                     for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
+                                      console.log(`실판매출 자식 체크 [${i}]:`, childRow.label, childVal);
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
                                     const total = onlineValue + wholesaleValue + licenseValue + etcValue;
+                                    console.log('실판매출 26FY YTD 계산:', {
+                                      onlineValue,
+                                      wholesaleValue,
+                                      licenseValue,
+                                      etcValue,
+                                      total,
+                                      rounded: Math.round(total)
+                                    });
                                     return total !== 0 ? Math.round(total).toLocaleString() : '';
                                   }
                                   
@@ -11029,7 +11064,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11134,7 +11169,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11241,7 +11276,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11314,7 +11349,7 @@ export default function DashboardPage() {
                                     directProfitValue = grossProfitValue - directCostValue;
                                     
                                     // 영업비 계산
-                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
                                     if (operatingExpenseRow && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
@@ -11543,7 +11578,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11576,7 +11611,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11677,7 +11712,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11782,7 +11817,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -11855,7 +11890,7 @@ export default function DashboardPage() {
                                     directProfitValue = grossProfitValue - directCostValue;
                                     
                                     // 영업비 계산
-                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
                                     if (operatingExpenseRow && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
@@ -12131,7 +12166,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -12164,7 +12199,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -12265,7 +12300,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -12370,7 +12405,7 @@ export default function DashboardPage() {
                                       const childRow = simulPLData[i];
                                       const childVal = parseFloat(childRow.ytd26?.replace(/,/g, '') || '0');
                                       if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스') licenseValue = childVal;
+                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
                                       else if (childRow.label === '기타') etcValue = childVal;
                                     }
                                     
@@ -12443,7 +12478,7 @@ export default function DashboardPage() {
                                     directProfitValue = grossProfitValue - directCostValue;
                                     
                                     // 영업비 계산
-                                    const operatingExpenseRow = simulPLData.find(r => r.label === '판관비');
+                                    const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
                                     if (operatingExpenseRow && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
