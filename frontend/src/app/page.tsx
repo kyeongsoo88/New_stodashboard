@@ -10346,7 +10346,8 @@ export default function DashboardPage() {
     const inventoryTableData: any[] = [];
     
     // 3월부터 3월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Feb -> 2월, 26-Mar -> 3월)
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월'];
+    // 차트에서 구분하기 위해 마지막 3월은 다른 라벨 사용
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 '];  // 마지막에 공백 추가
     // CSV 헤더와 매핑
     const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar'];
     
@@ -10367,11 +10368,9 @@ export default function DashboardPage() {
       const past = parseFloat(getValue('팝업_재고소진계획_CORE_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const total = parseFloat(getValue('팝업_재고소진계획_테이블_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       
-      // 26년 3월은 구분을 위해 다른 라벨 사용
-      const displayMonth = (monthLabel === '3월' && idx === 12) ? '3월' : monthLabel;
       
       inventoryChartData.push({
-        month: displayMonth,
+        month: monthLabel,
         ss26,
         fw25,
         ss25,
