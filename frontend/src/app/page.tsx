@@ -13096,14 +13096,21 @@ export default function DashboardPage() {
                           {/* 판매율 컬럼 추가 */}
                           <th 
                             className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
+                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
                           >
                             판매율
+                          </th>
+                          {/* 시즌YOY 컬럼 추가 */}
+                          <th 
+                            className="text-center p-3 font-semibold border-2 border-gray-400"
+                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
+                          >
+                            시즌YOY
                           </th>
                           {/* 상태 컬럼 추가 */}
                           <th 
                             className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
+                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
                           >
                             기말 재고 상태
                           </th>
@@ -13435,6 +13442,11 @@ export default function DashboardPage() {
                                   
                                   return '';
                                 })()}
+                              </td>
+                              
+                              {/* 시즌YOY 컬럼 추가 */}
+                              <td className="text-center p-2 border-2 border-gray-300 font-mono text-[15px] font-medium">
+                                {/* 시즌YOY 값 표시 (추후 구현) */}
                               </td>
                               
                               {/* 상태 컬럼 추가 */}
