@@ -11864,42 +11864,109 @@ export default function DashboardPage() {
                                     
                                     num26 = netSalesValue - cogsValue;
                                   }
+                                  // SEM = 온라인(아래 적용 할인율) × 18.8%
+                                  else if (isSEM) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.188;
+                                  }
+                                  // 운반비 = 온라인(아래 적용 할인율) × 6.1%
+                                  else if (isShipping) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.061;
+                                  }
+                                  // 보관료 = 온라인(아래 적용 할인율) × 5.3%
+                                  else if (isStorage) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.053;
+                                  }
+                                  // 지급수수료 = 온라인(아래 적용 할인율) × 9.3%
+                                  else if (isFee) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.093;
+                                  }
                                   // 직접비 = SEM + 운반비 + 보관료 + 지급수수료
                                   else if (isDirectCost) {
-                                    const semRow = simulPLData.find(r => r.label === 'SEM');
-                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
-                                    const storageRow = simulPLData.find(r => r.label === '보관료');
-                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
-                                    
+                                    // 동적으로 계산
                                     let semValue = 0;
                                     let shippingValue = 0;
                                     let storageValue = 0;
                                     let feeValue = 0;
                                     
-                                    if (semRow && semRow.ytd26) {
-                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) semValue = num;
-                                    }
-                                    
-                                    if (shippingRow && shippingRow.ytd26) {
-                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) shippingValue = num;
-                                    }
-                                    
-                                    if (storageRow && storageRow.ytd26) {
-                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) storageValue = num;
-                                    }
-                                    
-                                    if (feeRow && feeRow.ytd26) {
-                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) feeValue = num;
-                                    }
-                                    
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          const onlineNetValue = tagValue * (1 - discountRate / 100);
+                                          semValue += onlineNetValue * 0.188;
+                                          shippingValue += onlineNetValue * 0.061;
+                                          storageValue += onlineNetValue * 0.053;
+                                          feeValue += onlineNetValue * 0.093;
+                                        }
+                                      }
+                                    });
+
                                     num26 = semValue + shippingValue + storageValue + feeValue;
                                   }
                                   // 직접이익 = 매출총이익 - 직접비
@@ -12536,42 +12603,109 @@ export default function DashboardPage() {
                                     
                                     num26 = netSalesValue - cogsValue;
                                   }
+                                  // SEM = 온라인(아래 적용 할인율) × 18.8%
+                                  else if (isSEM) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.188;
+                                  }
+                                  // 운반비 = 온라인(아래 적용 할인율) × 6.1%
+                                  else if (isShipping) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.061;
+                                  }
+                                  // 보관료 = 온라인(아래 적용 할인율) × 5.3%
+                                  else if (isStorage) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.053;
+                                  }
+                                  // 지급수수료 = 온라인(아래 적용 할인율) × 9.3%
+                                  else if (isFee) {
+                                    let onlineValue = 0;
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          onlineValue += tagValue * (1 - discountRate / 100);
+                                        }
+                                      }
+                                    });
+                                    num26 = onlineValue * 0.093;
+                                  }
                                   // 직접비 = SEM + 운반비 + 보관료 + 지급수수료
                                   else if (isDirectCost) {
-                                    const semRow = simulPLData.find(r => r.label === 'SEM');
-                                    const shippingRow = simulPLData.find(r => r.label === '운반비');
-                                    const storageRow = simulPLData.find(r => r.label === '보관료');
-                                    const feeRow = simulPLData.find(r => r.label === '지급수수료');
-                                    
+                                    // 동적으로 계산
                                     let semValue = 0;
                                     let shippingValue = 0;
                                     let storageValue = 0;
                                     let feeValue = 0;
                                     
-                                    if (semRow && semRow.ytd26) {
-                                      const cleanVal = semRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) semValue = num;
-                                    }
-                                    
-                                    if (shippingRow && shippingRow.ytd26) {
-                                      const cleanVal = shippingRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) shippingValue = num;
-                                    }
-                                    
-                                    if (storageRow && storageRow.ytd26) {
-                                      const cleanVal = storageRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) storageValue = num;
-                                    }
-                                    
-                                    if (feeRow && feeRow.ytd26) {
-                                      const cleanVal = feeRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) feeValue = num;
-                                    }
-                                    
+                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
+                                    seasonLabels.forEach(seasonLabel => {
+                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
+                                      if (seasonRow && seasonRow.ytd26) {
+                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
+                                        const baseNum = parseFloat(cleanVal);
+                                        if (!isNaN(baseNum)) {
+                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
+                                          const tagValue = baseNum * (tagGrowthRate / 100);
+                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
+                                          const onlineNetValue = tagValue * (1 - discountRate / 100);
+                                          semValue += onlineNetValue * 0.188;
+                                          shippingValue += onlineNetValue * 0.061;
+                                          storageValue += onlineNetValue * 0.053;
+                                          feeValue += onlineNetValue * 0.093;
+                                        }
+                                      }
+                                    });
+
                                     num26 = semValue + shippingValue + storageValue + feeValue;
                                   }
                                   // 직접이익 = 매출총이익 - 직접비
