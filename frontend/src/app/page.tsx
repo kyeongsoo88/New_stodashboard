@@ -1412,7 +1412,7 @@ function DetailedExpenseCard({
                                     "bg-amber-50 hover:bg-amber-100 border border-amber-200",
                                     "text-amber-700 font-medium text-xs"
                                 )}>
-                                    3개월 누적율 6.1%
+                                    3개월 누적 8.7%
                                 </span>
                             </DialogTrigger>
                             <DialogContent className="max-w-md">
@@ -4605,12 +4605,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
   const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-02");
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-03");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
 
-  // 월 옵션 (25년 1월~12월, 26년 1월~2월)
+  // 월 옵션 (25년 1월~12월, 26년 1월~3월)
   const monthOptions = [
     ...Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
@@ -4620,7 +4620,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       };
     }),
     { value: '2026-01', label: '26년 1월' },
-    { value: '2026-02', label: '26년 2월' }
+    { value: '2026-02', label: '26년 2월' },
+    { value: '2026-03', label: '26년 3월' }
   ];
 
   React.useEffect(() => {
@@ -7171,8 +7172,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [baseWorkingCapitalData, setBaseWorkingCapitalData] = React.useState<any[]>([]);
   
   // 성장률 설정 상태
-  const [growthRate, setGrowthRate] = React.useState(130);
-  const [inputValue, setInputValue] = React.useState<string>("130");
+  const [growthRate, setGrowthRate] = React.useState(100);
+  const [inputValue, setInputValue] = React.useState<string>("100");
   
   // 성장률 변경 핸들러
   const handleGrowthRateChange = (rate: number) => {
@@ -7619,14 +7620,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
       return;
     }
 
-    // 130%(기준값)이면 원본 데이터를 그대로 사용
-    if (growthRate === 130) {
+    // 100%(기준값)이면 원본 데이터를 그대로 사용
+    if (growthRate === 100) {
       setCashFlowData(JSON.parse(JSON.stringify(baseCashFlowData)));
       return;
     }
 
-    // 비율 계산: 130%를 기준으로
-    const ratio = growthRate / 130;
+    // 비율 계산: 100%를 기준으로 (CSV 데이터 = 100%)
+    const ratio = growthRate / 100;
     
     // 깊은 복사
     const newData = JSON.parse(JSON.stringify(baseCashFlowData));
@@ -7986,32 +7987,32 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         
                         {/* Range Slider */}
                         <div className="flex items-center gap-2">
-                            <span className="text-blue-100 text-xs">100%</span>
+                            <span className="text-blue-100 text-xs">70%</span>
                             <input
                                 type="range"
-                                min="100"
-                                max="200"
+                                min="70"
+                                max="150"
                                 step="1"
                                 value={growthRate}
                                 onChange={(e) => handleGrowthRateChange(Number(e.target.value))}
                                 className="growth-rate-slider w-[150px] h-2 rounded-lg cursor-pointer"
                             />
-                            <span className="text-blue-100 text-xs">200%</span>
+                            <span className="text-blue-100 text-xs">150%</span>
                         </div>
                         
                         {/* Number Input */}
                         <div className="flex items-center gap-1">
                             <input
                                 type="number"
-                                min="100"
-                                max="200"
+                                min="70"
+                                max="150"
                                 step="1"
                                 value={inputValue}
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     setInputValue(val);
                                     const numVal = Number(val);
-                                    if (!isNaN(numVal) && numVal >= 100 && numVal <= 200) {
+                                    if (!isNaN(numVal) && numVal >= 70 && numVal <= 150) {
                                         setGrowthRate(numVal);
                                     }
                                 }}
@@ -8019,10 +8020,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     if (e.key === 'Enter') {
                                         e.currentTarget.blur();
                                         const val = Number(e.currentTarget.value);
-                                        if (isNaN(val) || val < 100) {
-                                            handleGrowthRateChange(100);
-                                        } else if (val > 200) {
-                                            handleGrowthRateChange(200);
+                                        if (isNaN(val) || val < 70) {
+                                            handleGrowthRateChange(70);
+                                        } else if (val > 150) {
+                                            handleGrowthRateChange(150);
                                         } else {
                                             handleGrowthRateChange(val);
                                         }
@@ -8030,10 +8031,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 }}
                                 onBlur={(e) => {
                                     const val = Number(e.target.value);
-                                    if (isNaN(val) || val < 100) {
-                                        handleGrowthRateChange(100);
-                                    } else if (val > 200) {
-                                        handleGrowthRateChange(200);
+                                    if (isNaN(val) || val < 70) {
+                                        handleGrowthRateChange(70);
+                                    } else if (val > 150) {
+                                        handleGrowthRateChange(150);
                                     } else {
                                         handleGrowthRateChange(val);
                                     }
@@ -8932,12 +8933,12 @@ export default function DashboardPage() {
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
     "대시보드": "2026-03",
-    "손익계산서": "2026-02",
-    "재무상태표": "2026-02",
-    "현금흐름표": "2026-02",
-    "영업비 분석": "2026-02",
-    "당월 추세": "2026-02",
-    "시뮬레이션": "2026-02",
+    "손익계산서": "2026-03",
+    "재무상태표": "2026-03",
+    "현금흐름표": "2026-03",
+    "영업비 분석": "2026-03",
+    "당월 추세": "2026-03",
+    "시뮬레이션": "2026-03",
   });
   
   // CSV 데이터 로딩 상태
