@@ -1294,38 +1294,28 @@ function ShippingCostDialog({ data }: { data: any }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[200px]">채널</TableHead>
-                            <TableHead className="text-center">3월</TableHead>
-                            <TableHead className="text-center">4월</TableHead>
-                            <TableHead className="text-center">5월</TableHead>
-                            <TableHead className="text-center">6월</TableHead>
-                            <TableHead className="text-center">7월</TableHead>
-                            <TableHead className="text-center">8월</TableHead>
-                            <TableHead className="text-center">9월</TableHead>
-                            <TableHead className="text-center">10월</TableHead>
-                            <TableHead className="text-center">11월</TableHead>
-                            <TableHead className="text-center">12월</TableHead>
-                            <TableHead className="text-center">1월</TableHead>
-                            <TableHead className="text-center">2월</TableHead>
-                            <TableHead className="text-center">3월</TableHead>
+                            {chartData.map((d: any, idx: number) => (
+                                <TableHead key={`${d.month}-${idx}`} className="text-center">{d.month}</TableHead>
+                            ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <TableRow>
                             <TableCell className="font-medium">US 건당 운반비 단가</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.usCost.toFixed(2)}</TableCell>
+                            {chartData.map((d: any, idx: number) => (
+                                <TableCell key={`us-${d.month}-${idx}`} className="text-center">${d.usCost.toFixed(2)}</TableCell>
                             ))}
                         </TableRow>
                         <TableRow>
                             <TableCell className="font-medium">EU 건당 운반비 단가</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.euCost.toFixed(2)}</TableCell>
+                            {chartData.map((d: any, idx: number) => (
+                                <TableCell key={`eu-${d.month}-${idx}`} className="text-center">${d.euCost.toFixed(2)}</TableCell>
                             ))}
                         </TableRow>
                         <TableRow>
                             <TableCell className="font-medium">EU 고객 부담%</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">{d.euBurden.toFixed(1)}%</TableCell>
+                            {chartData.map((d: any, idx: number) => (
+                                <TableCell key={`burden-${d.month}-${idx}`} className="text-center">{d.euBurden.toFixed(1)}%</TableCell>
                             ))}
                         </TableRow>
                     </TableBody>
@@ -10462,7 +10452,7 @@ export default function DashboardPage() {
     };
 
     const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 '];  // 마지막 3월에 공백 추가하여 구분
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
