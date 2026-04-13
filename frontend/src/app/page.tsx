@@ -3059,13 +3059,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     <thead className="sticky top-0 z-10">
                       <tr style={{ backgroundColor: '#2E5C8A' }}>
                         {splHeaders.map((header, idx) => {
-                          // 26년 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
-                          const is26MonthColumn = header.includes('26년 1월') || header.includes('26년 2월') ||
-                                              header.includes('Mar-26') || header.includes('Apr-26') ||
-                                              header.includes('May-26') || header.includes('Jun-26') ||
-                                              header.includes('Jul-26') || header.includes('Aug-26') ||
-                                              header.includes('Sep-26') || header.includes('Oct-26') ||
-                                              header.includes('Nov-26') || header.includes('Dec-26');
+                          // 26년 월별 컬럼인지 판단 (idx 17-28: 1월(실적) ~ 12월)
+                          const is26MonthColumn = idx >= 17 && idx <= 28;
                           
                           // 25년 월별 컬럼인지 판단 (부정계획 섹션의 1월~12월)
                           const is25MonthColumnRed = idx >= 3 && idx <= 14 && 
@@ -3182,13 +3177,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                               const isYOY = colHeader.includes('YOY');
                               const isPercentage = colHeader.includes('(%)');
                               
-                              // 26년 월별 컬럼인지 판단 (26년 1월 ~ Dec-26F)
-                              const is26MonthColumn = colHeader.includes('26년 1월') || colHeader.includes('26년 2월') ||
-                                                  colHeader.includes('Mar-26') || colHeader.includes('Apr-26') ||
-                                                  colHeader.includes('May-26') || colHeader.includes('Jun-26') ||
-                                                  colHeader.includes('Jul-26') || colHeader.includes('Aug-26') ||
-                                                  colHeader.includes('Sep-26') || colHeader.includes('Oct-26') ||
-                                                  colHeader.includes('Nov-26') || colHeader.includes('Dec-26');
+                              // 26년 월별 컬럼인지 판단 (valIdx 16-27: 1월(실적) ~ 12월)
+                              const is26MonthColumn = valIdx >= 16 && valIdx <= 27;
                               
                               // 25년 월별 컬럼인지 판단 (부정계획 섹션의 1월~12월)
                               const is25MonthColumnRed = valIdx >= 2 && valIdx <= 13 && 
