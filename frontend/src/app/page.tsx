@@ -4396,6 +4396,33 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-bold">당월 추세 분석</CardTitle>
             <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  const exportData = {
+                    dateRange: {
+                      start: formatDateStr(startDate),
+                      end: formatDateStr(endDate)
+                    },
+                    metrics: metrics,
+                    seasonData: seasonData,
+                    itemData: itemData
+                  };
+                  const dataStr = JSON.stringify(exportData, null, 2);
+                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                  const url = URL.createObjectURL(dataBlob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `monthly-trend-${formatDateStr(startDate)}_${formatDateStr(endDate)}.json`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                📥 JSON 다운로드
+              </Button>
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-600">기간(2026)</label>
                 
@@ -13489,13 +13516,35 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold flex items-center gap-2">
             🏢 STO 미국 법인 경영실적
           </h2>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setExpandAllDetails(!expandAllDetails)}
-          >
-            {expandAllDetails ? "접기" : "전체 보기"}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (!cardData) return;
+                const dataStr = JSON.stringify(cardData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `dashboard-data-${currentSelectedMonth}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              }}
+              disabled={!cardData}
+            >
+              📥 JSON 다운로드
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setExpandAllDetails(!expandAllDetails)}
+            >
+              {expandAllDetails ? "접기" : "전체 보기"}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
