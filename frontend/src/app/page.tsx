@@ -1452,6 +1452,9 @@ function DetailedExpenseCard({
                                     <p>
                                         <span className="font-bold">3월 11일 F-Up :</span> 1월 Argue $15K 크레딧 받았으나, 금액 산정 근거 안줌. 심지어 26년 2월달도 비슷한 문제 있다고 판단. 정확히 확인 전까지 현재 보관료 지급 홀딩중. 지급 홀딩하며 최대한 Argue할 예정
                                     </p>
+                                    <p>
+                                        <span className="font-bold">4월 :</span> Argue후 3PL과 대사하여 65K Credit 지급받음. 10월 3PL과 재계약 시점에 이를 활용하여, Advantage받아 좋은 조건으로 재계약할 수 있게 할 예정.
+                                    </p>
                                 </div>
                             </DialogContent>
                         </Dialog>
