@@ -10495,6 +10495,19 @@ export default function DashboardPage() {
               </Button>
             );
           })}
+          
+          {/* 요약 Report 버튼 */}
+          <div className="ml-auto">
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.open('https://claude.ai/public/artifacts/0eb45c11-2cc3-4cb9-bde5-5d90e19af50d', '_blank');
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
+            >
+              📊 요약 Report
+            </Button>
+          </div>
         </div>
 
         {/* 손익계산서 탭 콘텐츠 */}
