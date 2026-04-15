@@ -5456,6 +5456,8 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본', '비유동부채']));
   const [showAllMonths, setShowAllMonths] = React.useState(false);
   const [isLoanDialogOpen, setIsLoanDialogOpen] = React.useState(false);
+  const [loanData, setLoanData] = React.useState<Array<{ label: string; values: string[] }>>([]);
+  const [loanHeaders, setLoanHeaders] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -5542,6 +5544,59 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
     fetchData();
   }, [selectedMonth]);
+
+  // 차입금 상세 데이터 로드
+  React.useEffect(() => {
+    const fetchLoanData = async () => {
+      try {
+        const timestamp = new Date().getTime();
+        const res = await fetch(`/data/loandetail.csv?t=${timestamp}`);
+        const buf = await res.arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let text = '';
+
+        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+          text = new TextDecoder('utf-16le').decode(bytes);
+        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          text = new TextDecoder('utf-8').decode(bytes);
+        } else {
+          try {
+            text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+          } catch {
+            text = new TextDecoder('euc-kr').decode(bytes);
+          }
+        }
+
+        const lines = text
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line);
+
+        if (lines.length < 2) return;
+
+        const parsedHeaders = parseCSVLine(lines[0]);
+        if (parsedHeaders.length > 0) {
+          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
+        }
+        console.log('Loan Headers:', parsedHeaders);
+        setLoanHeaders(parsedHeaders);
+
+        const parsedData = lines.slice(1).map((line) => {
+          const values = parseCSVLine(line);
+          return {
+            label: values[0] || '',
+            values: values.slice(1),
+          };
+        });
+        console.log('Loan Data:', parsedData);
+        setLoanData(parsedData);
+      } catch (error) {
+        console.error('차입금 데이터 로드 오류:', error);
+      }
+    };
+
+    fetchLoanData();
+  }, []);
 
   const formatCurrency = (raw: string) => {
     const value = (raw || '').trim();
@@ -5796,15 +5851,78 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
       {/* 차입금 상세 정보 팝업 */}
       <Dialog open={isLoanDialogOpen} onOpenChange={setIsLoanDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">차입금 상세 정보</DialogTitle>
+            <DialogTitle className="text-xl font-bold">[본사 차입금 현황]</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-gray-700">
-              차입금 상세 데이터가 여기에 표시됩니다.
-            </p>
-            {/* 여기에 나중에 데이터를 추가할 예정 */}
+          <div className="overflow-x-auto relative">
+            <table className="w-full border-collapse text-xs table-fixed">
+              <colgroup>
+                <col style={{ width: '12%' }} />
+                {loanHeaders.slice(1).map((_, idx) => (
+                  <col key={idx} style={{ width: `${88 / (loanHeaders.length - 1)}%` }} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr className="bg-blue-50">
+                  {loanHeaders.map((header, idx) => {
+                    const displayHeader = header.replace(/_/g, '\n');
+                    const hasNote = header.includes('인수 직후_운영자금');
+                    
+                    return (
+                      <th
+                        key={idx}
+                        className="border border-gray-300 px-2 py-2 text-center font-bold text-gray-700 whitespace-pre-wrap relative"
+                      >
+                        {displayHeader}
+                        {hasNote && (
+                          <div className="absolute top-full left-0 mt-1 w-64 bg-yellow-100 border-2 border-yellow-400 rounded p-2 text-xs text-left font-normal shadow-lg z-10">
+                            <div className="text-yellow-800 space-y-1">
+                              <p className="font-semibold text-yellow-900">📌 설명</p>
+                              <p>※ 인수직 STO는 STE에서 대 혼로 운영자금 사용. 인수 후 대부는 STE 보다 증자, STE는 보다 계정조정의 STO운영자금 loan상환. 이후 마케팅에 사용. 인지애초</p>
+                              <p>※ 대신 인수 직후 투입된 STO운영자금 중 STO 기운영개월 운영 $397K</p>
+                            </div>
+                          </div>
+                        )}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {loanData.map((row, rowIdx) => {
+                  const isTotal = row.label === '합계';
+                  return (
+                    <tr key={rowIdx} className={isTotal ? 'bg-gray-100 font-bold' : ''}>
+                      <td className="border border-gray-300 px-2 py-1 text-left overflow-hidden text-ellipsis">
+                        {row.label}
+                      </td>
+                      {row.values.map((value, valIdx) => {
+                        const displayValue = value || '';
+                        const numValue = parseFloat(displayValue.replace(/,/g, ''));
+                        const isNegative = !isNaN(numValue) && numValue < 0;
+                        
+                        return (
+                          <td
+                            key={valIdx}
+                            className={cn(
+                              "border border-gray-300 px-2 py-1 text-right tabular-nums overflow-hidden text-ellipsis",
+                              isNegative && "text-red-600"
+                            )}
+                          >
+                            {displayValue ? (isNaN(numValue) ? displayValue : numValue.toLocaleString()) : ''}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <div className="mt-4 text-xs text-gray-600 space-y-1">
+              <p>※ 인수직 STO는 STE에서 대 혼로 운영자금 사용. 인수 후 대부는 STE 보다 증자, STE는 보다 계정조정의 STO운영자금 loan상환. 이후 마케팅에 사용. 인지애초</p>
+              <p>※ 대신 인수 직후 투입된 STO운영자금 중 STO 기운영개월 운영 $397K</p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
