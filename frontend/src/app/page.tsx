@@ -5455,6 +5455,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본', '비유동부채']));
   const [showAllMonths, setShowAllMonths] = React.useState(false);
+  const [isLoanDialogOpen, setIsLoanDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -5745,7 +5746,20 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         ) : (
                           <span className="inline-block h-3 w-3 flex-shrink-0" />
                         )}
-                        <span>{row.label}</span>
+                        {row.label === '차입금' ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsLoanDialogOpen(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 hover:underline font-semibold cursor-pointer flex items-center gap-1"
+                          >
+                            {row.label}
+                            <span className="text-xs">ℹ️</span>
+                          </button>
+                        ) : (
+                          <span>{row.label}</span>
+                        )}
                       </div>
                     </TableCell>
                     {visibleHeaderIndices
@@ -5779,6 +5793,21 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
           </Table>
         </div>
       </CardContent>
+
+      {/* 차입금 상세 정보 팝업 */}
+      <Dialog open={isLoanDialogOpen} onOpenChange={setIsLoanDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">차입금 상세 정보</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              차입금 상세 데이터가 여기에 표시됩니다.
+            </p>
+            {/* 여기에 나중에 데이터를 추가할 예정 */}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
