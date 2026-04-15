@@ -9174,9 +9174,9 @@ export default function DashboardPage() {
   // TAG매출용 시즌별 성장률
   const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
     '27SS': 100,
-    '26FW': 100,
+    '26FW': 92,
     '26SS': 100,
-    '25FW': 100,
+    '25FW': 88,
     '25SS': 100,
     'CORE': 100,
     '과시즌': 100
