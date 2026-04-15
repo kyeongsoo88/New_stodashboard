@@ -5879,8 +5879,8 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                           <div className="absolute top-full left-0 mt-1 w-64 bg-yellow-100 border-2 border-yellow-400 rounded p-2 text-xs text-left font-normal shadow-lg z-10">
                             <div className="text-yellow-800 space-y-1">
                               <p className="font-semibold text-yellow-900">📌 설명</p>
-                              <p>※ 인수직 STO는 STE에서 대 혼로 운영자금 사용. 인수 후 대부는 STE 보다 증자, STE는 보다 계정조정의 STO운영자금 loan상환. 이후 마케팅에 사용. 인지애초</p>
-                              <p>※ 대신 인수 직후 투입된 STO운영자금 중 STO 기운영개월 운영 $397K</p>
+                              <p>※ 인수전, STO는 STE에서 매 분기 배당 받아 운영자금 사용. 인수 후 대표님 "STE STO에 배당 중지, STE는 배당 재원 유럽 마케팅에 사용" 의사결정.</p>
+                              <p>→ 대신 인수 직후 부족한 STO 운영자금 본사에서 대여 (22.8월 인수직후 STO 보통예금 잔액 $597K)</p>
                             </div>
                           </div>
                         )}
@@ -5919,10 +5919,6 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                 })}
               </tbody>
             </table>
-            <div className="mt-4 text-xs text-gray-600 space-y-1">
-              <p>※ 인수직 STO는 STE에서 대 혼로 운영자금 사용. 인수 후 대부는 STE 보다 증자, STE는 보다 계정조정의 STO운영자금 loan상환. 이후 마케팅에 사용. 인지애초</p>
-              <p>※ 대신 인수 직후 투입된 STO운영자금 중 STO 기운영개월 운영 $397K</p>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
