@@ -12,8 +12,7 @@ const files = [
   'sto-working-capital-balance-sheet.csv',
   'sto-cash-flow-2026.csv',
   'sto-cash-balance-2026.csv',
-  'sto-working-capital-2026.csv',
-  'loandetail.csv'
+  'sto-working-capital-2026.csv'
 ];
 const dataDir = path.join(__dirname, 'public', 'data');
 

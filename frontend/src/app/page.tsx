@@ -5456,8 +5456,6 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본', '비유동부채']));
   const [showAllMonths, setShowAllMonths] = React.useState(false);
   const [isLoanDialogOpen, setIsLoanDialogOpen] = React.useState(false);
-  const [loanData, setLoanData] = React.useState<Array<{ label: string; values: string[] }>>([]);
-  const [loanHeaders, setLoanHeaders] = React.useState<string[]>([]);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -5544,59 +5542,6 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
     fetchData();
   }, [selectedMonth]);
-
-  // 차입금 상세 데이터 로드
-  React.useEffect(() => {
-    const fetchLoanData = async () => {
-      try {
-        const timestamp = new Date().getTime();
-        const res = await fetch(`/data/loandetail.csv?t=${timestamp}`);
-        const buf = await res.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        let text = '';
-
-        if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-          text = new TextDecoder('utf-16le').decode(bytes);
-        } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-          text = new TextDecoder('utf-8').decode(bytes);
-        } else {
-          try {
-            text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-          } catch {
-            text = new TextDecoder('euc-kr').decode(bytes);
-          }
-        }
-
-        const lines = text
-          .split(/\r?\n/)
-          .map((line) => line.trim())
-          .filter((line) => line);
-
-        if (lines.length < 2) return;
-
-        const parsedHeaders = parseCSVLine(lines[0]);
-        if (parsedHeaders.length > 0) {
-          parsedHeaders[0] = (parsedHeaders[0] || '').replace(/^\uFEFF/, '');
-        }
-        console.log('Loan Headers:', parsedHeaders);
-        setLoanHeaders(parsedHeaders);
-
-        const parsedData = lines.slice(1).map((line) => {
-          const values = parseCSVLine(line);
-          return {
-            label: values[0] || '',
-            values: values.slice(1),
-          };
-        });
-        console.log('Loan Data:', parsedData);
-        setLoanData(parsedData);
-      } catch (error) {
-        console.error('차입금 데이터 로드 오류:', error);
-      }
-    };
-
-    fetchLoanData();
-  }, []);
 
   const formatCurrency = (raw: string) => {
     const value = (raw || '').trim();
@@ -5851,72 +5796,170 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
       {/* 차입금 상세 정보 팝업 */}
       <Dialog open={isLoanDialogOpen} onOpenChange={setIsLoanDialogOpen}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">[본사 차입금 현황]</DialogTitle>
+            <DialogTitle className="text-xl font-bold">[미국법인 본사 차입금 사용처] (단위 : K USD)</DialogTitle>
           </DialogHeader>
-          <div className="overflow-x-auto relative">
-            <table className="w-full border-collapse text-xs table-fixed">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm table-fixed">
               <colgroup>
-                <col style={{ width: '12%' }} />
-                {loanHeaders.slice(1).map((_, idx) => (
-                  <col key={idx} style={{ width: `${88 / (loanHeaders.length - 1)}%` }} />
-                ))}
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '10%' }} />
+                <col style={{ width: '40%' }} />
               </colgroup>
               <thead>
-                <tr className="bg-blue-50">
-                  {loanHeaders.map((header, idx) => {
-                    const displayHeader = header.replace(/_/g, '\n');
-                    const hasNote = header.includes('인수 직후_운영자금');
-                    
-                    return (
-                      <th
-                        key={idx}
-                        className="border border-gray-300 px-2 py-2 text-center font-bold text-gray-700 whitespace-pre-wrap relative"
-                      >
-                        {displayHeader}
-                        {hasNote && (
-                          <div className="absolute top-full left-0 mt-1 w-64 bg-yellow-100 border-2 border-yellow-400 rounded p-2 text-xs text-left font-normal shadow-lg z-10">
-                            <div className="text-yellow-800 space-y-1">
-                              <p className="font-semibold text-yellow-900">📌 설명</p>
-                              <p>※ 인수전, STO는 STE에서 매 분기 배당 받아 운영자금 사용. 인수 후 대표님 "STE STO에 배당 중지, STE는 배당 재원 유럽 마케팅에 사용" 의사결정.</p>
-                              <p>→ 대신 인수 직후 부족한 STO 운영자금 본사에서 대여 (22.8월 인수직후 STO 보통예금 잔액 $597K)</p>
-                            </div>
-                          </div>
-                        )}
-                      </th>
-                    );
-                  })}
+                <tr className="bg-blue-100">
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">대분류</th>
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">중분류</th>
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">소분류</th>
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">현금흐름</th>
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">차입금<br/>합계</th>
+                  <th className="border-2 border-gray-400 px-3 py-3 text-center font-bold text-gray-800">상세</th>
                 </tr>
               </thead>
               <tbody>
-                {loanData.map((row, rowIdx) => {
-                  const isTotal = row.label === '합계';
-                  return (
-                    <tr key={rowIdx} className={isTotal ? 'bg-gray-100 font-bold' : ''}>
-                      <td className="border border-gray-300 px-2 py-1 text-left overflow-hidden text-ellipsis">
-                        {row.label}
-                      </td>
-                      {row.values.map((value, valIdx) => {
-                        const displayValue = value || '';
-                        const numValue = parseFloat(displayValue.replace(/,/g, ''));
-                        const isNegative = !isNaN(numValue) && numValue < 0;
-                        
-                        return (
-                          <td
-                            key={valIdx}
-                            className={cn(
-                              "border border-gray-300 px-2 py-1 text-right tabular-nums overflow-hidden text-ellipsis",
-                              isNegative && "text-red-600"
-                            )}
-                          >
-                            {displayValue ? (isNaN(numValue) ? displayValue : numValue.toLocaleString()) : ''}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
+                {/* 기초잔금 */}
+                <tr>
+                  <td colSpan={3} className="border border-gray-300 px-3 py-2 text-center font-medium italic text-gray-700">기초잔금(22년 8월 F&F 인수 시점)</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">598</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                
+                {/* 22년 기중 */}
+                <tr className="bg-gray-50">
+                  <td rowSpan={4} className="border border-gray-300 px-3 py-2 text-center font-semibold align-middle">22년 기중</td>
+                  <td rowSpan={3} className="border border-gray-300 px-3 py-2 text-center align-middle">영업활동</td>
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">22년 당기순손실</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right text-red-600 font-medium">-1,486</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm">√ 22년 8월~12월 (5개월 당기순손실)</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">비현금거래</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">210</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2">법인운영비</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">2,600</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">2,600</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm leading-relaxed">√ 인수 후, STE → STO 배당 중지 운영자금 1,500K<br/>√ STO 직원 인수 후 보너스 1,100K</td>
+                </tr>
+                <tr className="bg-gray-200 font-semibold italic">
+                  <td colSpan={2} className="border border-gray-300 px-3 py-2 text-center">22년 기말 현금 / 22년 차입금 소계</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">1,921</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">2,600</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                
+                {/* 23년 기중 */}
+                <tr>
+                  <td className="border border-gray-300 px-3 py-2 text-center font-semibold">23년 기중</td>
+                  <td colSpan={2} className="border border-gray-300 px-3 py-2 text-center">23년 기중 차입 없음</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-200 font-semibold italic">
+                  <td colSpan={3} className="border border-gray-300 px-3 py-2 text-center">23년 기말현금 / 23년 차입금 소계</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">1,844</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                
+                {/* 24년 기중 */}
+                <tr className="bg-gray-50">
+                  <td rowSpan={7} className="border border-gray-300 px-3 py-2 text-center font-semibold align-middle">24년 기중</td>
+                  <td rowSpan={4} className="border border-gray-300 px-3 py-2 text-center align-middle">영업활동</td>
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">24년 당기순손실</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right text-red-600 font-medium">-2,868</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">비현금거래</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">590</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2">JVA 중재비용</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">1,000</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">1,000</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2">법인운영비</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,000</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,000</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm">√ 25SS 물품대 지출</td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td rowSpan={2} className="border border-gray-300 px-3 py-2 text-center align-middle">재무활동</td>
+                  <td className="border border-gray-300 px-3 py-2">STE 주주대여금 상환 목적 대여</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,900</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,900</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="border border-gray-300 px-3 py-2">STE 주주대여금 상환 실행</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right text-red-600 font-medium">-3,900</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm">√ STE 주주대여금 상환 대여</td>
+                </tr>
+                <tr className="bg-gray-200 font-semibold italic">
+                  <td colSpan={2} className="border border-gray-300 px-3 py-2 text-center">24년 기말 현금 / 24년 차입금 소계</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">3,565</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">7,900</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                
+                {/* 25년 기중 */}
+                <tr>
+                  <td rowSpan={5} className="border border-gray-300 px-3 py-2 text-center font-semibold align-middle">25년 기중</td>
+                  <td rowSpan={4} className="border border-gray-300 px-3 py-2 text-center align-middle">영업활동</td>
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">25년 당기순손실</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right text-red-600 font-medium">-6,218</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-3 py-2 bg-orange-50">비현금거래</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">716</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-3 py-2">JVA 중재비용</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">5,812</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">5,812</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-3 py-2">법인운영비</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,688</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">3,688</td>
+                  <td className="border border-gray-300 px-3 py-2 text-sm leading-relaxed">√ JVA중재로 MCCC비용 STE 미청구, 현금 악화 $1,300K<br/>√ 26SS 물품대 지출 $2,388K</td>
+                </tr>
+                <tr className="bg-gray-200 font-semibold italic">
+                  <td colSpan={2} className="border border-gray-300 px-3 py-2 text-center">25년 기말 현금 / 25년 차입금 소계</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">7,563</td>
+                  <td className="border border-gray-300 px-3 py-2 text-right underline">9,500</td>
+                  <td className="border border-gray-300 px-3 py-2"></td>
+                </tr>
+                
+                {/* 총 차입금 */}
+                <tr className="bg-yellow-100 font-bold">
+                  <td colSpan={3} className="border-2 border-gray-400 px-3 py-3 text-center text-base">총 차입금</td>
+                  <td className="border-2 border-gray-400 px-3 py-3"></td>
+                  <td className="border-2 border-gray-400 px-3 py-3 text-right text-lg">20,000</td>
+                  <td className="border-2 border-gray-400 px-3 py-3"></td>
+                </tr>
               </tbody>
             </table>
           </div>
