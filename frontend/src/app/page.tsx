@@ -10758,8 +10758,8 @@ export default function DashboardPage() {
                         <tr className="bg-[#2E5C8A] text-white">
                           <th className="text-left p-3 font-semibold border-2 border-gray-400">구분</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">25FY</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전월 보고 26FY YTD</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">26FY YTD</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전월 보고<br/>26FY 연간</th>
+                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">26FY<br/>연간</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전년대비</th>
                           <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전월대비</th>
                         </tr>
