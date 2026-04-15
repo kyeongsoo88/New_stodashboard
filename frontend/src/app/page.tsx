@@ -5453,7 +5453,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
-  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본']));
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '부채', '자본', '비유동부채']));
   const [showAllMonths, setShowAllMonths] = React.useState(false);
 
   React.useEffect(() => {
