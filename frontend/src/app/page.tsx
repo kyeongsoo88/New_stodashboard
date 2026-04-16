@@ -10936,7 +10936,7 @@ export default function DashboardPage() {
                                   </div>
                                 ) : isEcom ? (
                                   <div className="flex items-center justify-between">
-                                    <span>{label}</span>
+                                    <span>온라인(전년대비 YOY)</span>
                                     <button
                                       className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                                       onClick={(e) => {
