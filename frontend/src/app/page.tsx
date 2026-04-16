@@ -9178,12 +9178,12 @@ export default function DashboardPage() {
   // TAG매출용 시즌별 성장률
   const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
     '27SS': 100,
-    '26FW': 92,
-    '26SS': 100,
-    '25FW': 88,
-    '25SS': 100,
-    'CORE': 100,
-    '과시즌': 100
+    '26FW': 78,
+    '26SS': 54,
+    '25FW': 144,
+    '25SS': 403,
+    'CORE': 519,
+    '과시즌': 58
   });
   // 실판매출용 시즌별 성장률
   const [netSeasonGrowthRates, setNetSeasonGrowthRates] = React.useState<Record<string, number>>({
@@ -10869,7 +10869,7 @@ export default function DashboardPage() {
                                       <input
                                         type="range"
                                         min="-50"
-                                        max="200"
+                                        max={label === '25SS' ? "500" : label === 'CORE' ? "600" : "200"}
                                         value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
                                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                         onChange={(e) => {
@@ -10899,7 +10899,7 @@ export default function DashboardPage() {
                                       <input
                                         type="number"
                                         min="-50"
-                                        max="200"
+                                        max={label === '25SS' ? "500" : label === 'CORE' ? "600" : "200"}
                                         value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
                                         className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
                                         onChange={(e) => {
@@ -10917,7 +10917,8 @@ export default function DashboardPage() {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           const currentValue = isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100);
-                                          const newValue = Math.min(200, currentValue + 1);
+                                          const maxValue = label === '25SS' ? 500 : label === 'CORE' ? 600 : 200;
+                                          const newValue = Math.min(maxValue, currentValue + 1);
                                           if (isNetSalesSeasonItem) {
                                             setNetSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
                                           } else {
@@ -10942,12 +10943,12 @@ export default function DashboardPage() {
                                         e.stopPropagation();
                                         setTagSeasonGrowthRates({
                                           '27SS': 100,
-                                          '26FW': 100,
-                                          '26SS': 100,
-                                          '25FW': 100,
-                                          '25SS': 100,
-                                          'CORE': 100,
-                                          '과시즌': 100
+                                          '26FW': 78,
+                                          '26SS': 54,
+                                          '25FW': 144,
+                                          '25SS': 403,
+                                          'CORE': 519,
+                                          '과시즌': 58
                                         });
                                       }}
                                     >
