@@ -1436,9 +1436,9 @@ function DetailedExpenseCard({
                                             </tbody>
                                         </table>
                                     </div>
-                                    <p className="italic text-sm text-gray-500 pt-1">
-                                        ※ STO계약 UPS, 전쟁 시작 후 유류할증료 총 7%p ↑
-                                    </p>
+                                    <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-2.5 text-base font-semibold text-amber-800">
+                                        ※ STO계약 UPS, 전쟁 시작 후 유류할증료 총 <span className="text-red-600 font-bold">7%p ↑</span>
+                                    </div>
                                 </div>
                             </DialogContent>
                         </Dialog>
