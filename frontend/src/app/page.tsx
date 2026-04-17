@@ -1405,7 +1405,7 @@ function DetailedExpenseCard({
                                     3개월 누적 8.7%
                                 </span>
                             </DialogTrigger>
-                            <DialogContent className="w-72 p-4">
+                            <DialogContent className="w-80 p-4">
                                 <DialogHeader className="pb-1">
                                     <DialogTitle className="text-sm font-bold">운반비 증가 원인</DialogTitle>
                                 </DialogHeader>
