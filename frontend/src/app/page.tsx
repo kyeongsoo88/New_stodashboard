@@ -1411,7 +1411,7 @@ function DetailedExpenseCard({
                                 </DialogHeader>
                                 <div className="text-xs text-gray-700 leading-snug space-y-2">
                                     <div className="space-y-1">
-                                        <p><strong>1-2월 상승</strong> : Free-shipping 경쟁으로 STO분담율 증가</p>
+                                        <p><strong>1월 상승</strong> : Free-shipping 경쟁으로 STO분담율 증가</p>
                                         <p><strong>3월 상승</strong> : 이란 전쟁 후 유류가격 상승, 트럭 유류할증료 증가</p>
                                     </div>
                                     <div className="border border-gray-200 rounded overflow-hidden text-xs">
