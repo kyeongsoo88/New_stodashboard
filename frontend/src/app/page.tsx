@@ -1411,10 +1411,28 @@ function DetailedExpenseCard({
                                 </DialogHeader>
                                 <div className="text-sm text-gray-700 leading-relaxed space-y-3">
                                     <p>
-                                        - 최근 썬더 벨트(미국 남부)에서 의미있는 매출 발생 썬더 벨트 지역 배송시 물류창고가 있는 뉴저지에서 멀어 단가 상승.
+                                        <strong>1월-2월 상승</strong> : 미국 남부 매출 비중 증가, 3PL창고→텍사스주 등 배송비 단가 상승<br/>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;경쟁 업체 다수 AI분석결과 Free-shipping제공, 이에 STO분담율 증가
                                     </p>
                                     <p>
-                                        - 캘리포니아에 등 미국 서부 지역에서 Express 배송주문시 STO 분담분이 높은데 이를 고객 분담분에 전가하여 운송비 관리 예정.
+                                        <strong>3월 상승</strong> : 이란 전쟁 후, 미국내 유류가격 상승, 트럭 운임 유류할증료 증가
+                                    </p>
+                                    <div className="border border-gray-200 rounded p-2 text-xs font-mono">
+                                        <div className="flex gap-4 font-semibold mb-1">
+                                            <span className="w-16">구분</span>
+                                            <span className="w-36">Before War(2월 중순)</span>
+                                            <span className="w-32">After War(3월 중순)</span>
+                                            <span>차이</span>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <span className="w-16">Truck</span>
+                                            <span className="w-36">$2.43~$2.54/mile</span>
+                                            <span className="w-32">$2.75/mile</span>
+                                            <span className="text-red-600 font-semibold">13%p↑</span>
+                                        </div>
+                                    </div>
+                                    <p className="italic text-xs text-gray-600">
+                                        STO계약 UPS, 전쟁 시작 후, 유류할증료 총 7%p ↑
                                     </p>
                                 </div>
                             </DialogContent>
