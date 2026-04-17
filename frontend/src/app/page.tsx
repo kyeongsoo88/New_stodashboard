@@ -9284,9 +9284,9 @@ export default function DashboardPage() {
         const bytes = new Uint8Array(buf);
         let text = '';
         try {
-          text = new TextDecoder('euc-kr').decode(bytes);
-        } catch {
           text = new TextDecoder('utf-8').decode(bytes);
+        } catch {
+          text = new TextDecoder('euc-kr').decode(bytes);
         }
         return text;
       })
