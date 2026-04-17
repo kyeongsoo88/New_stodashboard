@@ -1409,34 +1409,34 @@ function DetailedExpenseCard({
                                 <DialogHeader>
                                     <DialogTitle className="text-base font-bold">운반비 증가 원인</DialogTitle>
                                 </DialogHeader>
-                                <div className="text-sm text-gray-700 leading-relaxed space-y-4 pt-1">
+                                <div className="text-base text-gray-700 leading-relaxed space-y-4 pt-1">
                                     <p>
                                         <strong>1월-2월 상승</strong> : 경쟁 업체 다수 AI분석결과 Free-shipping 제공, 이에 STO분담율 증가
                                     </p>
                                     <p>
                                         <strong>3월 상승</strong> : 이란 전쟁 후, 미국내 유류가격 상승, 트럭 운임 유류할증료 증가
                                     </p>
-                                    <div className="border border-gray-200 rounded-lg overflow-hidden text-sm">
+                                    <div className="border border-gray-200 rounded-lg overflow-hidden text-base">
                                         <table className="w-full">
                                             <thead className="bg-gray-50">
                                                 <tr>
-                                                    <th className="text-left px-4 py-2 font-semibold text-gray-700">구분</th>
-                                                    <th className="text-center px-4 py-2 font-semibold text-gray-700">Before War (2월 중순)</th>
-                                                    <th className="text-center px-4 py-2 font-semibold text-gray-700">After War (3월 중순)</th>
-                                                    <th className="text-center px-4 py-2 font-semibold text-gray-700">차이</th>
+                                                    <th className="text-left px-3 py-1.5 font-semibold text-gray-700">구분</th>
+                                                    <th className="text-center px-3 py-1.5 font-semibold text-gray-700">Before War (2월 중순)</th>
+                                                    <th className="text-center px-3 py-1.5 font-semibold text-gray-700">After War (3월 중순)</th>
+                                                    <th className="text-center px-3 py-1.5 font-semibold text-gray-700">차이</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr className="border-t border-gray-100">
-                                                    <td className="px-4 py-2 font-medium">Truck</td>
-                                                    <td className="px-4 py-2 text-center">$2.43~$2.54/mile</td>
-                                                    <td className="px-4 py-2 text-center">$2.75/mile</td>
-                                                    <td className="px-4 py-2 text-center text-red-600 font-bold">13%p↑</td>
+                                                    <td className="px-3 py-1.5 font-medium">Truck</td>
+                                                    <td className="px-3 py-1.5 text-center">$2.43~$2.54/mile</td>
+                                                    <td className="px-3 py-1.5 text-center">$2.75/mile</td>
+                                                    <td className="px-3 py-1.5 text-center text-red-600 font-bold">13%p↑</td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
-                                    <p className="italic text-xs text-gray-500 pt-1">
+                                    <p className="italic text-sm text-gray-500 pt-1">
                                         ※ STO계약 UPS, 전쟁 시작 후 유류할증료 총 7%p ↑
                                     </p>
                                 </div>
