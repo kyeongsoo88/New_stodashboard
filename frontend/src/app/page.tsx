@@ -10694,7 +10694,7 @@ export default function DashboardPage() {
             <Button
               variant="outline"
               onClick={() => {
-                window.open('https://claude.ai/public/artifacts/521a2f6c-aa85-43c5-9d3a-40046281593c', '_blank');
+                window.open('https://claude.ai/public/artifacts/d01ad1b2-f190-4fc2-8418-63894afb49f1', '_blank');
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
             >
