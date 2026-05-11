@@ -1969,9 +1969,10 @@ function InteractiveChartSection({
               let cleanOpt = opt.replace(/ /g, '').replace(/&/g, '');
               
               if (chartType === "channel") {
-                  // 채널 이름 매핑: "US EC" -> "USEC", "EU EC" -> "EUEC"
+                  // 채널 이름 매핑: "US EC" -> "USEC", "EU EC" -> "EUEC", "라이선스/기타" -> "라이선스"
                   if (opt === "US EC") cleanOpt = "USEC";
                   else if (opt === "EU EC") cleanOpt = "EUEC";
+                  else if (opt === "라이선스/기타") cleanOpt = "라이선스";
                   dataKey = `차트_채널별매출추세_${cleanOpt}`;
               } else if (chartType === "item") {
                   dataKey = `차트_아이템별매출추세_${cleanOpt}`;
@@ -9541,7 +9542,7 @@ export default function DashboardPage() {
             percent: formatPercent(getDataValue('카드_실판매출_채널_EUEC_비중', month, '29.9%'))
           },
           {
-            name: "라이선스",
+            name: "라이선스/기타",
             value: formatNumber(getDataValue('카드_실판매출_채널_라이선스_값', month, '2255')),
             yoy: getDataValue('카드_실판매출_채널_라이선스_YOY', month, '95%'),
             percent: formatPercent(getDataValue('카드_실판매출_채널_라이선스_비중', month, '7.1%'))
@@ -9612,7 +9613,7 @@ export default function DashboardPage() {
             margin: formatPercent(getDataValue('카드_직접이익_채널_EUEC_이익율', month, '24.8%'))
           },
           {
-            name: "라이선스",
+            name: "라이선스/기타",
             value: formatNumber(getDataValue('카드_직접이익_채널_라이선스_값', month, '205')),
             yoy: getDataValue('카드_직접이익_채널_라이선스_YOY', month, '110%'),
             margin: formatPercent(getDataValue('카드_직접이익_채널_라이선스_이익율', month, '18.2%'))
@@ -9650,7 +9651,7 @@ export default function DashboardPage() {
             })()
           },
           {
-            name: "라이선스",
+            name: "라이선스/기타",
             value: getDataValue('카드_직접이익_직접이익YTD_라이선스_값', month, '668'),
             percent: formatPercent(getDataValue('카드_직접이익_직접이익YTD_라이선스_비중', month, '100%')),
             margin: formatPercent(getDataValue('카드_직접이익_직접이익YTD_라이선스_이익율', month, '100.0%')),
@@ -14061,7 +14062,7 @@ export default function DashboardPage() {
                 title="2025-26년 월별 채널별 매출 추세"
                 unit="K $"
                 iconColor="bg-green-500"
-                filterOptions={["US홀세일", "US EC", "EU EC", "라이선스"]}
+                filterOptions={["US홀세일", "US EC", "EU EC", "라이선스/기타"]}
                 insights={[
                     {color: "purple", title: "주요 인사이트", content: "• 1월 총매출 $1,213K (YOY 91%), 12월 $3,535K 대비 정상화\n• US EC $1,154K (YOY 108%, 비중 95%), EC 채널 집중 심화\n• 라이선스 매출 $0K, 채널 중단 확인"},
                     {color: "blue", title: "채널 트렌드", content: "• US EC 의존도 심화: 95% (전월 94%)\n• EU EC 소폭 회복: $53K (YOY 60%, 비중 4%)\n• US홀세일: $6K (비중 0%), 사실상 운영 종료\n• 라이선스: 운영 중단"},
