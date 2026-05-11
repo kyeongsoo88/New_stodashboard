@@ -1989,18 +1989,18 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(15).fill(0);
+              const values = csvChartData[dataKey] || Array(16).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(15).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(16).fill(100);
               
               return { name: opt, values, yoyValues };
           });
       } else {
           // Fallback to generated data
           return filterOptions.map(opt => {
-              const values = generateConsistentData(opt + "sales", 15, 2000, 8000);
-              const yoyValues = generateConsistentData(opt + "yoy", 15, 80, 180);
+              const values = generateConsistentData(opt + "sales", 16, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 16, 80, 180);
               return { name: opt, values, yoyValues };
           });
       }
@@ -2017,7 +2017,7 @@ function InteractiveChartSection({
           return csvChartData[key];
       }
       // Fallback: average of available series YOY values
-      return Array(15).fill(0).map((_, i) => {
+      return Array(16).fill(0).map((_, i) => {
           const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
           if (seriesYoys.length === 0) return 0;
           return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
@@ -2026,8 +2026,8 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(15).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, 26.2월, 26.3월)
+      return Array(16).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, 26.2월, 26.3월, 26.4월)
         let monthLabel;
         if (i < 12) {
           monthLabel = `25.${i+1}월`;
@@ -2035,8 +2035,10 @@ function InteractiveChartSection({
           monthLabel = `26.1월`;
         } else if (i === 13) {
           monthLabel = `26.2월`;
-        } else {
+        } else if (i === 14) {
           monthLabel = `26.3월`;
+        } else {
+          monthLabel = `26.4월`;
         }
         const monthItem: any = { name: monthLabel };
           let totalTarget = 0;
@@ -4646,7 +4648,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
   const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-03");
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-04");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
@@ -9178,13 +9180,13 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-03",
-    "손익계산서": "2026-03",
-    "재무상태표": "2026-03",
-    "현금흐름표": "2026-03",
-    "영업비 분석": "2026-03",
-    "당월 추세": "2026-03",
-    "시뮬레이션": "2026-03",
+    "대시보드": "2026-04",
+    "손익계산서": "2026-04",
+    "재무상태표": "2026-04",
+    "현금흐름표": "2026-04",
+    "영업비 분석": "2026-04",
+    "당월 추세": "2026-04",
+    "시뮬레이션": "2026-04",
   });
   
   // CSV 데이터 로딩 상태
@@ -9415,7 +9417,7 @@ export default function DashboardPage() {
   }, []);
 
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
-  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-01";
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-04";
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
