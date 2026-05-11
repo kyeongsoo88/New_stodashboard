@@ -10544,11 +10544,11 @@ export default function DashboardPage() {
     const inventoryChartData: any[] = [];
     const inventoryTableData: any[] = [];
     
-    // 3월부터 3월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Feb -> 2월, 26-Mar -> 3월)
-    // 차트에서 구분하기 위해 마지막 3월은 다른 라벨 사용
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 '];  // 마지막에 공백 추가
+    // 3월부터 4월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Mar -> 3월, 26-Apr -> 4월)
+    // 차트에서 구분하기 위해 3월은 공백 추가, 4월은 공백 2개 추가
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  '];  // 마지막 구분용 공백
     // CSV 헤더와 매핑
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar'];
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -10588,10 +10588,12 @@ export default function DashboardPage() {
         period = '26.1실적';
       } else if (monthLabel === '2월') {
         period = '26.2실적';
-      } else if (monthLabel === '3월' && idx === 12) {
+      } else if (monthLabel.startsWith('3월') && idx === 12) {
         period = '26.3실적';
+      } else if (monthLabel.startsWith('4월') && idx === 13) {
+        period = '26.4실적';
       } else {
-        const periodLabel = monthLabel.replace('월', '');
+        const periodLabel = monthLabel.replace('월', '').trim();
         period = `25.${periodLabel}실적`;
       }
       
