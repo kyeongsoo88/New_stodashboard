@@ -614,7 +614,92 @@ function DetailedMetricCard({
                                                             <div className="space-y-1 pl-4">
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
                                                                     <div key={subIdx} className="flex justify-between items-center py-1">
-                                                                        <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
+                                                                        {subItem.name === "보험,복지비등" ? (
+                                                                            <Dialog>
+                                                                                <DialogTrigger asChild>
+                                                                                    <span className="text-xs min-w-[80px] cursor-pointer px-2 py-1 rounded-md transition-all bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-semibold hover:shadow-sm">
+                                                                                        ㄴ {subItem.name}
+                                                                                    </span>
+                                                                                </DialogTrigger>
+                                                                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                                                                    <DialogHeader className="border-b pb-4">
+                                                                                        <DialogTitle className="text-xl font-bold text-gray-800">보험,복지비등 상세</DialogTitle>
+                                                                                    </DialogHeader>
+                                                                                    <div className="space-y-6 pt-4">
+                                                                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                                                            <Table>
+                                                                                                <TableHeader>
+                                                                                                    <TableRow className="bg-slate-100 hover:bg-slate-100">
+                                                                                                        <TableHead className="w-[150px] font-bold text-gray-700">구분</TableHead>
+                                                                                                        <TableHead className="text-right font-bold text-gray-700">26년 4월</TableHead>
+                                                                                                        <TableHead className="text-right font-bold text-gray-700">25년 4월</TableHead>
+                                                                                                        <TableHead className="text-right font-bold text-gray-700">차이</TableHead>
+                                                                                                    </TableRow>
+                                                                                                </TableHeader>
+                                                                                                <TableBody>
+                                                                                                    <TableRow className="bg-blue-50 hover:bg-blue-100">
+                                                                                                        <TableCell className="font-semibold text-gray-800">보험,복지비등</TableCell>
+                                                                                                        <TableCell className="text-right font-medium">83,795</TableCell>
+                                                                                                        <TableCell className="text-right font-medium">71,409</TableCell>
+                                                                                                        <TableCell className="text-right font-medium text-blue-600">12,386</TableCell>
+                                                                                                    </TableRow>
+                                                                                                    <TableRow className="bg-purple-50 hover:bg-purple-100">
+                                                                                                        <TableCell className="font-semibold text-gray-800">급여충당금</TableCell>
+                                                                                                        <TableCell className="text-right font-medium">164,500</TableCell>
+                                                                                                        <TableCell className="text-right font-medium">0</TableCell>
+                                                                                                        <TableCell className="text-right font-medium text-purple-600">164,500</TableCell>
+                                                                                                    </TableRow>
+                                                                                                    <TableRow className="bg-gray-100 hover:bg-gray-200">
+                                                                                                        <TableCell className="font-bold text-gray-900">합계</TableCell>
+                                                                                                        <TableCell className="text-right font-bold text-gray-900">248,294</TableCell>
+                                                                                                        <TableCell className="text-right font-bold text-gray-900">71,409</TableCell>
+                                                                                                        <TableCell className="text-right font-bold text-red-600">176,885</TableCell>
+                                                                                                    </TableRow>
+                                                                                                </TableBody>
+                                                                                            </Table>
+                                                                                        </div>
+
+                                                                                        <div className="pt-2">
+                                                                                            <h4 className="text-base font-bold mb-3 text-gray-800 flex items-center gap-2">
+                                                                                                <span className="h-1 w-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded"></span>
+                                                                                                연 구분
+                                                                                            </h4>
+                                                                                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                                                                                <Table>
+                                                                                                    <TableHeader>
+                                                                                                        <TableRow className="bg-slate-100 hover:bg-slate-100">
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">연 구분</TableHead>
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">전년 보너스<br/>충당금 설정</TableHead>
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">실제지급<br/>금액</TableHead>
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">당해<br/>충당금</TableHead>
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">상세</TableHead>
+                                                                                                        </TableRow>
+                                                                                                    </TableHeader>
+                                                                                                    <TableBody>
+                                                                                                        <TableRow className="bg-amber-50 hover:bg-amber-100">
+                                                                                                            <TableCell className="text-center font-semibold text-gray-800">26년</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">0</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">164,500</TableCell>
+                                                                                                            <TableCell className="text-center font-medium text-red-600">-164,500</TableCell>
+                                                                                                            <TableCell className="text-center text-sm text-gray-700">25년 부, 보너스 충당금 설정 중지.</TableCell>
+                                                                                                        </TableRow>
+                                                                                                        <TableRow className="bg-green-50 hover:bg-green-100">
+                                                                                                            <TableCell className="text-center font-semibold text-gray-800">25년</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">200,000</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">180,317</TableCell>
+                                                                                                            <TableCell className="text-center font-medium text-red-600">-19,683</TableCell>
+                                                                                                            <TableCell className="text-center text-sm text-gray-700">24년 5월-12월 비중 충당금 설정 $200K, 25년 5월 지급 $180K</TableCell>
+                                                                                                        </TableRow>
+                                                                                                    </TableBody>
+                                                                                                </Table>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </DialogContent>
+                                                                            </Dialog>
+                                                                        ) : (
+                                                                            <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
+                                                                        )}
                                                                         <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                             {subItem.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{subItem.value}</span>}
                                                                             {subItem.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(subItem.yoy))}>{removeYoYParentheses(subItem.yoy)}</span>}
