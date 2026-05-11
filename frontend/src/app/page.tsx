@@ -1476,7 +1476,7 @@ function DetailedExpenseCard({
                                     "bg-amber-50 hover:bg-amber-100 border border-amber-200",
                                     "text-amber-700 font-medium text-xs"
                                 )}>
-                                    3개월 누적 8.7%
+                                    4개월 누적 7.9%
                                 </span>
                             </DialogTrigger>
                             <DialogContent className="w-80 p-4">
