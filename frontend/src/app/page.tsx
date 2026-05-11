@@ -634,6 +634,7 @@ function DetailedMetricCard({
                                                                                                         <TableHead className="text-right font-bold text-gray-700">26년 4월</TableHead>
                                                                                                         <TableHead className="text-right font-bold text-gray-700">25년 4월</TableHead>
                                                                                                         <TableHead className="text-right font-bold text-gray-700">차이</TableHead>
+                                                                                                        <TableHead className="text-right font-bold text-gray-700">YoY</TableHead>
                                                                                                     </TableRow>
                                                                                                 </TableHeader>
                                                                                                 <TableBody>
@@ -642,18 +643,21 @@ function DetailedMetricCard({
                                                                                                         <TableCell className="text-right font-medium">83,795</TableCell>
                                                                                                         <TableCell className="text-right font-medium">71,409</TableCell>
                                                                                                         <TableCell className="text-right font-medium text-blue-600">12,386</TableCell>
+                                                                                                        <TableCell className="text-right font-medium text-emerald-600">117.3%</TableCell>
                                                                                                     </TableRow>
                                                                                                     <TableRow className="bg-purple-50 hover:bg-purple-100">
                                                                                                         <TableCell className="font-semibold text-gray-800">급여충당금</TableCell>
                                                                                                         <TableCell className="text-right font-medium">164,500</TableCell>
                                                                                                         <TableCell className="text-right font-medium">0</TableCell>
                                                                                                         <TableCell className="text-right font-medium text-purple-600">164,500</TableCell>
+                                                                                                        <TableCell className="text-right font-medium text-gray-500">-</TableCell>
                                                                                                     </TableRow>
                                                                                                     <TableRow className="bg-gray-100 hover:bg-gray-200">
                                                                                                         <TableCell className="font-bold text-gray-900">합계</TableCell>
                                                                                                         <TableCell className="text-right font-bold text-gray-900">248,294</TableCell>
                                                                                                         <TableCell className="text-right font-bold text-gray-900">71,409</TableCell>
                                                                                                         <TableCell className="text-right font-bold text-red-600">176,885</TableCell>
+                                                                                                        <TableCell className="text-right font-bold text-red-600">347.7%</TableCell>
                                                                                                     </TableRow>
                                                                                                 </TableBody>
                                                                                             </Table>
