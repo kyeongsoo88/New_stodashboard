@@ -1429,46 +1429,9 @@ function DetailedExpenseCard({
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
-                    {title === "보관료" ? (
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <span className={cn(
-                                    "text-sm cursor-pointer px-2 py-0.5 rounded-md transition-all",
-                                    "bg-blue-50 hover:bg-blue-100 border border-blue-200",
-                                    "text-blue-700 font-medium",
-                                    diffColor
-                                )}>
-                                    ({yoyDiff})
-                                </span>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>보관료 상세 정보</DialogTitle>
-                                </DialogHeader>
-                                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
-                                    <p>
-                                        올해 1월 스토리지 면적이 전년 동월 대비 약 43,000 sq ft → 73,000 sq ft로 3만 sq ft 증가했으나, 보관 유닛 수는 전년과 거의 동일함.
-                                    </p>
-                                    <p>
-                                        Bergen은 연말 아웃바운드 집중으로 1월 재고 통합을 못 해 bin에 소량 유닛만 남아 면적이 과다 산정되었다고 인정. Bergen은 1월 30일 재고 스냅샷 기준 과다 청구 여부 조사중 2월 청구서에 크레딧으로 조정 예정.
-                                    </p>
-                                    <p>
-                                        <span className="font-bold">향후 F-Up :</span> 재발 방지를 위해 면적 기반 과금 대신 카테고리별 차등 유닛 단가를 적용한 유닛 기반 과금 방식을 Bergen이 재제안함. 유닛 기반 과금은 consolidation 리스크를 Bergen이 부담하게 하고, 스토리지 비용 예측성과 예산 관리 측면에서 유리함.
-                                    </p>
-                                    <p>
-                                        <span className="font-bold">3월 11일 F-Up :</span> 1월 Argue $15K 크레딧 받았으나, 금액 산정 근거 안줌. 심지어 26년 2월달도 비슷한 문제 있다고 판단. 정확히 확인 전까지 현재 보관료 지급 홀딩중. 지급 홀딩하며 최대한 Argue할 예정
-                                    </p>
-                                    <p>
-                                        <span className="font-bold">4월 :</span> Argue후 3PL과 대사하여 65K Credit 지급받음. 10월 3PL과 재계약 시점에 이를 활용하여, Advantage받아 좋은 조건으로 재계약할 수 있게 할 예정.
-                                    </p>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    ) : (
-                        <span className={cn("text-sm", diffColor)}>
-                            ({yoyDiff})
-                        </span>
-                    )}
+                    <span className={cn("text-sm", diffColor)}>
+                        ({yoyDiff})
+                    </span>
                 </div>
                 <div className="text-sm space-y-1 text-gray-600">
                     {details}
@@ -10306,7 +10269,8 @@ export default function DashboardPage() {
         '2025-12': '25-Dec',
         '2026-01': '26-Jan',
         '2026-02': '26-Feb',
-        '2026-03': '26-Mar'
+        '2026-03': '26-Mar',
+        '2026-04': '26-Apr'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
