@@ -3857,8 +3857,8 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
 // 당월 추세 컴포넌트
 function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   const [loading, setLoading] = React.useState(true);
-  const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 3, 1)); // 2026-04-01
-  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 3, 14)); // 2026-04-14
+  const [startDate, setStartDate] = React.useState<Date>(new Date(2026, 4, 1)); // 2026-05-01
+  const [endDate, setEndDate] = React.useState<Date>(new Date(2026, 4, 9)); // 2026-05-09
 
   const [data2025, setData2025] = React.useState<any[]>([]);
   const [data2026, setData2026] = React.useState<any[]>([]);
