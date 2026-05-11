@@ -675,7 +675,7 @@ function DetailedMetricCard({
                                                                                                             <TableHead className="text-center font-bold text-gray-700">연 구분</TableHead>
                                                                                                             <TableHead className="text-center font-bold text-gray-700">전년 보너스<br/>충당금 설정</TableHead>
                                                                                                             <TableHead className="text-center font-bold text-gray-700">실제지급<br/>금액</TableHead>
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">당해<br/>충당금</TableHead>
+                                                                                                            <TableHead className="text-center font-bold text-gray-700">당해 손익 효과</TableHead>
                                                                                                             <TableHead className="text-center font-bold text-gray-700">상세</TableHead>
                                                                                                         </TableRow>
                                                                                                     </TableHeader>
@@ -684,15 +684,15 @@ function DetailedMetricCard({
                                                                                                             <TableCell className="text-center font-semibold text-gray-800">26년</TableCell>
                                                                                                             <TableCell className="text-center font-medium">0</TableCell>
                                                                                                             <TableCell className="text-center font-medium">164,500</TableCell>
-                                                                                                            <TableCell className="text-center font-medium text-red-600">-164,500</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">164,500</TableCell>
                                                                                                             <TableCell className="text-center text-sm text-gray-700">25년 부, 보너스 충당금 설정 중지.</TableCell>
                                                                                                         </TableRow>
                                                                                                         <TableRow className="bg-green-50 hover:bg-green-100">
                                                                                                             <TableCell className="text-center font-semibold text-gray-800">25년</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">200,000</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">180,317</TableCell>
-                                                                                                            <TableCell className="text-center font-medium text-red-600">-19,683</TableCell>
-                                                                                                            <TableCell className="text-center text-sm text-gray-700">24년 5월-12월 비중 충당금 설정 $200K, 25년 5월 지급 $180K</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">238,174</TableCell>
+                                                                                                            <TableCell className="text-center font-medium">57,858</TableCell>
+                                                                                                            <TableCell className="text-center font-medium text-red-600">-180,317</TableCell>
+                                                                                                            <TableCell className="text-center text-sm text-gray-700">기 설정 충당금 $238K, 실제 지급분 $57K</TableCell>
                                                                                                         </TableRow>
                                                                                                     </TableBody>
                                                                                                 </Table>
@@ -5437,8 +5437,8 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
   const monthFoldTargets = new Set([
     '26년 1월(실적)',
-    '26년 2월',
-    '26년 3월',
+    '26년 2월(실적)',
+    '26년 3월(실적)',
     '26년 4월',
     '26년 5월',
     '26년 6월',
