@@ -8533,7 +8533,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                 <div className="absolute left-8 top-0 bottom-0 flex items-center">
                                                     {/* Vertical line connecting group items */}
                                                     <div 
-                                                        className="absolute left-1 top-0 bottom-0 w-0.5 bg-gray-300"
+                                                        className={cn(
+                                                            "absolute left-1 top-0 bottom-0 w-0.5",
+                                                            isInFinanceGroup1 && "bg-blue-500",
+                                                            isInFinanceGroup2 && "bg-green-500",
+                                                            isInFinanceGroup3 && "bg-purple-500"
+                                                        )}
                                                         style={{
                                                             top: isFirstInGroup ? '50%' : '0',
                                                             bottom: isLastInGroup ? '50%' : '0'
@@ -8542,13 +8547,28 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                     {/* Bracket characters */}
                                                     <div className="relative z-10 flex items-center h-full">
                                                         {isFirstInGroup && (
-                                                            <span className="text-gray-400 text-xl leading-none">⎧</span>
+                                                            <span className={cn(
+                                                                "text-xl leading-none",
+                                                                isInFinanceGroup1 && "text-blue-500",
+                                                                isInFinanceGroup2 && "text-green-500",
+                                                                isInFinanceGroup3 && "text-purple-500"
+                                                            )}>⎧</span>
                                                         )}
                                                         {!isFirstInGroup && !isLastInGroup && (
-                                                            <span className="text-gray-400 text-xl leading-none">⎪</span>
+                                                            <span className={cn(
+                                                                "text-xl leading-none",
+                                                                isInFinanceGroup1 && "text-blue-500",
+                                                                isInFinanceGroup2 && "text-green-500",
+                                                                isInFinanceGroup3 && "text-purple-500"
+                                                            )}>⎪</span>
                                                         )}
                                                         {isLastInGroup && (
-                                                            <span className="text-gray-400 text-xl leading-none">⎩</span>
+                                                            <span className={cn(
+                                                                "text-xl leading-none",
+                                                                isInFinanceGroup1 && "text-blue-500",
+                                                                isInFinanceGroup2 && "text-green-500",
+                                                                isInFinanceGroup3 && "text-purple-500"
+                                                            )}>⎩</span>
                                                         )}
                                                     </div>
                                                 </div>
