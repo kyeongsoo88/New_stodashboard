@@ -7252,6 +7252,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [cashFlowData, setCashFlowData] = React.useState<any[]>([]);
   const [cashFlowHeaders, setCashFlowHeaders] = React.useState<string[]>([]);
   
+  const [steCashFlowData, setSTECashFlowData] = React.useState<any[]>([]);
+  const [steCashFlowHeaders, setSTECashFlowHeaders] = React.useState<string[]>([]);
+  
   const [balanceData, setBalanceData] = React.useState<any[]>([]);
   const [balanceHeaders, setBalanceHeaders] = React.useState<string[]>([]);
   
@@ -7276,6 +7279,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   
   // 섹션별 접기/펼치기 상태
   const [isCashFlowExpanded, setIsCashFlowExpanded] = React.useState(true);
+  const [isSTECashFlowExpanded, setIsSTECashFlowExpanded] = React.useState(true);
   const [isBalanceExpanded, setIsBalanceExpanded] = React.useState(true);
   const [isWorkingCapitalExpanded, setIsWorkingCapitalExpanded] = React.useState(true);
 
@@ -7285,6 +7289,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(defaultExpandedRows);
   const flowParentRows = ['영업활동', '매출수금', '비용지출', '재무활동'];
   const areAllFlowRowsExpanded = flowParentRows.every((row) => expandedRows.has(row));
+  
+  // STE 현금흐름표 토글 (로열티수금, 비용지출)
+  const [steExpandedRows, setSTEExpandedRows] = React.useState<Set<string>>(new Set(['로열티수금', '비용지출']));
+  const steParentRows = ['로열티수금', '비용지출'];
+  const areAllSTERowsExpanded = steParentRows.every((row) => steExpandedRows.has(row));
 
   const toggleAllFlowRows = () => {
     setExpandedRows((prev) => {
@@ -7297,6 +7306,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
       // 전체 펼치기: 4개 부모 행 모두 펼치기
       const next = new Set(prev);
       flowParentRows.forEach((row) => next.add(row));
+      return next;
+    });
+  };
+  
+  const toggleAllSTERows = () => {
+    setSTEExpandedRows((prev) => {
+      if (steParentRows.every((row) => prev.has(row))) {
+        const next = new Set(prev);
+        steParentRows.forEach((row) => next.delete(row));
+        return next;
+      }
+      const next = new Set(prev);
+      steParentRows.forEach((row) => next.add(row));
       return next;
     });
   };
@@ -7317,6 +7339,16 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
       newSet.add(label);
     }
     setExpandedRows(newSet);
+  };
+  
+  const toggleSTERow = (label: string) => {
+    const newSet = new Set(steExpandedRows);
+    if (newSet.has(label)) {
+      newSet.delete(label);
+    } else {
+      newSet.add(label);
+    }
+    setSTEExpandedRows(newSet);
   };
 
   const formatNumber = (val: string) => {
@@ -7695,6 +7727,117 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 }
                 setWorkingCapitalData(parsed3);
                 setBaseWorkingCapitalData(parsed3); // 기준 데이터 저장
+            }
+            
+            // 4. STE 현금흐름표 데이터 로드
+            const res4 = await fetch(`/data/ste-cash-flow-2026.csv?t=${timestamp}`);
+            const buf4 = await res4.arrayBuffer();
+            const bytes4 = new Uint8Array(buf4);
+            let text4 = '';
+            if (bytes4.length >= 2 && bytes4[0] === 0xff && bytes4[1] === 0xfe) {
+                text4 = new TextDecoder('utf-16le').decode(bytes4);
+            } else if (bytes4.length >= 3 && bytes4[0] === 0xef && bytes4[1] === 0xbb && bytes4[2] === 0xbf) {
+                text4 = new TextDecoder('utf-8').decode(bytes4);
+            } else {
+                try {
+                    text4 = new TextDecoder('utf-8', { fatal: true }).decode(bytes4);
+                } catch (e) {
+                    text4 = new TextDecoder('euc-kr').decode(bytes4);
+                }
+            }
+            const lines4 = text4
+              .split('\n')
+              .map((line) => line.trim())
+              .filter((line) => line)
+              .filter((line) => !line.toLowerCase().startsWith('sep='));
+            if (lines4.length > 1) {
+                const headers4 = parseCSVLine(lines4[0]);
+                // BOM 제거
+                if (headers4.length > 0) {
+                    headers4[0] = (headers4[0] || '').replace(/^\uFEFF/, '');
+                }
+                
+                // 새로운 헤더 구조로 변환
+                // CSV: 계정과목, 25년(합계), 26년 1월(실적), 2월(실적), ..., 12월(예상), RF_03, RF_04, 전년대비, 계획대비
+                // 화면: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                const newHeaders4 = [
+                    '계정과목',
+                    '전년',
+                    'RF_03',
+                    'RF_03 - 전년',
+                    'RF_04',
+                    'RF_04 - 전년',
+                    'RF_03대비 증감',
+                    'RF_03대비(%)'
+                ];
+                setSTECashFlowHeaders(newHeaders4);
+                
+                const parsed4 = [];
+                for(let i=1; i<lines4.length; i++) {
+                    const vals = parseCSVLine(lines4[i]);
+                    const label = vals[0].trim();
+                    
+                    // CSV 인덱스: 0=계정과목, 1=25년(합계), 2-13=월별, 14=RF_03, 15=RF_04, 16=전년대비, 17=계획대비
+                    const year2025 = vals[1] || '0';
+                    const rf03 = vals[14] || '0';
+                    const rf04 = vals[15] || '0';
+                    
+                    // 계산 함수
+                    const parseNum = (str: string) => {
+                        if (!str || str === '-' || str === '') return 0;
+                        return parseFloat(str.replace(/,/g, '').replace(/"/g, '')) || 0;
+                    };
+                    
+                    const formatNum = (num: number) => {
+                        if (num === 0) return '0';
+                        return num < 0 ? `(${Math.abs(num).toLocaleString()})` : num.toLocaleString();
+                    };
+                    
+                    const num2025 = parseNum(year2025);
+                    const numRF03 = parseNum(rf03);
+                    const numRF04 = parseNum(rf04);
+                    
+                    // 계산된 값들
+                    const rf03MinusPrev = numRF03 - num2025; // RF_03 - 전년
+                    const rf04MinusPrev = numRF04 - num2025; // RF_04 - 전년
+                    const rf03Diff = numRF04 - numRF03; // RF_03대비 증감
+                    const rf03Percent = numRF03 !== 0 ? Math.round((numRF04 / numRF03) * 100) : 0; // RF_03대비(%)
+                    
+                    // 새로운 values 배열
+                    const newValues4 = [
+                        year2025,
+                        rf03,
+                        formatNum(rf03MinusPrev),
+                        rf04,
+                        formatNum(rf04MinusPrev),
+                        formatNum(rf03Diff),
+                        `${rf03Percent}%`
+                    ];
+                    
+                    // 하위 항목 식별
+                    const isSubItem = label === 'BBUK' || label === 'Movin' || label === 'Benjamin' || 
+                                     label === 'SUGI' || label === 'SUGI FR' || label === 'Silver' || label === 'BDS' ||
+                                     label === '법률비용' || label === '광고선전비' || label === '기타비용';
+                    // 부모 항목 식별
+                    const isParent = label === '로열티수금' || label === '비용지출';
+                    // 부모 키 찾기
+                    let parentKey = null;
+                    if (label === 'BBUK' || label === 'Movin' || label === 'Benjamin' || 
+                        label === 'SUGI' || label === 'SUGI FR' || label === 'Silver' || label === 'BDS') {
+                        parentKey = '로열티수금';
+                    } else if (label === '법률비용' || label === '광고선전비' || label === '기타비용') {
+                        parentKey = '비용지출';
+                    }
+
+                    parsed4.push({
+                        label,
+                        values: newValues4,
+                        isSubItem,
+                        isParent,
+                        parentKey
+                    });
+                }
+                setSTECashFlowData(parsed4);
             }
             
         } catch (err) {
@@ -8400,10 +8543,188 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
       </Card>
     );
   };
+  
+  // STE 현금흐름표 렌더링 함수
+  const renderSTECashFlowTable = () => {
+    return (
+      <Card className="mb-6 overflow-hidden border shadow-sm">
+        <div 
+            className="flex flex-row items-center justify-between p-4 bg-white border-b"
+        >
+            <div 
+                className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors flex-1"
+                onClick={() => setIsSTECashFlowExpanded(!isSTECashFlowExpanded)}
+            >
+                <ChevronDownIcon className={cn("h-5 w-5 text-slate-500 transition-transform duration-200", !isSTECashFlowExpanded && "-rotate-90")} />
+                <h3 className="text-lg font-bold text-slate-800">STE 현금흐름표 (단위 : K $) <span className="text-sm font-normal text-blue-600">(매출 100% 가정)</span></h3>
+            </div>
+            <div className="flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleAllSTERows();
+                    }}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300"
+                >
+                    {areAllSTERowsExpanded ? "상세 접기" : "상세 펼치기"}
+                </Button>
+            </div>
+        </div>
+        
+        {isSTECashFlowExpanded && (
+            <div className="overflow-x-auto">
+                <Table>
+                    <TableHeader className="sticky top-0 z-10 shadow-sm">
+                        {/* 첫 번째 헤더 행: 섹션 헤더 */}
+                        <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
+                            <TableHead 
+                                rowSpan={2}
+                                className="text-xs font-bold text-white h-10 px-2 text-left w-[280px] pl-6 sticky left-0 z-20 border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                계정과목
+                            </TableHead>
+                            <TableHead 
+                                rowSpan={2}
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                전년
+                            </TableHead>
+                            <TableHead 
+                                colSpan={2}
+                                className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_03
+                            </TableHead>
+                            <TableHead 
+                                colSpan={4}
+                                className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_04
+                            </TableHead>
+                        </TableRow>
+                        
+                        {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
+                        <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_03
+                            </TableHead>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_03 - 전년
+                            </TableHead>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_04
+                            </TableHead>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_04 - 전년
+                            </TableHead>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_03대비 증감
+                            </TableHead>
+                            <TableHead 
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                RF_03대비(%)
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {steCashFlowData.map((row, rIdx) => {
+                            // 하위 항목 토글 처리
+                            if (row.isSubItem) {
+                                if (!steExpandedRows.has(row.parentKey)) return null;
+                            }
+
+                            const isParent = row.isParent;
+                            const isSubItem = row.isSubItem;
+                            
+                            // 행 스타일
+                            let rowClass = "hover:bg-gray-50";
+                            let rowBg = "bg-white";
+
+                            // 라벨 스타일
+                            let labelClass = "text-xs font-bold text-gray-900";
+                            if (isParent) {
+                                labelClass = cn(
+                                    "text-xs font-bold text-gray-900 cursor-pointer flex items-center gap-1 whitespace-nowrap"
+                                );
+                            } else if (isSubItem) {
+                                labelClass = "text-xs font-normal text-gray-700 pl-8";
+                            }
+                            
+                            return (
+                                <TableRow key={rIdx} className={cn("text-xs", rowClass, rowBg)}>
+                                    <TableCell 
+                                        className={cn(
+                                            "sticky left-0 z-10 border border-gray-300 py-2", 
+                                            rowBg,
+                                            "pl-4"
+                                        )}
+                                        onClick={() => isParent && toggleSTERow(row.label)}
+                                    >
+                                        <div className={labelClass}>
+                                            {isParent && (
+                                                <ChevronDownIcon
+                                                    className={cn(
+                                                        "h-3 w-3 text-slate-400 transition-transform flex-shrink-0",
+                                                        !steExpandedRows.has(row.label) && "-rotate-90"
+                                                    )}
+                                                />
+                                            )}
+                                            {row.label}
+                                        </div>
+                                    </TableCell>
+                                    {row.values.map((val: string, vIdx: number) => {
+                                        // 값 스타일
+                                        const formatted = formatCell(val);
+                                        const isNegative = formatted.startsWith('(');
+                                        
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300";
+                                        if (isNegative) cellClass += " text-red-600 font-normal";
+                                        else cellClass += " text-gray-900";
+
+                                        return (
+                                            <TableCell key={vIdx} className={cellClass}>
+                                                {formatted}
+                                            </TableCell>
+                                        );
+                                    })}
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+        )}
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6 pb-10">
-      {renderTable("현금흐름표", cashFlowHeaders, cashFlowData, isCashFlowExpanded, setIsCashFlowExpanded, 'flow')}
+      {renderTable("STO 현금흐름표(단위: K $)", cashFlowHeaders, cashFlowData, isCashFlowExpanded, setIsCashFlowExpanded, 'flow')}
+      {renderSTECashFlowTable()}
       {renderTable("현금잔액과 차입금잔액표", balanceHeaders, balanceData, isBalanceExpanded, setIsBalanceExpanded, 'balance')}
       {renderTable("운전자본표", workingCapitalHeaders, workingCapitalData, isWorkingCapitalExpanded, setIsWorkingCapitalExpanded, 'working')}
     </div>
