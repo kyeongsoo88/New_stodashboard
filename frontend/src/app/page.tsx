@@ -8564,7 +8564,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 onClick={() => setIsSTECashFlowExpanded(!isSTECashFlowExpanded)}
             >
                 <ChevronDownIcon className={cn("h-5 w-5 text-slate-500 transition-transform duration-200", !isSTECashFlowExpanded && "-rotate-90")} />
-                <h3 className="text-lg font-bold text-slate-800">STE 현금흐름표 (단위 : K $) <span className="text-sm font-normal text-blue-600">(매출 100% 가정)</span></h3>
+                <h3 className="text-lg font-bold text-slate-800">STE 현금흐름표 (단위 : K $)</h3>
             </div>
             <div className="flex items-center gap-2">
                 <Button 
