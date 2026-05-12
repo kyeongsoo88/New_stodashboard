@@ -7290,9 +7290,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const flowParentRows = ['영업활동', '매출수금', '비용지출', '재무활동'];
   const areAllFlowRowsExpanded = flowParentRows.every((row) => expandedRows.has(row));
   
-  // STE 현금흐름표 토글 (로열티수금, 비용지출)
+  // STE 현금흐름표 토글 (로열티수금, 비용지출, 재무활동)
   const [steExpandedRows, setSTEExpandedRows] = React.useState<Set<string>>(new Set(['로열티수금']));
-  const steParentRows = ['로열티수금', '비용지출'];
+  const steParentRows = ['로열티수금', '비용지출', '재무활동'];
   const areAllSTERowsExpanded = steParentRows.every((row) => steExpandedRows.has(row));
 
   const toggleAllFlowRows = () => {
@@ -7825,9 +7825,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     // 하위 항목 식별
                     const isSubItem = label === 'BBUK' || label === 'Movin' || label === 'Benjamin' || 
                                      label === 'SUGI' || label === 'SUGI FR' || label === 'Silver' || label === 'BDS' ||
-                                     label === '법률비용' || label === '광고선전비' || label === '기타비용';
+                                     label === '법률비용' || label === '광고선전비' || label === '기타비용' ||
+                                     label === '본사차입' || label === 'STE감자/배당' || label === 'STE주주환원' || 
+                                     label === 'STE지분매입' || label === '본사차입상환';
                     // 부모 항목 식별
-                    const isParent = label === '로열티수금' || label === '비용지출';
+                    const isParent = label === '로열티수금' || label === '비용지출' || label === '재무활동';
                     // 부모 키 찾기
                     let parentKey = null;
                     if (label === 'BBUK' || label === 'Movin' || label === 'Benjamin' || 
@@ -7835,6 +7837,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         parentKey = '로열티수금';
                     } else if (label === '법률비용' || label === '광고선전비' || label === '기타비용') {
                         parentKey = '비용지출';
+                    } else if (label === '본사차입' || label === 'STE감자/배당' || label === 'STE주주환원' || 
+                               label === 'STE지분매입' || label === '본사차입상환') {
+                        parentKey = '재무활동';
                     }
 
                     parsed4.push({
