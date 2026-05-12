@@ -7759,10 +7759,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 25년(합계), 26년 1월(실적), 2월(실적), ..., 12월(예상), RF_03, RF_04, 전년대비, 계획대비
-                // 화면: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                // 접기: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                // 펼치기: 계정과목, 전년, 1월, 2월, ..., 12월, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
                 const newHeaders4 = [
                     '계정과목',
                     '전년',
+                    '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
                     'RF_03',
                     'RF_03 - 전년',
                     'RF_04',
@@ -7779,6 +7781,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     
                     // CSV 인덱스: 0=계정과목, 1=25년(합계), 2-13=월별, 14=RF_03, 15=RF_04, 16=전년대비, 17=계획대비
                     const year2025 = vals[1] || '0';
+                    const months = [
+                        vals[2] || '0', vals[3] || '0', vals[4] || '0', vals[5] || '0',
+                        vals[6] || '0', vals[7] || '0', vals[8] || '0', vals[9] || '0',
+                        vals[10] || '0', vals[11] || '0', vals[12] || '0', vals[13] || '0'
+                    ]; // 1월~12월
                     const rf03 = vals[14] || '0';
                     const rf04 = vals[15] || '0';
                     
@@ -7803,9 +7810,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const rf03Diff = numRF04 - numRF03; // RF_03대비 증감
                     const rf03Percent = numRF03 !== 0 ? Math.round((numRF04 / numRF03) * 100) : 0; // RF_03대비(%)
                     
-                    // 새로운 values 배열
+                    // 새로운 values 배열 (월별 데이터 포함)
                     const newValues4 = [
                         year2025,
+                        ...months,
                         rf03,
                         formatNum(rf03MinusPrev),
                         rf04,
@@ -8559,6 +8567,17 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 <h3 className="text-lg font-bold text-slate-800">STE 현금흐름표 (단위 : K $) <span className="text-sm font-normal text-blue-600">(매출 100% 가정)</span></h3>
             </div>
             <div className="flex items-center gap-2">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAllMonths(!showAllMonths);
+                    }}
+                    className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
+                >
+                    {showAllMonths ? "월 접기" : "월 펼치기"}
+                </Button>
                 <Button
                     variant="outline"
                     size="sm"
@@ -8593,6 +8612,15 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             >
                                 전년
                             </TableHead>
+                            {showAllMonths && (
+                                <TableHead 
+                                    colSpan={12}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    2026년 월별
+                                </TableHead>
+                            )}
                             <TableHead 
                                 colSpan={2}
                                 className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
@@ -8611,6 +8639,22 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         
                         {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
+                            {showAllMonths && (
+                                <>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>1월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>2월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>3월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>4월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>5월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>6월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>7월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>8월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>9월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>10월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>11월</TableHead>
+                                    <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>12월</TableHead>
+                                </>
+                            )}
                             <TableHead 
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
@@ -8696,6 +8740,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
+                                        // values 배열: [전년(0), 1월(1)~12월(12), RF_03(13), RF_03-전년(14), RF_04(15), RF_04-전년(16), RF_03대비증감(17), RF_03대비%(18)]
+                                        // 월 접기 상태일 때 인덱스 1-12 (월별 데이터) 숨김
+                                        if (!showAllMonths && vIdx >= 1 && vIdx <= 12) {
+                                            return null;
+                                        }
+                                        
                                         // 값 스타일
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
