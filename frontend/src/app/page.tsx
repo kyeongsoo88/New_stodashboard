@@ -7267,6 +7267,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [baseCashFlowData, setBaseCashFlowData] = React.useState<any[]>([]);
   const [baseWorkingCapitalData, setBaseWorkingCapitalData] = React.useState<any[]>([]);
   
+  // 상세 데이터 저장
+  const [stoDetailData, setSTODetailData] = React.useState<Record<string, string>>({});
+  const [steDetailData, setSTEDetailData] = React.useState<Record<string, string>>({});
+  const [cashLoanDetailData, setCashLoanDetailData] = React.useState<Record<string, string>>({});
+  const [workingCapitalDetailData, setWorkingCapitalDetailData] = React.useState<Record<string, string>>({});
+  
   // 성장률 설정 상태
   const [growthRate, setGrowthRate] = React.useState(100);
   const [inputValue, setInputValue] = React.useState<string>("100");
@@ -7854,6 +7860,63 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 setSTECashFlowData(parsed4);
             }
             
+            // 5. 상세 데이터 로드
+            try {
+                // STO 현금흐름표 상세
+                const resSTODetail = await fetch(`/data/sto-cashflow-detail.csv?t=${timestamp}`);
+                const textSTODetail = await resSTODetail.text();
+                const linesSTODetail = textSTODetail.split('\n').filter(line => line.trim());
+                const stoDetailMap: Record<string, string> = {};
+                for (let i = 1; i < linesSTODetail.length; i++) {
+                    const parts = linesSTODetail[i].split(',');
+                    if (parts.length >= 2) {
+                        stoDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                    }
+                }
+                setSTODetailData(stoDetailMap);
+
+                // STE 현금흐름표 상세
+                const resSTEDetail = await fetch(`/data/ste-cashflow-detail.csv?t=${timestamp}`);
+                const textSTEDetail = await resSTEDetail.text();
+                const linesSTEDetail = textSTEDetail.split('\n').filter(line => line.trim());
+                const steDetailMap: Record<string, string> = {};
+                for (let i = 1; i < linesSTEDetail.length; i++) {
+                    const parts = linesSTEDetail[i].split(',');
+                    if (parts.length >= 2) {
+                        steDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                    }
+                }
+                setSTEDetailData(steDetailMap);
+
+                // 현금잔액과 차입금 상세
+                const resCashLoanDetail = await fetch(`/data/cashloan-detail.csv?t=${timestamp}`);
+                const textCashLoanDetail = await resCashLoanDetail.text();
+                const linesCashLoanDetail = textCashLoanDetail.split('\n').filter(line => line.trim());
+                const cashLoanDetailMap: Record<string, string> = {};
+                for (let i = 1; i < linesCashLoanDetail.length; i++) {
+                    const parts = linesCashLoanDetail[i].split(',');
+                    if (parts.length >= 2) {
+                        cashLoanDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                    }
+                }
+                setCashLoanDetailData(cashLoanDetailMap);
+
+                // 운전자본표 상세
+                const resWorkingCapitalDetail = await fetch(`/data/workingcapital-detail.csv?t=${timestamp}`);
+                const textWorkingCapitalDetail = await resWorkingCapitalDetail.text();
+                const linesWorkingCapitalDetail = textWorkingCapitalDetail.split('\n').filter(line => line.trim());
+                const workingCapitalDetailMap: Record<string, string> = {};
+                for (let i = 1; i < linesWorkingCapitalDetail.length; i++) {
+                    const parts = linesWorkingCapitalDetail[i].split(',');
+                    if (parts.length >= 2) {
+                        workingCapitalDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                    }
+                }
+                setWorkingCapitalDetailData(workingCapitalDetailMap);
+            } catch (detailErr) {
+                console.error("Failed to load detail data:", detailErr);
+            }
+            
         } catch (err) {
             console.error("Failed to load cash flow data:", err);
         } finally {
@@ -8367,6 +8430,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 >
                                     RF_04
                                 </TableHead>
+                                <TableHead 
+                                    rowSpan={2}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center min-w-[300px] border border-gray-300"
+                                    style={{ backgroundColor: '#2E5C8A' }}
+                                >
+                                    상세
+                                </TableHead>
                             </TableRow>
                         )}
                         
@@ -8610,6 +8680,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             </TableCell>
                                         );
                                     })}
+                                    {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
+                                        <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-700">
+                                            {tableType === 'flow' && stoDetailData[row.label] || ''}
+                                            {tableType === 'balance' && cashLoanDetailData[row.label] || ''}
+                                            {tableType === 'working' && workingCapitalDetailData[row.label] || ''}
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             );
                         })}
@@ -8703,6 +8780,13 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
                                 RF_04
+                            </TableHead>
+                            <TableHead 
+                                rowSpan={2}
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[300px] border border-gray-300"
+                                style={{ backgroundColor: '#2E5C8A' }}
+                            >
+                                상세
                             </TableHead>
                         </TableRow>
                         
@@ -8829,6 +8913,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             </TableCell>
                                         );
                                     })}
+                                    <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-700">
+                                        {steDetailData[row.label] || ''}
+                                    </TableCell>
                                 </TableRow>
                             );
                         })}
