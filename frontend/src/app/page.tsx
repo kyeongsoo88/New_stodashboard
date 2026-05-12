@@ -8462,6 +8462,17 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             const isMaterialOutflow = tableType === 'flow' && row.label === '물품대 지출';
                             const isTotalRow = row.label.includes('합계') || row.label === '기말잔액' || row.label === '기초잔액';
                             
+                            // 재무활동 하위 항목 그룹 정의
+                            const financeGroup1 = ['본사차입(SPA)', '본사차입상환(SPA)'];
+                            const financeGroup2 = ['본사차입(운영자금)', '본사차입상환(운영자금)', 'STE주주환원'];
+                            const financeGroup3 = ['STE지분매입', 'STE감자/배당'];
+                            
+                            const isInFinanceGroup1 = financeGroup1.includes(row.label);
+                            const isInFinanceGroup2 = financeGroup2.includes(row.label);
+                            const isInFinanceGroup3 = financeGroup3.includes(row.label);
+                            const isFirstInGroup = row.label === '본사차입(SPA)' || row.label === '본사차입(운영자금)' || row.label === 'STE지분매입';
+                            const isLastInGroup = row.label === '본사차입상환(SPA)' || row.label === 'STE주주환원' || row.label === 'STE감자/배당';
+                            
                             // 행 스타일
                             let rowClass = "hover:bg-gray-50";
                             let rowBg = "bg-white";
@@ -8484,7 +8495,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     isFlowSub && "pl-8"
                                 );
                             } else if (isFlowSub) {
-                                labelClass = "text-xs font-bold text-gray-900 pl-8";
+                                // 재무활동 그룹 항목들에 대한 특별 스타일
+                                if (isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) {
+                                    labelClass = "text-xs font-bold text-gray-900 pl-12 relative";
+                                } else {
+                                    labelClass = "text-xs font-bold text-gray-900 pl-8";
+                                }
                             }
                             if (isMaterialOutflow) {
                                 // 비용지출과 같은 열 시작점에 맞추기 위해 아이콘 자리만큼 공간 확보
@@ -8512,6 +8528,20 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                 />
                                             )}
                                             {isMaterialOutflow && <span className="h-3 w-3 flex-shrink-0" />}
+                                            {/* 재무활동 그룹 브래킷 */}
+                                            {(isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && (
+                                                <span className="absolute left-8 top-0 bottom-0 flex items-center">
+                                                    {isFirstInGroup && (
+                                                        <span className="text-gray-400 text-xl leading-none">⎧</span>
+                                                    )}
+                                                    {!isFirstInGroup && !isLastInGroup && (
+                                                        <span className="text-gray-400 text-xl leading-none">⎪</span>
+                                                    )}
+                                                    {isLastInGroup && (
+                                                        <span className="text-gray-400 text-xl leading-none">⎩</span>
+                                                    )}
+                                                </span>
+                                            )}
                                             {row.label}
                                         </div>
                                     </TableCell>
