@@ -7291,7 +7291,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const areAllFlowRowsExpanded = flowParentRows.every((row) => expandedRows.has(row));
   
   // STE 현금흐름표 토글 (로열티수금, 비용지출)
-  const [steExpandedRows, setSTEExpandedRows] = React.useState<Set<string>>(new Set(['로열티수금', '비용지출']));
+  const [steExpandedRows, setSTEExpandedRows] = React.useState<Set<string>>(new Set(['로열티수금']));
   const steParentRows = ['로열티수금', '비용지출'];
   const areAllSTERowsExpanded = steParentRows.every((row) => steExpandedRows.has(row));
 
