@@ -646,7 +646,7 @@ function DetailedMetricCard({
                                                                                                         <TableCell className="text-right font-medium text-emerald-600">117.3%</TableCell>
                                                                                                     </TableRow>
                                                                                                     <TableRow className="bg-purple-50 hover:bg-purple-100">
-                                                                                                        <TableCell className="font-semibold text-gray-800">급여충당금</TableCell>
+                                                                                                        <TableCell className="font-semibold text-gray-800">인센티브 지급</TableCell>
                                                                                                         <TableCell className="text-right font-medium">164,500</TableCell>
                                                                                                         <TableCell className="text-right font-medium">0</TableCell>
                                                                                                         <TableCell className="text-right font-medium text-purple-600">164,500</TableCell>
@@ -2392,7 +2392,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           }
                                
           // 비율 행인지 확인 (%) - 할인율은 실판 매출의 하위 항목
-          const isRatioRow = (label === '(%)' || label === 'Discount Rate') || 
+          const isRatioRow = (label.startsWith('(%)') || label === 'Discount Rate') || 
                             (label === '할인율' && currentMainCategory !== '실판 매출');
           
           // E-com의 하위 항목인지 확인 (TAG 판매가 아래에만 해당)
@@ -2657,20 +2657,23 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 // 3. TAG 판매가의 E-com 하위 항목만 E-com이 펼쳐져 있거나 allExpanded가 true일 때만 표시
                 // 4. 비율 행은 항상 표시
                 
-                if (row.isSubItem && row.label !== 'E-com') {
-                  const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
-                  if (!isExpanded) return null;
-                }
-                
-                if (row.isSubItem && row.label === 'E-com') {
-                  const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
-                  if (!isExpanded) return null;
-                }
-                
-                if (row.isEcomSubItem) {
-                  const isParentExpanded = expandedCategories.has(currentCategory) || allExpanded;
-                  const isEcomExpanded = expandedCategories.has('TAG-E-com') || allExpanded;
-                  if (!isParentExpanded || !isEcomExpanded) return null;
+                // 비율 행은 항상 표시 (토글 영향 없음)
+                if (!row.isRatioRow) {
+                  if (row.isSubItem && row.label !== 'E-com') {
+                    const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                    if (!isExpanded) return null;
+                  }
+                  
+                  if (row.isSubItem && row.label === 'E-com') {
+                    const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                    if (!isExpanded) return null;
+                  }
+                  
+                  if (row.isEcomSubItem) {
+                    const isParentExpanded = expandedCategories.has(currentCategory) || allExpanded;
+                    const isEcomExpanded = expandedCategories.has('TAG-E-com') || allExpanded;
+                    if (!isParentExpanded || !isEcomExpanded) return null;
+                  }
                 }
 
                 let rowBg = "bg-white";
@@ -2705,12 +2708,12 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   if (row.label === "Discount Rate" || row.label === "할인율") {
                     rowBg = "bg-white";
                     textStyle = "text-gray-900 font-normal";
-                    labelStyle = "font-normal pl-4";
+                    labelStyle = "font-normal pl-8";
                   } else {
                     // (%) 행
                     rowBg = "bg-white";
                     textStyle = "text-gray-900 font-normal";
-                    labelStyle = "text-center font-normal text-xs px-0";
+                    labelStyle = "font-normal pl-4";
                   }
                 } else if (row.isEcomSubItem) {
                   // TAG 판매가의 E-com 하위 항목은 더 들여쓰기
@@ -2723,14 +2726,22 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   <TableRow key={idx} className={cn("text-xs hover:bg-gray-50", rowBg)}>
                     <TableCell className={cn("border border-gray-300 sticky left-0 z-10", rowBg, labelStyle, textStyle)}>
                       {row.isMainCategory ? (
-                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCategory(row.categoryKey)}>
-                          {expandedCategories.has(row.categoryKey) ? (
-                            <ChevronDownIcon className="h-4 w-4 flex-shrink-0" />
-                          ) : (
-                            <ChevronRightIcon className="h-4 w-4 flex-shrink-0" />
-                          )}
-                          <span>{row.label}</span>
-                        </div>
+                        // 토글이 필요 없는 이익 항목들
+                        ['매출총이익', '직접이익', '영업이익', 'Gross Profit', 'Direct Profit', 'Operating Profit'].includes(row.label) ? (
+                          <div className="flex items-center gap-2">
+                            <span className="h-4 w-4 flex-shrink-0"></span>
+                            <span>{row.label}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCategory(row.categoryKey)}>
+                            {expandedCategories.has(row.categoryKey) ? (
+                              <ChevronDownIcon className="h-4 w-4 flex-shrink-0" />
+                            ) : (
+                              <ChevronRightIcon className="h-4 w-4 flex-shrink-0" />
+                            )}
+                            <span>{row.label}</span>
+                          </div>
+                        )
                       ) : isTagEcom ? (
                         <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCategory('TAG-E-com')}>
                           <span>{row.label}</span>
@@ -2739,6 +2750,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                           ) : (
                             <ChevronRightIcon className="h-3 w-3 flex-shrink-0" />
                           )}
+                        </div>
+                      ) : row.isRatioRow && !(row.label === "Discount Rate" || row.label === "할인율") ? (
+                        <div className="flex items-center gap-2">
+                          <span className="h-4 w-4 flex-shrink-0"></span>
+                          <span>{row.label}</span>
                         </div>
                       ) : (
                         row.label
@@ -4775,7 +4791,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       { key: '정규직인건비', name: '정규직인건비' },
       { key: '계약직인건비', name: '계약직인건비' },
       { key: '해고급여', name: '해고급여' },
-      { key: '급여관련충당금', name: '급여관련충당금' },
+      { key: '인센티브 지급', name: '인센티브 지급' },
       { key: 'PTO', name: 'PTO(퇴직자 휴가급여)' },
       { key: '기타복후비', name: '기타복후비' },
       { key: '직원복리후생비', name: '직원복후비' },
@@ -5439,7 +5455,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     '26년 1월(실적)',
     '26년 2월(실적)',
     '26년 3월(실적)',
-    '26년 4월',
+    '26년 4월(실적)',
     '26년 5월',
     '26년 6월',
     '26년 7월',
@@ -5960,7 +5976,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
   };
 
   const monthFoldTargets = new Set([
-    '26년 1월(실적)', '26년 3월', '26년 4월', '26년 5월', '26년 6월',
+    '26년 1월(실적)', '26년 2월(실적)', '26년 3월(실적)', '26년 4월(실적)', '26년 5월', '26년 6월',
     '26년 7월', '26년 8월', '26년 9월', '26년 10월', '26년 11월'
   ]);
 
@@ -7386,18 +7402,18 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 25년(합계), 26년 1월, 2월, ..., 12월, 26년(계획), 26년(합계), 전년대비
-                // 접기: 계정과목, 2025년(합계), 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
-                // 펼치기: 계정과목, 2025년(합계), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(합계), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                // 펼치기: 계정과목, 전년, 1월, 2월, ..., 12월, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
                 const newHeaders = [
                     '계정과목',
-                    '2025년(합계)',
+                    '전년',
                     '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
-                    '2026년(계획)',
-                    '계획-전년',
-                    '2026년(합계)',
-                    'Rolling-전년',
-                    '계획대비증감',
-                    '계획대비(%)'
+                    'RF_03',
+                    'RF_03 - 전년',
+                    'RF_04',
+                    'RF_04 - 전년',
+                    'RF_03대비 증감',
+                    'RF_03대비(%)'
                 ];
                 setCashFlowHeaders(newHeaders);
                 
@@ -7508,18 +7524,18 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 기초잔액, 1월, 2월, ..., 12월, 26년(계획), 기말잔액, 전년대비
-                // 접기: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
-                // 펼치기: 계정과목, 2025년(기말), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                // 펼치기: 계정과목, 전년, 1월, 2월, ..., 12월, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
                 const newHeaders2 = [
                     '계정과목',
-                    '2025년(기말)',
+                    '전년',
                     '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
-                    '2026년(계획)',
-                    '계획-전년',
-                    '2026년(기말)',
-                    'Rolling-전년',
-                    '계획대비증감',
-                    '계획대비(%)'
+                    'RF_03',
+                    'RF_03 - 전년',
+                    'RF_04',
+                    'RF_04 - 전년',
+                    'RF_03대비 증감',
+                    'RF_03대비(%)'
                 ];
                 setBalanceHeaders(newHeaders2);
                 
@@ -7609,18 +7625,18 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 
                 // 새로운 헤더 구조로 변환
                 // CSV: 계정과목, 25년(기말), 1월, 2월, ..., 12월, 26년(계획), 26년(기말), 전년대비
-                // 접기: 계정과목, 2025년(기말), 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
-                // 펼치기: 계정과목, 2025년(기말), 1월, 2월, ..., 12월, 2026년(계획), 계획-전년, 2026년(기말), Rolling-전년, 계획대비증감, 계획대비(%)
+                // 접기: 계정과목, 전년, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
+                // 펼치기: 계정과목, 전년, 1월, 2월, ..., 12월, RF_03, RF_03 - 전년, RF_04, RF_04 - 전년, RF_03대비 증감, RF_03대비(%)
                 const newHeaders3 = [
                     '계정과목',
-                    '2025년(기말)',
+                    '전년',
                     '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월',
-                    '2026년(계획)',
-                    '계획-전년',
-                    '2026년(기말)',
-                    'Rolling-전년',
-                    '계획대비증감',
-                    '계획대비(%)'
+                    'RF_03',
+                    'RF_03 - 전년',
+                    'RF_04',
+                    'RF_04 - 전년',
+                    'RF_03대비 증감',
+                    'RF_03대비(%)'
                 ];
                 setWorkingCapitalHeaders(newHeaders3);
                 
@@ -8027,10 +8043,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
   // 월 컬럼 가시성 확인 함수
   const isMonthColumnVisible = (header: string, index: number, headers: string[]): boolean => {
-    // 계정과목, 2025년(합계), 2025 End, 1월은 항상 보임
-    if (index === 0 || header === '2025년(합계)' || header === '2025 Total' || header === '2025 End' || header === '1월' || header === 'Jan' || header === 'Base') return true;
-    // 2026년(합), 2026 Total, 2026 End, YoY는 항상 보임
-    if (header === '2026년(합)' || header === '2026 Total' || header === '2026 End' || header === 'YoY' || header === 'End' || header.includes('Total') || header.includes('YoY') || header.includes('합')) return true;
+    // 계정과목, 전년, 2025 End, 1월은 항상 보임
+    if (index === 0 || header === '전년' || header === '2025 Total' || header === '2025 End' || header === '1월' || header === 'Jan' || header === 'Base') return true;
+    // RF_03, RF_04, YoY는 항상 보임
+    if (header === 'RF_03' || header === 'RF_04' || header === 'RF_03 - 전년' || header === 'RF_04 - 전년' || header === 'RF_03대비 증감' || header === 'RF_03대비(%)' || header === '2026 Total' || header === '2026 End' || header === 'YoY' || header === 'End' || header.includes('Total') || header.includes('YoY') || header.includes('RF')) return true;
     // 2월~12월 또는 Feb~Dec는 showAllMonths 상태에 따라 결정
     const monthHeaders = ['2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     if (monthHeaders.includes(header)) {
@@ -8169,7 +8185,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    {tableType === 'flow' ? '2025년(합계)' : '2025년(기말)'}
+                                    전년
                                 </TableHead>
                                 {showAllMonths && (
                                     <TableHead 
@@ -8185,7 +8201,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    계획
+                                    RF_03
                                 </TableHead>
                                 <TableHead 
                                     colSpan={4}
@@ -8240,37 +8256,37 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        2026년(계획)
+                                        RF_03
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        계획-전년
+                                        RF_03 - 전년
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        {tableType === 'flow' ? '2026년(합계)' : '2026년(기말)'}
+                                        RF_04
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        Rolling-전년
+                                        RF_04 - 전년
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        계획대비증감
+                                        RF_03대비 증감
                                     </TableHead>
                                     <TableHead 
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        계획대비(%)
+                                        RF_03대비(%)
                                     </TableHead>
                                 </>
                             )}
