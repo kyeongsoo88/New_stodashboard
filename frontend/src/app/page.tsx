@@ -8497,7 +8497,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             } else if (isFlowSub) {
                                 // 재무활동 그룹 항목들에 대한 특별 스타일
                                 if (isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) {
-                                    labelClass = "text-xs font-bold text-gray-900 pl-12 relative";
+                                    labelClass = "text-xs font-bold text-gray-900 pl-12 relative flex items-center";
                                 } else {
                                     labelClass = "text-xs font-bold text-gray-900 pl-8";
                                 }
@@ -8528,21 +8528,34 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                 />
                                             )}
                                             {isMaterialOutflow && <span className="h-3 w-3 flex-shrink-0" />}
-                                            {/* 재무활동 그룹 브래킷 */}
+                                            {/* 재무활동 그룹 브래킷 및 연결선 */}
                                             {(isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && (
-                                                <span className="absolute left-8 top-0 bottom-0 flex items-center">
-                                                    {isFirstInGroup && (
-                                                        <span className="text-gray-400 text-xl leading-none">⎧</span>
-                                                    )}
-                                                    {!isFirstInGroup && !isLastInGroup && (
-                                                        <span className="text-gray-400 text-xl leading-none">⎪</span>
-                                                    )}
-                                                    {isLastInGroup && (
-                                                        <span className="text-gray-400 text-xl leading-none">⎩</span>
-                                                    )}
-                                                </span>
+                                                <div className="absolute left-8 top-0 bottom-0 flex items-center">
+                                                    {/* Vertical line connecting group items */}
+                                                    <div 
+                                                        className="absolute left-1 top-0 bottom-0 w-0.5 bg-gray-300"
+                                                        style={{
+                                                            top: isFirstInGroup ? '50%' : '0',
+                                                            bottom: isLastInGroup ? '50%' : '0'
+                                                        }}
+                                                    />
+                                                    {/* Bracket characters */}
+                                                    <div className="relative z-10 flex items-center h-full">
+                                                        {isFirstInGroup && (
+                                                            <span className="text-gray-400 text-xl leading-none">⎧</span>
+                                                        )}
+                                                        {!isFirstInGroup && !isLastInGroup && (
+                                                            <span className="text-gray-400 text-xl leading-none">⎪</span>
+                                                        )}
+                                                        {isLastInGroup && (
+                                                            <span className="text-gray-400 text-xl leading-none">⎩</span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             )}
-                                            {row.label}
+                                            <span className={cn((isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && "ml-1")}>
+                                                {row.label}
+                                            </span>
                                         </div>
                                     </TableCell>
                                     {row.values.map((val: string, vIdx: number) => {
