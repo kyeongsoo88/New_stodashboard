@@ -8677,6 +8677,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
                                         if (isNegative) cellClass += " text-red-600";
                                         else cellClass += " text-gray-900";
+                                        
+                                        // RF_04 컬럼에서 4,500 또는 (4,500) 값에 파스텔톤 음영 추가
+                                        if ((tableType === 'flow' || tableType === 'balance' || tableType === 'working') && 
+                                            vIdx === 15 && (formatted === "4,500" || formatted === "(4,500)")) {
+                                            cellClass += " bg-yellow-100";
+                                        }
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
@@ -8910,6 +8916,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
                                         if (isNegative) cellClass += " text-red-600";
                                         else cellClass += " text-gray-900";
+                                        
+                                        // RF_04 컬럼에서 4,500 또는 (4,500) 값에 파스텔톤 음영 추가
+                                        if (vIdx === 15 && (formatted === "4,500" || formatted === "(4,500)")) {
+                                            cellClass += " bg-yellow-100";
+                                        }
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
