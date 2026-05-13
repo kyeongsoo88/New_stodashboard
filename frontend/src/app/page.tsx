@@ -7870,7 +7870,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 for (let i = 1; i < linesSTODetail.length; i++) {
                     const parts = linesSTODetail[i].split(',');
                     if (parts.length >= 2) {
-                        stoDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                        const value = parts.slice(1).join(',').trim().replace(/^"|"$/g, '');
+                        stoDetailMap[parts[0].trim()] = value;
                     }
                 }
                 setSTODetailData(stoDetailMap);
@@ -7883,7 +7884,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 for (let i = 1; i < linesSTEDetail.length; i++) {
                     const parts = linesSTEDetail[i].split(',');
                     if (parts.length >= 2) {
-                        steDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                        const value = parts.slice(1).join(',').trim().replace(/^"|"$/g, '');
+                        steDetailMap[parts[0].trim()] = value;
                     }
                 }
                 setSTEDetailData(steDetailMap);
@@ -7896,7 +7898,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 for (let i = 1; i < linesCashLoanDetail.length; i++) {
                     const parts = linesCashLoanDetail[i].split(',');
                     if (parts.length >= 2) {
-                        cashLoanDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                        const value = parts.slice(1).join(',').trim().replace(/^"|"$/g, '');
+                        cashLoanDetailMap[parts[0].trim()] = value;
                     }
                 }
                 setCashLoanDetailData(cashLoanDetailMap);
@@ -7909,7 +7912,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                 for (let i = 1; i < linesWorkingCapitalDetail.length; i++) {
                     const parts = linesWorkingCapitalDetail[i].split(',');
                     if (parts.length >= 2) {
-                        workingCapitalDetailMap[parts[0].trim()] = parts.slice(1).join(',').trim();
+                        const value = parts.slice(1).join(',').trim().replace(/^"|"$/g, '');
+                        workingCapitalDetailMap[parts[0].trim()] = value;
                     }
                 }
                 setWorkingCapitalDetailData(workingCapitalDetailMap);
@@ -8670,8 +8674,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300";
-                                        if (isNegative) cellClass += " text-red-600 font-normal";
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
+                                        if (isNegative) cellClass += " text-red-600";
                                         else cellClass += " text-gray-900";
 
                                         return (
@@ -8681,7 +8685,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         );
                                     })}
                                     {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
-                                        <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-700">
+                                        <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-800 font-semibold">
                                             {tableType === 'flow' && stoDetailData[row.label] || ''}
                                             {tableType === 'balance' && cashLoanDetailData[row.label] || ''}
                                             {tableType === 'working' && workingCapitalDetailData[row.label] || ''}
@@ -8903,8 +8907,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         const formatted = formatCell(val);
                                         const isNegative = formatted.startsWith('(');
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300";
-                                        if (isNegative) cellClass += " text-red-600 font-normal";
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
+                                        if (isNegative) cellClass += " text-red-600";
                                         else cellClass += " text-gray-900";
 
                                         return (
@@ -8913,7 +8917,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             </TableCell>
                                         );
                                     })}
-                                    <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-700">
+                                    <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-800 font-semibold">
                                         {steDetailData[row.label] || ''}
                                     </TableCell>
                                 </TableRow>
