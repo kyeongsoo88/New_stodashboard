@@ -11111,7 +11111,7 @@ export default function DashboardPage() {
             <Button
               variant="outline"
               onClick={() => {
-                window.open('https://claude.ai/public/artifacts/af68256b-9908-4908-adf8-7ffb67bdf775', '_blank');
+                window.open('https://stosummary.vercel.app/', '_blank');
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
             >
