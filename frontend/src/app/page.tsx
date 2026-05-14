@@ -14222,7 +14222,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
            {loadingDashboard || !cardData ? (
              <>
-              <MetricCard title="📈 US EC 26SS 판매율" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
+              <MetricCard title="📈 US EC 26SS 판매율 (MSRP기준)" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
               <MetricCard title="🎯 US EC 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
               <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
               <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
@@ -14230,7 +14230,7 @@ export default function DashboardPage() {
            ) : (
              <>
               <MetricCard 
-                title="📈 US EC 26SS 판매율"
+                title="📈 US EC 26SS 판매율 (MSRP기준)"
                  value={cardData.metricCards.salesRate.value} 
                  subValue={cardData.metricCards.salesRate.subValue} 
                  subValueColor={cardData.metricCards.salesRate.subValueColor} 

@@ -55,7 +55,19 @@ export function MetricCard({
     <Card className={cn("overflow-hidden shadow-sm", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
         <CardTitle className="text-lg font-bold text-black mb-0 leading-tight">
-          {title}
+          {(() => {
+            // 괄호 안의 텍스트를 작은 글씨로 표시
+            const match = title.match(/^(.+?)(\s*\([^)]+\))$/);
+            if (match) {
+              return (
+                <>
+                  {match[1]}
+                  <span className="text-sm font-normal text-gray-600 ml-1">{match[2]}</span>
+                </>
+              );
+            }
+            return title;
+          })()}
         </CardTitle>
         {trend === "up" && <ArrowUpIcon className="h-4 w-4 text-red-500" />}
         {trend === "down" && <ArrowDownIcon className="h-4 w-4 text-blue-500" />}
