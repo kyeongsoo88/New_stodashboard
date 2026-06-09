@@ -1386,53 +1386,6 @@ function DetailedExpenseCard({
             <CardContent className="space-y-2 pt-1">
                 <div className="flex items-center gap-2">
                     <div className="text-2xl font-bold tabular-nums">{value}</div>
-                    {title === "운반비" && (
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <span className={cn(
-                                    "cursor-pointer px-2 py-0.5 rounded-md transition-all inline-block",
-                                    "bg-amber-50 hover:bg-amber-100 border border-amber-200",
-                                    "text-amber-700 font-medium text-xs"
-                                )}>
-                                    4개월 누적 7.9%
-                                </span>
-                            </DialogTrigger>
-                            <DialogContent className="w-80 p-4">
-                                <DialogHeader className="pb-1">
-                                    <DialogTitle className="text-sm font-bold">운반비 증가 원인</DialogTitle>
-                                </DialogHeader>
-                                <div className="text-xs text-gray-700 leading-snug space-y-2">
-                                    <div className="space-y-1">
-                                        <p><strong>1월 상승</strong> : Free-shipping 경쟁으로 STO분담율 증가</p>
-                                        <p><strong>3월 상승</strong> : 이란 전쟁 후 유류가격 상승, 트럭 유류할증료 증가</p>
-                                    </div>
-                                    <div className="border border-gray-200 rounded overflow-hidden text-xs">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="text-left px-2 py-1 font-semibold text-gray-600">구분</th>
-                                                    <th className="text-center px-2 py-1 font-semibold text-gray-600">Before War<br/><span className="font-normal text-gray-400">(2월 중순)</span></th>
-                                                    <th className="text-center px-2 py-1 font-semibold text-gray-600">After War<br/><span className="font-normal text-gray-400">(3월 중순)</span></th>
-                                                    <th className="text-center px-2 py-1 font-semibold text-gray-600">차이</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr className="border-t border-gray-100">
-                                                    <td className="px-2 py-1 font-medium">Truck</td>
-                                                    <td className="px-2 py-1 text-center">$2.43~2.54/mi</td>
-                                                    <td className="px-2 py-1 text-center">$2.75/mi</td>
-                                                    <td className="px-2 py-1 text-center text-red-600 font-bold">13%p↑</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div className="bg-amber-50 border border-amber-300 rounded px-2.5 py-1.5 text-xs font-semibold text-amber-800">
-                                        ※ STO계약 UPS, 전쟁 후 유류할증료 총 <span className="text-red-600 font-bold">7%p ↑</span>
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    )}
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                     <span className={cn("font-bold", yoyColor)}>YoY {yoy}</span>
