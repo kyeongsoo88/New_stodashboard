@@ -8352,7 +8352,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    RF_04
+                                    RF_05
                                 </TableHead>
                                 <TableHead 
                                     rowSpan={2}
@@ -8702,7 +8702,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_04
+                                RF_05
                             </TableHead>
                             <TableHead 
                                 colSpan={4}
