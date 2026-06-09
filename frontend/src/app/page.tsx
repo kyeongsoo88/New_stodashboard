@@ -614,96 +614,7 @@ function DetailedMetricCard({
                                                             <div className="space-y-1 pl-4">
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
                                                                     <div key={subIdx} className="flex justify-between items-center py-1">
-                                                                        {subItem.name === "보험,복지비등" ? (
-                                                                            <Dialog>
-                                                                                <DialogTrigger asChild>
-                                                                                    <span className="text-xs min-w-[80px] cursor-pointer px-2 py-1 rounded-md transition-all bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-semibold hover:shadow-sm">
-                                                                                        ㄴ {subItem.name}
-                                                                                    </span>
-                                                                                </DialogTrigger>
-                                                                                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                                                                                    <DialogHeader className="border-b pb-4">
-                                                                                        <DialogTitle className="text-xl font-bold text-gray-800">보험,복지비등 상세</DialogTitle>
-                                                                                    </DialogHeader>
-                                                                                    <div className="space-y-6 pt-4">
-                                                                                        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                                                                            <Table>
-                                                                                                <TableHeader>
-                                                                                                    <TableRow className="bg-slate-100 hover:bg-slate-100">
-                                                                                                        <TableHead className="w-[150px] font-bold text-gray-700">구분</TableHead>
-                                                                                                        <TableHead className="text-right font-bold text-gray-700">26년 4월</TableHead>
-                                                                                                        <TableHead className="text-right font-bold text-gray-700">25년 4월</TableHead>
-                                                                                                        <TableHead className="text-right font-bold text-gray-700">차이</TableHead>
-                                                                                                        <TableHead className="text-right font-bold text-gray-700">YoY</TableHead>
-                                                                                                    </TableRow>
-                                                                                                </TableHeader>
-                                                                                                <TableBody>
-                                                                                                    <TableRow className="bg-blue-50 hover:bg-blue-100">
-                                                                                                        <TableCell className="font-semibold text-gray-800">보험,복지비등</TableCell>
-                                                                                                        <TableCell className="text-right font-medium">83,795</TableCell>
-                                                                                                        <TableCell className="text-right font-medium">71,409</TableCell>
-                                                                                                        <TableCell className="text-right font-medium text-blue-600">12,386</TableCell>
-                                                                                                        <TableCell className="text-right font-medium text-emerald-600">117.3%</TableCell>
-                                                                                                    </TableRow>
-                                                                                                    <TableRow className="bg-purple-50 hover:bg-purple-100">
-                                                                                                        <TableCell className="font-semibold text-gray-800">인센티브 지급</TableCell>
-                                                                                                        <TableCell className="text-right font-medium">164,500</TableCell>
-                                                                                                        <TableCell className="text-right font-medium">0</TableCell>
-                                                                                                        <TableCell className="text-right font-medium text-purple-600">164,500</TableCell>
-                                                                                                        <TableCell className="text-right font-medium text-gray-500">-</TableCell>
-                                                                                                    </TableRow>
-                                                                                                    <TableRow className="bg-gray-100 hover:bg-gray-200">
-                                                                                                        <TableCell className="font-bold text-gray-900">합계</TableCell>
-                                                                                                        <TableCell className="text-right font-bold text-gray-900">248,294</TableCell>
-                                                                                                        <TableCell className="text-right font-bold text-gray-900">71,409</TableCell>
-                                                                                                        <TableCell className="text-right font-bold text-red-600">176,885</TableCell>
-                                                                                                        <TableCell className="text-right font-bold text-red-600">347.7%</TableCell>
-                                                                                                    </TableRow>
-                                                                                                </TableBody>
-                                                                                            </Table>
-                                                                                        </div>
-
-                                                                                        <div className="pt-2">
-                                                                                            <h4 className="text-base font-bold mb-3 text-gray-800 flex items-center gap-2">
-                                                                                                <span className="h-1 w-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded"></span>
-                                                                                                연 구분
-                                                                                            </h4>
-                                                                                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                                                                                                <Table>
-                                                                                                    <TableHeader>
-                                                                                                        <TableRow className="bg-slate-100 hover:bg-slate-100">
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">연 구분</TableHead>
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">전년 보너스<br/>충당금 설정</TableHead>
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">실제지급<br/>금액</TableHead>
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">당해 손익 효과</TableHead>
-                                                                                                            <TableHead className="text-center font-bold text-gray-700">상세</TableHead>
-                                                                                                        </TableRow>
-                                                                                                    </TableHeader>
-                                                                                                    <TableBody>
-                                                                                                        <TableRow className="bg-amber-50 hover:bg-amber-100">
-                                                                                                            <TableCell className="text-center font-semibold text-gray-800">26년</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">0</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">164,500</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">164,500</TableCell>
-                                                                                                            <TableCell className="text-center text-sm text-gray-700">25년 부, 보너스 충당금 설정 중지.</TableCell>
-                                                                                                        </TableRow>
-                                                                                                        <TableRow className="bg-green-50 hover:bg-green-100">
-                                                                                                            <TableCell className="text-center font-semibold text-gray-800">25년</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">238,174</TableCell>
-                                                                                                            <TableCell className="text-center font-medium">57,858</TableCell>
-                                                                                                            <TableCell className="text-center font-medium text-red-600">-180,317</TableCell>
-                                                                                                            <TableCell className="text-center text-sm text-gray-700">기 설정 충당금 $238K, 실제 지급분 $57K</TableCell>
-                                                                                                        </TableRow>
-                                                                                                    </TableBody>
-                                                                                                </Table>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </DialogContent>
-                                                                            </Dialog>
-                                                                        ) : (
-                                                                            <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
-                                                                        )}
+                                                                        <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
                                                                         <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                             {subItem.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{subItem.value}</span>}
                                                                             {subItem.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(subItem.yoy))}>{removeYoYParentheses(subItem.yoy)}</span>}
@@ -1330,7 +1241,7 @@ function ShippingCostDialog({ data }: { data: any }) {
     return (
         <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
             <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">US/EU 건당 운반비 / EU 고객 부담 %</h3>
+                <h3 className="text-lg font-bold mb-3 text-slate-800">US/EU 건당 운반비 / 고객 부담 %</h3>
             </div>
             
             <div className="h-[400px] bg-white p-4 rounded-lg shadow-sm">
@@ -1348,7 +1259,7 @@ function ShippingCostDialog({ data }: { data: any }) {
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                             }}
                             formatter={(value: number, name: string) => {
-                                if (name === 'EU 고객 부담%') {
+                                if (name === 'EU 고객 부담%' || name === 'US 고객 부담%') {
                                     return [`${value.toFixed(1)}%`, name];
                                 }
                                 return [`$${value.toFixed(2)}`, name];
@@ -1358,6 +1269,7 @@ function ShippingCostDialog({ data }: { data: any }) {
                         <Line yAxisId="left" type="monotone" dataKey="usCost" stroke="#000000" strokeWidth={2} dot={{ r: 4, fill: "#000000" }} name="US 건당 운반비 단가" />
                         <Line yAxisId="left" type="monotone" dataKey="euCost" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="EU 건당 운반비 단가" />
                         <Line yAxisId="right" type="monotone" dataKey="euBurden" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} name="EU 고객 부담%" />
+                        <Line yAxisId="right" type="monotone" dataKey="usBurden" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="US 고객 부담%" />
                     </ComposedChart>
                 </ResponsiveContainer>
             </div>
@@ -1390,6 +1302,12 @@ function ShippingCostDialog({ data }: { data: any }) {
                             <TableCell className="font-medium">EU 고객 부담%</TableCell>
                             {chartData.map((d: any, idx: number) => (
                                 <TableCell key={`burden-${d.month}-${idx}`} className="text-center">{d.euBurden.toFixed(1)}%</TableCell>
+                            ))}
+                        </TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">US 고객 부담%</TableCell>
+                            {chartData.map((d: any, idx: number) => (
+                                <TableCell key={`us-burden-${d.month}-${idx}`} className="text-center">{d.usBurden.toFixed(1)}%</TableCell>
                             ))}
                         </TableRow>
                     </TableBody>
@@ -9608,8 +9526,6 @@ export default function DashboardPage() {
     'CORE': 16,
     '과시즌': 70
   });
-  const [showReorderPopup, setShowReorderPopup] = React.useState(false);
-  const [reorderItems, setReorderItems] = React.useState<string[]>([]);
   
   // 성장률 변경 시 기말 재고 마이너스 체크 (콘솔 로그만)
   React.useEffect(() => {
@@ -9644,12 +9560,8 @@ export default function DashboardPage() {
     
     if (negativeItems.length > 0) {
       console.log('⚠️ 재고 부족 항목:', negativeItems);
-      setReorderItems(negativeItems);
-      // 팝업은 표시하지 않음 - 신호등으로만 표시
-      // setShowReorderPopup(true);
     } else {
       console.log('✅ 모든 항목 재고 정상');
-      setReorderItems([]);
     }
   }, [tagSeasonGrowthRates, simulInvenData, activeTab]);
   
@@ -11011,11 +10923,13 @@ export default function DashboardPage() {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euBurden = parseFloat(getSummaryValueForPopup('팝업_운반비_EU고객부담%', month, '0').replace(/[%,]/g, '')) || 0;
+      const usBurden = parseFloat(getSummaryValueForPopup('팝업_운반비_US고객부담%', month, '0').replace(/[%,]/g, '')) || 0;
       return {
         month: shippingLabels[idx],
         usCost,
         euCost,
-        euBurden
+        euBurden,
+        usBurden
       };
     });
     
@@ -14534,48 +14448,6 @@ export default function DashboardPage() {
           </>
         )}
       </main>
-
-      {/* Re-order 팝업 */}
-      {showReorderPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={(e) => {
-          if (e.target === e.currentTarget) setShowReorderPopup(false);
-        }}>
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-red-600">⚠️ Re-order 필요</h2>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowReorderPopup(false);
-                }}
-                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="mb-4">
-              <p className="text-gray-700 mb-2">다음 항목의 기말 재고가 마이너스입니다:</p>
-              <ul className="list-disc list-inside space-y-1">
-                {reorderItems.map((item, idx) => (
-                  <li key={idx} className="text-red-600 font-semibold">{item}</li>
-                ))}
-              </ul>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              재고 부족으로 인해 추가 주문이 필요합니다.
-            </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowReorderPopup(false);
-              }}
-              className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition-colors"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
