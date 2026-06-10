@@ -5329,7 +5329,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     '26년 2월(실적)',
     '26년 3월(실적)',
     '26년 4월(실적)',
-    '26년 5월',
+    '26년 5월(실적)',
     '26년 6월',
     '26년 7월',
     '26년 8월',
@@ -5849,7 +5849,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
   };
 
   const monthFoldTargets = new Set([
-    '26년 1월(실적)', '26년 2월(실적)', '26년 3월(실적)', '26년 4월(실적)', '26년 5월', '26년 6월',
+    '26년 1월(실적)', '26년 2월(실적)', '26년 3월(실적)', '26년 4월(실적)', '26년 5월(실적)', '26년 6월',
     '26년 7월', '26년 8월', '26년 9월', '26년 10월', '26년 11월'
   ]);
 
@@ -6111,7 +6111,7 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const monthFoldTargets = new Set([
     '26년 3월',
     '26년 4월',
-    '26년 5월',
+    '26년 5월(실적)',
     '26년 6월',
     '26년 7월',
     '26년 8월',
