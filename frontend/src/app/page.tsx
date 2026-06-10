@@ -7224,8 +7224,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
   const [isWorkingCapitalExpanded, setIsWorkingCapitalExpanded] = React.useState(true);
 
   // 현금흐름표 내부 항목 접기/펼치기 기본값
-  // 기본: 영업활동/재무활동만 펼침, 매출수금/비용지출은 접힘
-  const defaultExpandedRows = React.useMemo(() => new Set<string>(['영업활동', '재무활동']), []);
+  // 기본: 영업활동만 펼침, 재무활동/매출수금/비용지출은 접힘
+  const defaultExpandedRows = React.useMemo(() => new Set<string>(['영업활동']), []);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(defaultExpandedRows);
   const flowParentRows = ['영업활동', '매출수금', '비용지출', '재무활동'];
   const areAllFlowRowsExpanded = flowParentRows.every((row) => expandedRows.has(row));
@@ -7336,6 +7336,16 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
     return num.toLocaleString();
   };
 
+  const formatSignedChangeCell = (val: string) => {
+    if (!val || val === '' || val === '-') return { text: '-', isNegative: false };
+    const rawStr = val.toString().trim();
+    const isNeg = rawStr.includes('(') || rawStr.startsWith('-');
+    const absNum = parseFloat(rawStr.replace(/[(),\s-]/g, ''));
+    if (isNaN(absNum)) return { text: rawStr, isNegative: false };
+    if (absNum === 0) return { text: '0', isNegative: false };
+    return { text: (isNeg ? '-' : '+') + absNum.toLocaleString(), isNegative: isNeg };
+  };
+
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
@@ -7443,7 +7453,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                      label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스' ||
                                      label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용' ||
                                      label === '본사차입' || label === 'STE감자' || label === 'STE청산' || label === 'STE지분매입' || label === '본사차입상환' ||
-                                     label === 'STE감자/배당' || label === 'STE주주환원' ||
+                                     label === 'STE감자/배당' || label === 'STE주주환원' || label === 'STE주주환원(청산)' ||
                                      label === '본사차입(SPA)' || label === '본사차입상환(SPA)' || 
                                      label === '본사차입(운영자금)' || label === '본사차입상환(운영자금)';
                     // 부모 항목 식별
@@ -7453,7 +7463,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     let parentKey = null;
                     if (label === '매출수금' || label === '물품대 지출' || label === '비용지출') parentKey = '영업활동';
                     if (label === '본사차입' || label === 'STE감자' || label === 'STE청산' || label === 'STE지분매입' || label === '본사차입상환' ||
-                        label === 'STE감자/배당' || label === 'STE주주환원' ||
+                        label === 'STE감자/배당' || label === 'STE주주환원' || label === 'STE주주환원(청산)' ||
                         label === '본사차입(SPA)' || label === '본사차입상환(SPA)' || 
                         label === '본사차입(운영자금)' || label === '본사차입상환(운영자금)') parentKey = '재무활동';
                     else if (label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스') parentKey = '매출수금';
@@ -8355,14 +8365,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     </TableHead>
                                 )}
                                 <TableHead 
-                                    colSpan={2}
-                                    className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                    rowSpan={2}
+                                    className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
                                     RF_04
                                 </TableHead>
                                 <TableHead 
-                                    colSpan={4}
+                                    colSpan={3}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
@@ -8421,18 +8431,6 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_04
-                                    </TableHead>
-                                    <TableHead 
-                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                        style={{ backgroundColor: '#2E5C8A' }}
-                                    >
-                                        RF_04 - 전년
-                                    </TableHead>
-                                    <TableHead 
-                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                        style={{ backgroundColor: '#2E5C8A' }}
-                                    >
                                         RF_05
                                     </TableHead>
                                     <TableHead 
@@ -8446,12 +8444,6 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
                                         RF_04대비 증감
-                                    </TableHead>
-                                    <TableHead 
-                                        className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                        style={{ backgroundColor: '#2E5C8A' }}
-                                    >
-                                        RF_04대비(%)
                                     </TableHead>
                                 </>
                             )}
@@ -8486,6 +8478,11 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             const isFinanceSub = tableType === 'flow' && financeSubLabels.includes(row.label);
                             const isFinanceSubtotal = tableType === 'flow' && (row.label === '재무활동_운영자금 소계' || row.label === '투자소계');
                             const isFinanceColored = isFinanceSub || isFinanceSubtotal;
+                            // 현금흐름표: 볼드체 유지할 주요 행 (기초잔액/영업활동/재무활동/기말잔액/Net Cash)
+                            const isBoldFlowRow = tableType === 'flow' && (
+                                row.label === '기초잔액' || row.label === '영업활동' || row.label === '재무활동' ||
+                                row.label === '기말잔액' || row.label === 'Net Cash'
+                            );
                             
                             // 행 스타일
                             let rowClass = "hover:bg-gray-50";
@@ -8526,6 +8523,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             // 재무활동 영역: 연결선 제거 후 깔끔한 들여쓰기
                             if (isFinanceSub) labelClass = "text-xs font-medium text-gray-700 pl-10";
                             if (isFinanceSubtotal) labelClass = "text-xs font-bold text-gray-900 pl-6";
+                            // 현금흐름표: 주요 행을 제외한 모든 행 볼드체 해제 (문자)
+                            if (tableType === 'flow' && !isBoldFlowRow) labelClass = labelClass.replace(/font-(bold|semibold|medium)/g, 'font-normal');
+                            // 주요 행은 볼드체 유지/적용
+                            if (isBoldFlowRow) labelClass = labelClass.replace(/font-(normal|medium|semibold)/g, 'font-bold');
                             
                             return (
                                 <TableRow key={rIdx} className={cn("text-xs", rowClass, rowBg)}>
@@ -8609,6 +8610,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             if (!showAllMonths && vIdx >= 1 && vIdx <= 12) {
                                                 return null;
                                             }
+                                            // RF_04 - 전년(vIdx 14) 컬럼 삭제 (현금흐름표/현금잔액표/운전자본표)
+                                            if (vIdx === 14) {
+                                                return null;
+                                            }
+                                            // RF_04대비(%)(vIdx 18) 컬럼 삭제
+                                            if (vIdx === 18) {
+                                                return null;
+                                            }
                                         }
                                         
                                         // 현금흐름표, 현금잔액표, 운전자본표가 아닌 경우 월 컬럼 가시성 확인
@@ -8621,28 +8630,27 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         
                                         // 값 스타일
                                         const formatted = formatCell(val);
-                                        const isNegative = formatted.startsWith('(');
+                                        let displayValue: React.ReactNode = formatted;
+                                        let isNegative = formatted.startsWith('(');
+
+                                        // RF_05 - 전년(vIdx 16), RF_04대비 증감(vIdx 17): +/- 부호 형식
+                                        if (vIdx === 16 || vIdx === 17) {
+                                            const signed = formatSignedChangeCell(val);
+                                            displayValue = signed.text;
+                                            isNegative = signed.isNegative;
+                                        }
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
+                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300" + (isBoldFlowRow ? " font-bold" : tableType === 'flow' ? " font-normal" : " font-semibold");
+                                        const isValueCol = vIdx === 0 || vIdx === 13 || vIdx === 15; // 전년, RF_04, RF_05
                                         if (isNegative) cellClass += " text-red-600";
-                                        else if (isFinanceColored && formatted !== '0' && formatted !== '' && formatted !== '-') cellClass += " text-blue-600";
+                                        else if (!isValueCol && isFinanceColored && formatted !== '0' && formatted !== '' && formatted !== '-') cellClass += " text-blue-600";
+                                        else if ((vIdx === 16 || vIdx === 17) && displayValue !== '-' && displayValue !== '0' && !isNegative) cellClass += " text-blue-600";
                                         else cellClass += " text-gray-900";
                                         
                                         // RF_04 컬럼에서 4,500 또는 (4,500) 값에 파스텔톤 음영 추가
                                         if ((tableType === 'flow' || tableType === 'balance' || tableType === 'working') && 
                                             vIdx === 15 && (formatted === "4,500" || formatted === "(4,500)")) {
                                             cellClass += " bg-yellow-100";
-                                        }
-
-                                        // 재무활동 영역 증감 컬럼: 부호(+/-) 형식으로 표시 (스크린샷 디자인)
-                                        let displayValue: React.ReactNode = formatted;
-                                        if ((isFinanceColored || (tableType === 'flow' && row.label === '재무활동')) && (vIdx === 14 || vIdx === 16 || vIdx === 17)) {
-                                            const rawStr = (val ?? '').toString().trim();
-                                            const isNeg = rawStr.includes('(') || rawStr.startsWith('-');
-                                            const absNum = parseFloat(rawStr.replace(/[(),\s-]/g, ''));
-                                            if (!isNaN(absNum) && absNum !== 0) {
-                                                displayValue = (isNeg ? '-' : '+') + absNum.toLocaleString();
-                                            }
                                         }
 
                                         return (
@@ -8652,7 +8660,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         );
                                     })}
                                     {(tableType === 'flow' || tableType === 'balance' || tableType === 'working') && (
-                                        <TableCell className="text-xs py-2 px-3 text-left border border-gray-300 text-gray-800 font-semibold">
+                                        <TableCell className={cn("text-xs py-2 px-3 text-left border border-gray-300 text-gray-800", tableType === 'flow' ? "font-normal" : "font-semibold")}>
                                             {tableType === 'flow' && stoDetailData[row.label] || ''}
                                             {tableType === 'balance' && cashLoanDetailData[row.label] || ''}
                                             {tableType === 'working' && workingCapitalDetailData[row.label] || ''}
@@ -8739,14 +8747,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 </TableHead>
                             )}
                             <TableHead 
-                                colSpan={2}
-                                className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
+                                rowSpan={2}
+                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_05
+                                RF_04
                             </TableHead>
                             <TableHead 
-                                colSpan={4}
+                                colSpan={3}
                                 className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
@@ -8783,18 +8791,6 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_04
-                            </TableHead>
-                            <TableHead 
-                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                style={{ backgroundColor: '#2E5C8A' }}
-                            >
-                                RF_04 - 전년
-                            </TableHead>
-                            <TableHead 
-                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                style={{ backgroundColor: '#2E5C8A' }}
-                            >
                                 RF_05
                             </TableHead>
                             <TableHead 
@@ -8808,12 +8804,6 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
                                 RF_04대비 증감
-                            </TableHead>
-                            <TableHead 
-                                className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
-                                style={{ backgroundColor: '#2E5C8A' }}
-                            >
-                                RF_04대비(%)
                             </TableHead>
                         </TableRow>
                     </TableHeader>
@@ -8869,13 +8859,30 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         if (!showAllMonths && vIdx >= 1 && vIdx <= 12) {
                                             return null;
                                         }
+                                        // RF_04 - 전년(vIdx 14) 컬럼 삭제
+                                        if (vIdx === 14) {
+                                            return null;
+                                        }
+                                        // RF_04대비(%)(vIdx 18) 컬럼 삭제
+                                        if (vIdx === 18) {
+                                            return null;
+                                        }
                                         
                                         // 값 스타일
                                         const formatted = formatCell(val);
-                                        const isNegative = formatted.startsWith('(');
+                                        let displayValue: React.ReactNode = formatted;
+                                        let isNegative = formatted.startsWith('(');
+
+                                        // RF_05 - 전년(vIdx 16), RF_04대비 증감(vIdx 17): +/- 부호 형식
+                                        if (vIdx === 16 || vIdx === 17) {
+                                            const signed = formatSignedChangeCell(val);
+                                            displayValue = signed.text;
+                                            isNegative = signed.isNegative;
+                                        }
                                         
                                         let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
                                         if (isNegative) cellClass += " text-red-600";
+                                        else if ((vIdx === 16 || vIdx === 17) && displayValue !== '-' && displayValue !== '0' && !isNegative) cellClass += " text-blue-600";
                                         else cellClass += " text-gray-900";
                                         
                                         // RF_04 컬럼에서 4,500 또는 (4,500) 값에 파스텔톤 음영 추가
@@ -8885,7 +8892,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
-                                                {formatted}
+                                                {displayValue}
                                             </TableCell>
                                         );
                                     })}
