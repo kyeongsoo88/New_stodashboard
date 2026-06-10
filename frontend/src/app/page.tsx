@@ -5190,6 +5190,25 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
 const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전자본', '기타자산/부채', '자본', '자산-부채'];
 
+const isStoBalanceSheetCollapsedColumn = (header: string) => {
+  const h = (header || '').trim();
+  if (!h) return false;
+  if (h === '전년' || h === 'RF_04' || h === 'RF_05' || h === '상세') return true;
+  if (/RF_05\s*-\s*RF_?04/i.test(h)) return true;
+  if (/RF_05\s*-\s*전년/.test(h)) return true;
+  return false;
+};
+
+const getStoBalanceSheetVisibleHeaderIndices = (headers: string[], showAllMonths: boolean) =>
+  headers
+    .map((h, idx) => ({ h: (h || '').trim(), idx }))
+    .filter(({ h, idx }) => {
+      if (idx === 0) return true;
+      if (showAllMonths) return true;
+      return isStoBalanceSheetCollapsedColumn(h);
+    })
+    .map(({ idx }) => idx);
+
 // STO 재무상태표(신규) 컴포넌트
 function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [headers, setHeaders] = React.useState<string[]>([]);
@@ -5324,28 +5343,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     });
   };
 
-  const monthFoldTargets = new Set([
-    '26년 1월(실적)',
-    '26년 2월(실적)',
-    '26년 3월(실적)',
-    '26년 4월(실적)',
-    '26년 5월(실적)',
-    '26년 6월',
-    '26년 7월',
-    '26년 8월',
-    '26년 9월',
-    '26년 10월',
-    '26년 11월',
-  ]);
-
-  const visibleHeaderIndices = headers
-    .map((h, idx) => ({ h: (h || '').trim(), idx }))
-    .filter(({ h, idx }) => {
-      if (idx === 0) return true;
-      if (showAllMonths) return true;
-      return !monthFoldTargets.has(h);
-    })
-    .map(({ idx }) => idx);
+  const visibleHeaderIndices = getStoBalanceSheetVisibleHeaderIndices(headers, showAllMonths);
 
   const annotatedRows = React.useMemo(() => {
     let currentTop: string | null = null;
@@ -5867,19 +5865,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
     return !isNaN(num) && num < 0;
   };
 
-  const monthFoldTargets = new Set([
-    '26년 1월(실적)', '26년 2월(실적)', '26년 3월(실적)', '26년 4월(실적)', '26년 5월(실적)', '26년 6월',
-    '26년 7월', '26년 8월', '26년 9월', '26년 10월', '26년 11월'
-  ]);
-
-  const visibleHeaderIndices = headers
-    .map((h, idx) => ({ h: (h || '').trim(), idx }))
-    .filter(({ h, idx }) => {
-      if (idx === 0) return true;
-      if (showAllMonths) return true;
-      return !monthFoldTargets.has(h);
-    })
-    .map(({ idx }) => idx);
+  const visibleHeaderIndices = getStoBalanceSheetVisibleHeaderIndices(headers, showAllMonths);
 
   const processedRows = React.useMemo(() => {
     let currentParent: string | null = null;
@@ -6050,7 +6036,6 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   const [rows, setRows] = React.useState<Array<{ label: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['자산', '자본']));
-  const [showAllMonths, setShowAllMonths] = React.useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -6150,26 +6135,7 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     });
   };
 
-  const monthFoldTargets = new Set([
-    '26년 3월',
-    '26년 4월',
-    '26년 5월(실적)',
-    '26년 6월',
-    '26년 7월',
-    '26년 8월',
-    '26년 9월',
-    '26년 10월',
-    '26년 11월',
-  ]);
-
-  const visibleHeaderIndices = headers
-    .map((h, idx) => ({ h: (h || '').trim(), idx }))
-    .filter(({ h, idx }) => {
-      if (idx === 0) return true;
-      if (showAllMonths) return true;
-      return !monthFoldTargets.has(h);
-    })
-    .map(({ idx }) => idx);
+  const visibleHeaderIndices = headers.map((_, idx) => idx);
 
   const annotatedRows = React.useMemo(() => {
     let currentTop: string | null = null;
@@ -6228,14 +6194,6 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
       <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STE 재무상태표 (단위 : K £)</CardTitle>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAllMonths((prev) => !prev)}
-            className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
-          >
-            {showAllMonths ? "월 접기" : "월 펼치기"}
-          </Button>
           <Button
             variant="outline"
             size="sm"
