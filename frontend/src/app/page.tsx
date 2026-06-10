@@ -5741,8 +5741,8 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
 
   // 토글 대상 및 상태
   const toggleTargets = React.useMemo(() => ['운전자본', '현금/차입금', '기타운전자본', '기타자산부채', '자본'], []);
-  // 기본값: 현금/차입금, 기타자산부채, 자본만 펼침 (스크린샷 기준)
-  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['현금/차입금', '기타자산부채', '자본']));
+  // 기본값: 운전자본, 현금/차입금, 기타자산부채, 자본 펼침
+  const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set(['운전자본', '현금/차입금', '기타자산부채', '자본']));
 
   const toggleRow = (label: string) => {
     setExpandedRows(prev => {
