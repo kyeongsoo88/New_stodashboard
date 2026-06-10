@@ -5456,9 +5456,13 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                 const isSection = row.isSection;
                 const isGroup = row.isGroup;
                 const rowBg = isSection
-                  ? "bg-white"
-                  : isGroup
-                  ? "bg-white"
+                  ? (row.label === '자산'
+                      ? "bg-blue-100"
+                      : row.label === '부채'
+                      ? "bg-rose-100"
+                      : row.label === '자본'
+                      ? "bg-emerald-100"
+                      : "bg-slate-100")
                   : "bg-white";
 
                 return (
@@ -5488,6 +5492,9 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         ) : (
                           <span className="inline-block h-3 w-3 flex-shrink-0" />
                         )}
+                        {!isSection && !isGroup && (
+                          <span className="text-slate-400 flex-shrink-0">└</span>
+                        )}
                         {row.label === '차입금' ? (
                           <button
                             onClick={(e) => {
@@ -5511,6 +5518,18 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const value = row.values[valueIndex] ?? '';
                       const isDetailCol = headers[headerIdx] === '상세';
                       const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
+                      const colHeader = (headers[headerIdx] || '').trim();
+                      const isChangeCol = colHeader.includes('RF_05 - RF');
+                      const isYoyCol = colHeader.includes('- 전년');
+                      const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                      let valueColorClass = '';
+                      if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                        valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                      } else if (isYoyCol) {
+                        valueColorClass = 'text-gray-500';
+                      } else {
+                        valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
+                      }
                       return (
                         <TableCell
                           key={`${rowIndex}-${headerIdx}`}
@@ -5520,8 +5539,8 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                             // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                            !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
-                            isSection && !isNegative(value) && "font-bold"
+                            !isDetailCol && valueColorClass,
+                            isSection && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
                           )}
                         >
                           {displayValue}
@@ -5940,7 +5959,15 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                 const isCashDebt = row.label === '현금/차입금';
                 
                 let rowBg = "bg-white";
-                if (isMain) rowBg = "bg-white";
+                if (isMain) {
+                  rowBg = row.label === '운전자본'
+                    ? "bg-blue-100"
+                    : row.label === '현금/차입금'
+                    ? "bg-rose-100"
+                    : row.label === '자본'
+                    ? "bg-emerald-100"
+                    : "bg-slate-100";
+                }
 
                 return (
                   <TableRow key={rowIndex} className={cn("text-xs hover:bg-gray-50", rowBg)}>
@@ -5963,6 +5990,9 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                         ) : (
                           <span className="inline-block h-3 w-3 flex-shrink-0" />
                         )}
+                        {!isMain && (
+                          <span className="text-slate-400 flex-shrink-0">└</span>
+                        )}
                         <span>{row.label}</span>
                       </div>
                     </TableCell>
@@ -5973,6 +6003,18 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                         const value = row.values[valueIndex] ?? '';
                         const isDetailCol = headers[headerIdx] === '상세';
                         const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
+                        const colHeader = (headers[headerIdx] || '').trim();
+                        const isChangeCol = colHeader.includes('RF_05 - RF');
+                        const isYoyCol = colHeader.includes('- 전년');
+                        const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                        let valueColorClass = '';
+                        if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                          valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                        } else if (isYoyCol) {
+                          valueColorClass = 'text-gray-500';
+                        } else {
+                          valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
+                        }
                         
                         return (
                           <TableCell
@@ -5983,8 +6025,8 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                               !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                               // 상세 컬럼: 최소 너비, 줄바꿈 허용
                               isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                              !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
-                              isMain && !isNegative(value) && "font-bold"
+                              !isDetailCol && valueColorClass,
+                              isMain && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
                             )}
                           >
                             {displayValue}
@@ -6238,9 +6280,13 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                 const isSection = row.isSection;
                 const isGroup = row.isGroup;
                 const rowBg = isSection
-                  ? "bg-white"
-                  : isGroup
-                  ? "bg-white"
+                  ? (row.label === '자산'
+                      ? "bg-blue-100"
+                      : row.label === '부채'
+                      ? "bg-rose-100"
+                      : row.label === '자본'
+                      ? "bg-emerald-100"
+                      : "bg-slate-100")
                   : "bg-white";
 
                 return (
@@ -6270,6 +6316,9 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                         ) : (
                           <span className="inline-block h-3 w-3 flex-shrink-0" />
                         )}
+                        {!isSection && !isGroup && (
+                          <span className="text-slate-400 flex-shrink-0">└</span>
+                        )}
                         <span>{row.label}</span>
                       </div>
                     </TableCell>
@@ -6280,6 +6329,18 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const value = row.values[valueIndex] ?? '';
                       const isDetailCol = headers[headerIdx] === '상세';
                       const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
+                      const colHeader = (headers[headerIdx] || '').trim();
+                      const isChangeCol = colHeader.includes('RF_05 - RF');
+                      const isYoyCol = colHeader.includes('- 전년');
+                      const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                      let valueColorClass = '';
+                      if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                        valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                      } else if (isYoyCol) {
+                        valueColorClass = 'text-gray-500';
+                      } else {
+                        valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
+                      }
                       return (
                         <TableCell
                           key={`${rowIndex}-${headerIdx}`}
@@ -6289,8 +6350,8 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
                             // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
-                            !isDetailCol && isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
-                            isSection && !isNegative(value) && "font-bold"
+                            !isDetailCol && valueColorClass,
+                            isSection && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
                           )}
                         >
                           {displayValue}
@@ -11305,8 +11366,9 @@ export default function DashboardPage() {
                               }`}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(RF_05) 값만 표시
-                                  {
-                                    const rawVal = row.ytd26;
+                                  const __plRawVal = row.ytd26 ?? '';
+                                  if (__plRawVal !== '\u0000__NEVER__') {
+                                    const rawVal = __plRawVal;
                                     if (!rawVal || rawVal === '0') return '';
                                     if (rawVal.includes('%')) return rawVal;
                                     const cleanRaw = rawVal.replace(/,/g, '');
@@ -11998,8 +12060,9 @@ export default function DashboardPage() {
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전년대비) 값만 표시
-                                  {
-                                    const rawVal = row.yoy;
+                                  const __yoyRawVal = row.yoy ?? '';
+                                  if (__yoyRawVal !== '\u0000__NEVER__') {
+                                    const rawVal = __yoyRawVal;
                                     if (!rawVal || rawVal === '0') return '';
                                     if (rawVal.includes('%')) return rawVal;
                                     const cleanRaw = rawVal.replace(/,/g, '');
@@ -12680,8 +12743,9 @@ export default function DashboardPage() {
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전월대비) 값만 표시
-                                  {
-                                    const rawVal = row.monthDiff;
+                                  const __monthRawVal = row.monthDiff ?? '';
+                                  if (__monthRawVal !== '\u0000__NEVER__') {
+                                    const rawVal = __monthRawVal;
                                     if (!rawVal || rawVal === '0') return '';
                                     if (rawVal.includes('%')) return rawVal;
                                     const cleanRaw = rawVal.replace(/,/g, '');
