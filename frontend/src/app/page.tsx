@@ -8480,6 +8480,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                             const isInFinanceGroup3 = financeGroup3.includes(row.label);
                             const isFirstInGroup = row.label === '본사차입(SPA)' || row.label === '본사차입(운영자금)' || row.label === 'STE지분매입';
                             const isLastInGroup = row.label === '본사차입상환(SPA)' || row.label === 'STE주주환원' || row.label === 'STE감자/배당';
+
+                            // 재무활동 영역 (스크린샷 레이아웃): 하위 항목 + 소계 행
+                            const financeSubLabels = ['본사차입(운영자금)', '본사차입상환(운영자금)', 'STE주주환원(청산)', '본사차입(SPA)', '본사차입상환(SPA)', 'STE지분매입', 'STE감자/배당'];
+                            const isFinanceSub = tableType === 'flow' && financeSubLabels.includes(row.label);
+                            const isFinanceSubtotal = tableType === 'flow' && (row.label === '재무활동_운영자금 소계' || row.label === '투자소계');
+                            const isFinanceColored = isFinanceSub || isFinanceSubtotal;
                             
                             // 행 스타일
                             let rowClass = "hover:bg-gray-50";
@@ -8493,6 +8499,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 rowBg = "bg-white";
                             }
                             if (tableType === 'balance' && isTotalRow) rowBg = "bg-white";
+                            // 소계 행 배경 강조
+                            if (isFinanceSubtotal) rowBg = "bg-slate-100";
 
                             // 라벨 스타일
                             // 부모 행 스타일을 우선 적용해 아이콘이 항상 텍스트 왼쪽에 오도록 유지
@@ -8515,6 +8523,9 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 labelClass = "text-xs font-bold text-gray-900 pl-8 flex items-center gap-1 whitespace-nowrap";
                             }
                             if (isNetCash) labelClass = "text-xs font-bold text-gray-900";
+                            // 재무활동 영역: 연결선 제거 후 깔끔한 들여쓰기
+                            if (isFinanceSub) labelClass = "text-xs font-medium text-gray-700 pl-10";
+                            if (isFinanceSubtotal) labelClass = "text-xs font-bold text-gray-900 pl-6";
                             
                             return (
                                 <TableRow key={rIdx} className={cn("text-xs", rowClass, rowBg)}>
@@ -8536,8 +8547,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                 />
                                             )}
                                             {isMaterialOutflow && <span className="h-3 w-3 flex-shrink-0" />}
-                                            {/* 재무활동 그룹 브래킷 및 연결선 */}
-                                            {(isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && (
+                                            {/* 재무활동 그룹 브래킷 및 연결선 (스크린샷 디자인: 비활성화) */}
+                                            {false && (isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && (
                                                 <div className="absolute left-8 top-0 bottom-0 flex items-center">
                                                     {/* Vertical line connecting group items */}
                                                     <div 
@@ -8581,8 +8592,12 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                                     </div>
                                                 </div>
                                             )}
-                                            <span className={cn((isInFinanceGroup1 || isInFinanceGroup2 || isInFinanceGroup3) && "ml-1")}>
-                                                {row.label}
+                                            <span>
+                                                {row.label === '재무활동_운영자금 소계'
+                                                    ? '운영 소계'
+                                                    : row.label === '투자소계'
+                                                    ? '투자 소계'
+                                                    : row.label}
                                             </span>
                                         </div>
                                     </TableCell>
@@ -8610,6 +8625,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         
                                         let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
                                         if (isNegative) cellClass += " text-red-600";
+                                        else if (isFinanceColored && formatted !== '0' && formatted !== '' && formatted !== '-') cellClass += " text-blue-600";
                                         else cellClass += " text-gray-900";
                                         
                                         // RF_04 컬럼에서 4,500 또는 (4,500) 값에 파스텔톤 음영 추가
@@ -8618,9 +8634,20 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             cellClass += " bg-yellow-100";
                                         }
 
+                                        // 재무활동 영역 증감 컬럼: 부호(+/-) 형식으로 표시 (스크린샷 디자인)
+                                        let displayValue: React.ReactNode = formatted;
+                                        if ((isFinanceColored || (tableType === 'flow' && row.label === '재무활동')) && (vIdx === 14 || vIdx === 16 || vIdx === 17)) {
+                                            const rawStr = (val ?? '').toString().trim();
+                                            const isNeg = rawStr.includes('(') || rawStr.startsWith('-');
+                                            const absNum = parseFloat(rawStr.replace(/[(),\s-]/g, ''));
+                                            if (!isNaN(absNum) && absNum !== 0) {
+                                                displayValue = (isNeg ? '-' : '+') + absNum.toLocaleString();
+                                            }
+                                        }
+
                                         return (
                                             <TableCell key={vIdx} className={cellClass}>
-                                                {formatted}
+                                                {displayValue}
                                             </TableCell>
                                         );
                                     })}
