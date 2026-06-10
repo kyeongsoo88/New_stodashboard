@@ -10310,6 +10310,36 @@ export default function DashboardPage() {
         y_curr_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_영업이익_연간누적_당년비율', month, '12.5%'),
         y_diff: pnlDataSource === 'USEC' ? '' : formatDiff(getSummaryValue('손익요약_영업이익_연간누적_전년비', month, '-7392')),
         y_yoy: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_영업이익_연간누적_YOY', month, '82%')
+      },
+      {
+        label: "매출인식분 조정",
+        m_prev: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_매출인식분조정_당월실적_전년', month, '')),
+        m_prev_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_당월실적_전년비율', month, ''),
+        m_curr: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_매출인식분조정_당월실적_당년', month, '')),
+        m_curr_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_당월실적_당년비율', month, ''),
+        m_diff: pnlDataSource === 'USEC' ? '' : formatDiff(getSummaryValue('손익요약_매출인식분조정_당월실적_전년비', month, '')),
+        m_yoy: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_당월실적_YOY', month, ''),
+        y_prev: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_매출인식분조정_연간누적_전년', month, '')),
+        y_prev_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_연간누적_전년비율', month, ''),
+        y_curr: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_매출인식분조정_연간누적_당년', month, '')),
+        y_curr_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_연간누적_당년비율', month, ''),
+        y_diff: pnlDataSource === 'USEC' ? '' : formatDiff(getSummaryValue('손익요약_매출인식분조정_연간누적_전년비', month, '')),
+        y_yoy: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_매출인식분조정_연간누적_YOY', month, '')
+      },
+      {
+        label: "조정 후 영업이익",
+        m_prev: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_조정후영업이익_당월실적_전년', month, '')),
+        m_prev_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_당월실적_전년비율', month, ''),
+        m_curr: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_조정후영업이익_당월실적_당년', month, '')),
+        m_curr_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_당월실적_당년비율', month, ''),
+        m_diff: pnlDataSource === 'USEC' ? '' : formatDiff(getSummaryValue('손익요약_조정후영업이익_당월실적_전년비', month, '')),
+        m_yoy: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_당월실적_YOY', month, ''),
+        y_prev: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_조정후영업이익_연간누적_전년', month, '')),
+        y_prev_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_연간누적_전년비율', month, ''),
+        y_curr: pnlDataSource === 'USEC' ? '' : formatNumber(getSummaryValue('손익요약_조정후영업이익_연간누적_당년', month, '')),
+        y_curr_p: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_연간누적_당년비율', month, ''),
+        y_diff: pnlDataSource === 'USEC' ? '' : formatDiff(getSummaryValue('손익요약_조정후영업이익_연간누적_전년비', month, '')),
+        y_yoy: pnlDataSource === 'USEC' ? '' : getSummaryValue('손익요약_조정후영업이익_연간누적_YOY', month, '')
       }
     ];
     
