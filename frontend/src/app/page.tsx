@@ -9457,27 +9457,28 @@ export default function DashboardPage() {
   const [loadingDashboard, setLoadingDashboard] = React.useState(true);
   const [pnlDataSource, setPnlDataSource] = React.useState<'전체' | 'USEC'>('전체');
   const [simulPLData, setSimulPLData] = React.useState<Array<{label: string, fy25: string, prevYtd26: string, ytd26: string, yoy: string, monthDiff: string, growth: string}>>([]);
+  const [simulPLHeaders, setSimulPLHeaders] = React.useState<string[]>([]);
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, values: string[]}>>([]);
   const [simulInvenHeaders, setSimulInvenHeaders] = React.useState<string[]>([]);
-  // TAG매출용 시즌별 성장률
+  // TAG매출용 시즌별 성장률 (모두 100%로 중립화)
   const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
     '27SS': 100,
-    '26FW': 78,
-    '26SS': 54,
-    '25FW': 144,
-    '25SS': 403,
-    'CORE': 519,
-    '과시즌': 58
+    '26FW': 100,
+    '26SS': 100,
+    '25FW': 100,
+    '25SS': 100,
+    'CORE': 100,
+    '과시즌': 100
   });
-  // 실판매출용 시즌별 성장률
+  // 실판매출용 시즌별 성장률 (모두 0%로 중립화)
   const [netSeasonGrowthRates, setNetSeasonGrowthRates] = React.useState<Record<string, number>>({
-    '27SS': 100,
-    '26FW': 37,
-    '26SS': 27,
-    '25FW': 50,
-    '25SS': 61,
-    'CORE': 16,
-    '과시즌': 70
+    '27SS': 0,
+    '26FW': 0,
+    '26SS': 0,
+    '25FW': 0,
+    '25SS': 0,
+    'CORE': 0,
+    '과시즌': 0
   });
   
   // 성장률 변경 시 기말 재고 마이너스 체크 (콘솔 로그만)
@@ -9592,6 +9593,12 @@ export default function DashboardPage() {
           return result;
         };
         
+        // 헤더 파싱
+        if (lines.length > 0) {
+          const headers = parseCSVLine(lines[0]);
+          setSimulPLHeaders(headers);
+        }
+        
         const data = lines.slice(1).map(line => {
           const values = parseCSVLine(line);
           return {
@@ -9620,9 +9627,9 @@ export default function DashboardPage() {
         const bytes = new Uint8Array(buf);
         let text = '';
         try {
-          text = new TextDecoder('euc-kr').decode(bytes);
-        } catch {
           text = new TextDecoder('utf-8').decode(bytes);
+        } catch {
+          text = new TextDecoder('euc-kr').decode(bytes);
         }
         return text;
       })
@@ -11054,7 +11061,7 @@ export default function DashboardPage() {
               {/* 손익계산서 */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg font-bold">손익계산서 YTD</CardTitle>
+                  <CardTitle className="text-lg font-bold">26년 손익계산서</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
@@ -11080,12 +11087,13 @@ export default function DashboardPage() {
                     <table className="w-full border-collapse text-sm">
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          <th className="text-left p-3 font-semibold border-2 border-gray-400">구분</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">25FY</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전월 보고<br/>26FY 연간</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">26FY<br/>연간</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전년대비</th>
-                          <th className="text-center p-3 font-semibold border-2 border-gray-400 w-[16.67%]">전월대비</th>
+                          {simulPLHeaders.map((header, idx) => (
+                            <th
+                              key={`pl-header-${idx}`}
+                              className={`p-3 font-semibold border-2 border-gray-400 ${idx === 0 ? 'text-left' : 'text-center'} ${idx > 0 ? 'w-[16.67%]' : ''}`}
+                              dangerouslySetInnerHTML={{ __html: header.replace(/\\n/g, '<br/>') }}
+                            />
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -11182,120 +11190,8 @@ export default function DashboardPage() {
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
                               <td className={`p-2 border-2 border-gray-300 ${indentClass}`}>
-                                {isSeasonItem && label !== '27SS' ? (
-                                  <div className="flex items-center gap-3">
-                                    <span className="text-gray-600">{label}</span>
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <input
-                                        type="range"
-                                        min="-50"
-                                        max={label === '25SS' ? "500" : label === 'CORE' ? "600" : "200"}
-                                        value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
-                                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                                        onChange={(e) => {
-                                          const value = parseInt(e.target.value);
-                                          if (isNetSalesSeasonItem) {
-                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
-                                          } else {
-                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
-                                          }
-                                        }}
-                                      />
-                                      <button
-                                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const currentValue = isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100);
-                                          const newValue = Math.max(-50, currentValue - 1);
-                                          if (isNetSalesSeasonItem) {
-                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
-                                          } else {
-                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
-                                          }
-                                        }}
-                                      >
-                                        -
-                                      </button>
-                                      <input
-                                        type="number"
-                                        min="-50"
-                                        max={label === '25SS' ? "500" : label === 'CORE' ? "600" : "200"}
-                                        value={isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100)}
-                                        className="w-16 px-1 py-1 border rounded text-center text-xs font-semibold"
-                                        onChange={(e) => {
-                                          const value = parseInt(e.target.value) || 100;
-                                          if (isNetSalesSeasonItem) {
-                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
-                                          } else {
-                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: value }));
-                                          }
-                                        }}
-                                      />
-                                      <span className="text-xs">%</span>
-                                      <button
-                                        className="w-6 h-6 flex items-center justify-center border rounded hover:bg-gray-100 text-sm font-bold"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const currentValue = isNetSalesSeasonItem ? (netSeasonGrowthRates[label] || 100) : (tagSeasonGrowthRates[label] || 100);
-                                          const maxValue = label === '25SS' ? 500 : label === 'CORE' ? 600 : 200;
-                                          const newValue = Math.min(maxValue, currentValue + 1);
-                                          if (isNetSalesSeasonItem) {
-                                            setNetSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
-                                          } else {
-                                            setTagSeasonGrowthRates(prev => ({ ...prev, [label]: newValue }));
-                                          }
-                                        }}
-                                      >
-                                        +
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : label === '27SS' ? (
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-gray-600">{label}</span>
-                                  </div>
-                                ) : isEcom ? (
-                                  <div className="flex items-center justify-between">
-                                    <span>온라인(전년대비 YOY)</span>
-                                    <button
-                                      className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setTagSeasonGrowthRates({
-                                          '27SS': 100,
-                                          '26FW': 78,
-                                          '26SS': 54,
-                                          '25FW': 144,
-                                          '25SS': 403,
-                                          'CORE': 519,
-                                          '과시즌': 58
-                                        });
-                                      }}
-                                    >
-                                      RESET
-                                    </button>
-                                  </div>
-                                ) : isNetSalesOnline ? (
-                                  <div className="flex items-center justify-between">
-                                    <span>{label}</span>
-                                    <button
-                                      className="px-3 py-1 text-xs font-semibold bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setNetSeasonGrowthRates({
-                                          '27SS': 100,
-                                          '26FW': 37,
-                                          '26SS': 27,
-                                          '25FW': 50,
-                                          '25SS': 61,
-                                          'CORE': 16,
-                                          '과시즌': 70
-                                        });
-                                      }}
-                                    >
-                                      RESET
-                                    </button>
-                                  </div>
+                                {isEcom ? (
+                                  <span>온라인</span>
                                 ) : (
                                   <div className="flex items-center justify-between">
                                     <span>{label}</span>
@@ -11408,6 +11304,17 @@ export default function DashboardPage() {
                                     : 'bg-green-50/20 border-2 border-gray-300'
                               }`}>
                                 {(() => {
+                                  // 모든 계산 로직 비활성화 - CSV(RF_05) 값만 표시
+                                  {
+                                    const rawVal = row.ytd26;
+                                    if (!rawVal || rawVal === '0') return '';
+                                    if (rawVal.includes('%')) return rawVal;
+                                    const cleanRaw = rawVal.replace(/,/g, '');
+                                    const rawNum = parseFloat(cleanRaw);
+                                    if (isNaN(rawNum)) return rawVal;
+                                    if (rawNum < 0) return <span className="text-red-600">{rawNum.toLocaleString()}</span>;
+                                    return rawNum.toLocaleString();
+                                  }
                                   // 매출원가 = TAG매출 26FY YTD × 19.93%
                                   if (isCOGS) {
                                     const tagSalesRow = simulPLData.find(r => r.label === 'TAG매출');
@@ -12031,81 +11938,40 @@ export default function DashboardPage() {
                                     return operatingProfit !== 0 ? Math.round(operatingProfit).toLocaleString() : '';
                                   }
                                   
-                                  // TAG매출 행의 26FY YTD는 온라인(성장률 적용) + 홀세일
+                                  // TAG매출 - CSV 값만 표시
                                   if (isTagSales) {
-                                    const onlineRow = simulPLData.find(r => r.label === '온라인');
-                                    const wholesaleRow = simulPLData.find(r => r.label === '홀세일');
-                                    
-                                    // 온라인 값 계산 (시즌 합계 with TAG 성장률)
-                                    let onlineValue = 0;
-                                    if (onlineRow) {
-                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                      seasonLabels.forEach(seasonLabel => {
-                                        const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
-                                          const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                          const baseNum = parseFloat(cleanVal);
-                                          if (!isNaN(baseNum)) {
-                                            const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                            onlineValue += baseNum * (growthRate / 100);
-                                          }
-                                        }
-                                      });
-                                    }
-                                    
-                                    // 홀세일 값
-                                    let wholesaleValue = 0;
-                                    if (wholesaleRow && wholesaleRow.ytd26) {
-                                      const cleanVal = wholesaleRow.ytd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) wholesaleValue = num;
-                                    }
-                                    
-                                    const total = onlineValue + wholesaleValue;
-                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
+                                    const val = row.ytd26;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const num = parseFloat(cleanVal);
+                                    if (isNaN(num)) return val;
+                                    return num.toLocaleString();
                                   }
                                   
-                                  // TAG매출 아래 온라인 행의 26FY YTD는 시즌 항목들의 합계 (with TAG 성장률)
+                                  // TAG매출 아래 온라인 - CSV 값만 표시
                                   if (isEcom) {
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                    let sum = 0;
-                                    seasonLabels.forEach(seasonLabel => {
-                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
-                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                        const baseNum = parseFloat(cleanVal);
-                                        if (!isNaN(baseNum)) {
-                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                          sum += baseNum * (growthRate / 100);
-                                        }
-                                      }
-                                    });
-                                    return sum !== 0 ? Math.round(sum).toLocaleString() : '';
+                                    const val = row.ytd26;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const num = parseFloat(cleanVal);
+                                    if (isNaN(num)) return val;
+                                    return num.toLocaleString();
                                   }
                                   
-                                  // 실판매출 아래 온라인 - TAG매출 온라인 값에 할인율 적용 (1 - 할인율)
+                                  // 실판매출 아래 온라인 - CSV 값만 표시
                                   if (isNetSalesOnline) {
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                    let sum = 0;
-                                    seasonLabels.forEach(seasonLabel => {
-                                      const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
-                                        const cleanVal = seasonRow.ytd26.replace(/,/g, '');
-                                        const baseNum = parseFloat(cleanVal);
-                                        if (!isNaN(baseNum)) {
-                                          // TAG매출의 성장률 먼저 적용
-                                          const tagGrowthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                          const tagValue = baseNum * (tagGrowthRate / 100);
-                                          // 할인율 적용: TAG값 * (1 - 할인율)
-                                          const discountRate = netSeasonGrowthRates[seasonLabel] || 0;
-                                          sum += tagValue * (1 - discountRate / 100);
-                                        }
-                                      }
-                                    });
-                                    return sum !== 0 ? Math.round(sum).toLocaleString() : '';
+                                    const val = row.ytd26;
+                                    if (!val || val === '0') return '';
+                                    if (val.includes('%')) return val;
+                                    const cleanVal = val.replace(/,/g, '');
+                                    const num = parseFloat(cleanVal);
+                                    if (isNaN(num)) return val;
+                                    return num.toLocaleString();
                                   }
                                   
-                                  // 시즌 항목들의 26FY YTD
+                                  // 시즌 항목들의 26FY YTD - CSV 값만 표시
                                   if (isSeasonItem) {
                                     const val = row.ytd26;
                                     if (!val || val === '0') return '';
@@ -12113,44 +11979,7 @@ export default function DashboardPage() {
                                     const cleanVal = val.replace(/,/g, '');
                                     const baseNum = parseFloat(cleanVal);
                                     if (isNaN(baseNum)) return val;
-                                    
-                                    // TAG매출 섹션의 시즌 항목 - TAG 성장률 적용
-                                    if (!isNetSalesSeasonItem) {
-                                      const growthRate = tagSeasonGrowthRates[label] || 100;
-                                      const calculatedValue = baseNum * (growthRate / 100);
-                                      return Math.round(calculatedValue).toLocaleString();
-                                    } else {
-                                      // 실판매출 섹션의 시즌 항목 - TAG매출 섹션의 계산된 값에 할인율 적용
-                                      // TAG매출 섹션의 같은 시즌을 찾아서 그 계산된 값을 사용
-                                      const tagSalesIdx = simulPLData.findIndex(r => r.label === 'TAG매출');
-                                      const netSalesIdx = simulPLData.findIndex(r => r.label === '실판매출');
-                                      
-                                      // TAG매출 섹션에서 같은 label의 row 찾기
-                                      let tagSeasonValue = baseNum; // 기본값은 원본
-                                      for (let i = tagSalesIdx + 1; i < netSalesIdx; i++) {
-                                        if (simulPLData[i].label === label) {
-                                          // TAG 성장률이 적용된 값 계산
-                                          const tagGrowthRate = tagSeasonGrowthRates[label] || 100;
-                                          const seasonBaseNum = parseFloat(simulPLData[i].ytd26?.replace(/,/g, '') || '0');
-                                          tagSeasonValue = seasonBaseNum * (tagGrowthRate / 100);
-                                          break;
-                                        }
-                                      }
-                                      
-                                      const discountRate = netSeasonGrowthRates[label] || 0;
-                                      const calculatedValue = tagSeasonValue * (1 - discountRate / 100);
-                                      
-                                      // 디버깅
-                                      if (label === '26FW') {
-                                        console.log('=== 실판매출 26FW 계산 (수정됨) ===');
-                                        console.log('tagSeasonValue (TAG매출 계산값):', tagSeasonValue);
-                                        console.log('discountRate:', discountRate);
-                                        console.log('(1 - discountRate / 100):', (1 - discountRate / 100));
-                                        console.log('calculatedValue:', calculatedValue);
-                                      }
-                                      
-                                      return Math.round(calculatedValue).toLocaleString();
-                                    }
+                                    return Math.round(baseNum).toLocaleString();
                                   }
                                   
                                   const val = row.ytd26;
@@ -12168,6 +11997,17 @@ export default function DashboardPage() {
                               </td>
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
+                                  // 모든 계산 로직 비활성화 - CSV(전년대비) 값만 표시
+                                  {
+                                    const rawVal = row.yoy;
+                                    if (!rawVal || rawVal === '0') return '';
+                                    if (rawVal.includes('%')) return rawVal;
+                                    const cleanRaw = rawVal.replace(/,/g, '');
+                                    const rawNum = parseFloat(cleanRaw);
+                                    if (isNaN(rawNum)) return rawVal;
+                                    const colorClass = rawNum < 0 ? 'text-red-600' : 'text-blue-600';
+                                    return <span className={colorClass}>{rawNum.toLocaleString()}</span>;
+                                  }
                                   // 전년대비 = 26FY YTD - 25FY
                                   const fy25Val = row.fy25;
                                   const ytd26Val = row.ytd26;
@@ -12839,6 +12679,17 @@ export default function DashboardPage() {
                               </td>
                               <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
                                 {(() => {
+                                  // 모든 계산 로직 비활성화 - CSV(전월대비) 값만 표시
+                                  {
+                                    const rawVal = row.monthDiff;
+                                    if (!rawVal || rawVal === '0') return '';
+                                    if (rawVal.includes('%')) return rawVal;
+                                    const cleanRaw = rawVal.replace(/,/g, '');
+                                    const rawNum = parseFloat(cleanRaw);
+                                    if (isNaN(rawNum)) return rawVal;
+                                    const colorClass = rawNum < 0 ? 'text-red-600' : 'text-blue-600';
+                                    return <span className={colorClass}>{rawNum.toLocaleString()}</span>;
+                                  }
                                   // 전월대비 = 26FY YTD - 전월 보고 26FY YTD
                                   const prevYtd26Val = row.prevYtd26;
                                   
@@ -13535,33 +13386,12 @@ export default function DashboardPage() {
                               <th 
                                 key={`inven-header-${idx}`}
                                 className={`text-center p-3 font-semibold border-2 ${isECHeader ? 'border-gray-400 !border-b-red-400' : 'border-gray-400'}`}
-                                style={{ width: `${100 / (simulInvenHeaders.length + 2)}%` }}
+                                style={{ width: `${100 / simulInvenHeaders.length}%` }}
                               >
                                 {header}
                               </th>
                             );
                           })}
-                          {/* 판매율 컬럼 추가 */}
-                          <th 
-                            className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
-                          >
-                            판매율
-                          </th>
-                          {/* 시즌YOY 컬럼 추가 */}
-                          <th 
-                            className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
-                          >
-                            시즌YOY
-                          </th>
-                          {/* 상태 컬럼 추가 */}
-                          <th 
-                            className="text-center p-3 font-semibold border-2 border-gray-400"
-                            style={{ width: `${100 / (simulInvenHeaders.length + 3)}%` }}
-                          >
-                            기말 재고 상태
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="text-sm">
@@ -13583,8 +13413,8 @@ export default function DashboardPage() {
                           // 숫자 포맷팅 함수 (쉼표 제거 후 숫자로 변환)
                           const formatNumber = (val: string, isYOYRow: boolean = false) => {
                             if (!val || val === '0') return '';
-                            // YOY 행이고 % 포함된 경우 그대로 반환
-                            if (isYOYRow && val.includes('%')) return val;
+                            // % 포함된 경우 그대로 반환
+                            if (val.includes('%')) return val;
                             // 쉼표 제거
                             const cleanVal = val.replace(/,/g, '');
                             const num = parseFloat(cleanVal);
@@ -13834,143 +13664,6 @@ export default function DashboardPage() {
                                   </td>
                                 );
                               })}
-                              
-                              {/* 판매율 컬럼 추가 */}
-                              <td className="text-center p-2 border-2 border-gray-300 font-mono text-[15px] font-medium">
-                                {(() => {
-                                  // YOY 행은 판매율 표시 안함
-                                  if (isYOY) return '';
-                                  
-                                  // 기초 + 상품매입 값
-                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
-                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
-                                  const totalInput = initialVal + purchaseVal;
-                                  
-                                  if (totalInput === 0) return '';
-                                  
-                                  // 재고자산 합계 행
-                                  if (isFirstRow) {
-                                    // 모든 시즌의 기말 합계 계산
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
-                                    let totalFinal = 0;
-                                    
-                                    seasonLabels.forEach(seasonLabel => {
-                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
-                                      if (seasonRow) {
-                                        const sInitialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
-                                        const sPurchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
-                                          const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
-                                          const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
-
-                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                          const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                        
-                                        totalFinal += sInitialVal + sPurchaseVal - wholesaleSalesVal - ecSales;
-                                      }
-                                    });
-                                    
-                                    const sellRate = 1 - (totalFinal / totalInput);
-                                    return (Math.round(sellRate * 100)) + '%';
-                                  }
-                                  
-                                  // 시즌 항목들
-                                  const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                  if (seasonLabels.includes(row.label)) {
-                                    const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
-                                    const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
-                                    
-                                    // EC 판매에 TAG 성장률 적용
-                                    const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                                    const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                    
-                                    const finalVal = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
-                                    const sellRate = 1 - (finalVal / totalInput);
-                                    return (Math.round(sellRate * 100)) + '%';
-                                  }
-                                  
-                                  return '';
-                                })()}
-                              </td>
-                              
-                              {/* 시즌YOY 컬럼 추가 */}
-                              <td className="text-center p-2 border-2 border-gray-300 font-mono text-[15px] font-medium">
-                                {(() => {
-                                  // YOY 행이나 재고자산 합계 행은 표시 안함
-                                  if (isYOY || isFirstRow) return '';
-                                  
-                                  // 시즌별 YOY 계산
-                                  // 27SS: 기말 27SS / 기초 26SS
-                                  // 26FW: 기말 26FW / 기초 25FW
-                                  // 26SS: 기말 26SS / 기초 25SS
-                                  // 25FW: 기말 25FW / 기초 24FW (데이터 없으면 공백)
-                                  // 25SS: 기말 25SS / 기초 24SS (데이터 없으면 공백)
-                                  // 과시즌, CORE: 표시 안함
-                                  
-                                  const seasonMapping: Record<string, string> = {
-                                    '27SS': '26SS',
-                                    '26FW': '25FW',
-                                    '26SS': '25SS',
-                                    '25FW': '24FW',
-                                    '25SS': '24SS'
-                                  };
-                                  
-                                  const prevSeason = seasonMapping[row.label];
-                                  if (!prevSeason) return ''; // 과시즌, CORE는 표시 안함
-                                  
-                                  // 현재 시즌의 기말 값 계산
-                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
-                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
-                                  const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
-                                  const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
-                                  
-                                  const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                                  const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                  
-                                  const currentFinal = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
-                                  
-                                  // 전년도 시즌의 기초 값 찾기
-                                  const prevSeasonRow = simulInvenData.find(r => r.label === prevSeason);
-                                  if (!prevSeasonRow) return ''; // 전년도 시즌 데이터 없음
-                                  
-                                  const prevInitialVal = parseFloat((prevSeasonRow.values[0] || '0').replace(/,/g, '')) || 0;
-                                  
-                                  if (prevInitialVal === 0) return '0%'; // 분모가 0이면 0%
-                                  
-                                  // YOY 비율 계산 (기말 / 전년 기초)
-                                  const yoyRatio = (currentFinal / prevInitialVal);
-                                  return (Math.round(yoyRatio * 100)) + '%';
-                                })()}
-                              </td>
-                              
-                              {/* 상태 컬럼 추가 */}
-                              <td className="text-center p-2 border-2 border-gray-300">
-                                {(() => {
-                                  // YOY 행이나 재고자산 합계 행은 상태 표시 안함
-                                  if (isYOY || isFirstRow) return '';
-                                  
-                                  // 시즌 항목만 상태 표시
-                                  const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                  if (!seasonLabels.includes(row.label)) return '';
-                                  
-                                  // 기말 재고 계산
-                                  const initialVal = parseFloat((row.values[0] || '0').replace(/,/g, '')) || 0;
-                                  const purchaseVal = parseFloat((row.values[1] || '0').replace(/,/g, '')) || 0;
-                                  const wholesaleSalesVal = parseFloat((row.values[2] || '0').replace(/,/g, '')) || 0;
-                                  const ecSalesBaseVal = parseFloat((row.values[3] || '0').replace(/,/g, '')) || 0;
-
-                                  const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                                  const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                  
-                                  const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
-                                  
-                                  // 신호등 표시
-                                  if (final < 0) {
-                                    return <span className="text-2xl">🔴</span>; // 빨간불
-                                  } else {
-                                    return <span className="text-2xl">🟢</span>; // 초록불
-                                  }
-                                })()}
-                              </td>
                             </tr>
                           );
                         })}
