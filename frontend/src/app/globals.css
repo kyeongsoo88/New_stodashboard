@@ -125,11 +125,6 @@
     background-color: transparent;
     color: inherit;
   }
-  ::highlight(search-results),
-  ::highlight(search-results-current) {
-    background-color: transparent;
-    color: inherit;
-  }
 }
 
 @layer utilities {
