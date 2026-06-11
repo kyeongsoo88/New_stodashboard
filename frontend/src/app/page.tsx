@@ -4371,7 +4371,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
 
-  // 월 옵션 (25년 1월~12월, 26년 1월~4월)
+  // 월 옵션 (25년 1월~12월, 26년 1월~5월)
   const monthOptions = [
     ...Array.from({ length: 12 }, (_, i) => {
       const month = i + 1;
@@ -4383,7 +4383,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     { value: '2026-01', label: '26년 1월' },
     { value: '2026-02', label: '26년 2월' },
     { value: '2026-03', label: '26년 3월' },
-    { value: '2026-04', label: '26년 4월' }
+    { value: '2026-04', label: '26년 4월' },
+    { value: '2026-05', label: '26년 5월' }
   ];
 
   React.useEffect(() => {
