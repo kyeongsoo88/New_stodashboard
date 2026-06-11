@@ -4638,11 +4638,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   const headcount = getCurrentValue('영업비_인원수', selectedMonthLocal) || 26;
   
-  // 인당 영업비 (인당 인건비): 정규직 + 계약직 급여 / 인원수
-  const regularSalary = getCurrentValue('영업비_인건비_정규직인건비', selectedMonthLocal);
-  const contractSalary = getCurrentValue('영업비_인건비_계약직인건비', selectedMonthLocal);
-  const salarySum = regularSalary + contractSalary;
-  const perPersonExpense = headcount > 0 ? salarySum / headcount : 0;
+  // 인당 영업비: 총 영업비 / 인원수
+  const perPersonExpense = headcount > 0 ? totalOperatingExpense / headcount : 0;
 
   const sales = getCurrentValue('영업비_매출', selectedMonthLocal);
   const efficiencyRatio = sales > 0 ? (totalOperatingExpense / sales * 100) : 0;
