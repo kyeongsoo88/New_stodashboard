@@ -44,6 +44,32 @@ const SimpleTooltip = ({ text, children }: { text: string, children: React.React
   );
 };
 
+const StickyNoteTooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
+  const [show, setShow] = React.useState(false);
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      {show && (
+        <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-[300px] pointer-events-none">
+          <div
+            className="relative bg-[#FFF9C4] text-gray-800 text-[11px] leading-snug px-3 py-2.5 shadow-[2px_3px_8px_rgba(0,0,0,0.18)] border border-yellow-300/80"
+            style={{ transform: 'rotate(-1.5deg)' }}
+          >
+            <div className="absolute -bottom-1.5 left-6 w-3 h-3 bg-[#FFF9C4] border-r border-b border-yellow-300/80 rotate-45" />
+            {text}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SIMUL_INVENTORY_RF05_NOTE = '재고평가감 제외시 $2,938K X M/U 5배수 = MSRP기준 26년 기말 재고 $14,690K 예상';
+
 // --- Mock Data Generator ---
 // Helper to generate consistent random data for demo
 const generateConsistentData = (seed: string, length: number, min: number, max: number) => {
@@ -13575,14 +13601,28 @@ export default function DashboardPage() {
                               <td className={`${isSection ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isSection ? 'pl-2' : 'pl-4'}`}>
                                 {row.label}
                               </td>
-                              {values.map((value, colIdx) => (
-                                <td
-                                  key={`bs-col-${index}-${colIdx}`}
-                                  className={isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}
-                                >
-                                  {renderValue(value, colIdx >= 3)}
-                                </td>
-                              ))}
+                              {values.map((value, colIdx) => {
+                                const cellContent = renderValue(value, colIdx >= 3);
+                                const showInventoryNote = row.label === '재고자산' && colIdx === 2 && cellContent;
+
+                                return (
+                                  <td
+                                    key={`bs-col-${index}-${colIdx}`}
+                                    className={cn(
+                                      isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum,
+                                      showInventoryNote && 'bg-amber-50/50'
+                                    )}
+                                  >
+                                    {showInventoryNote ? (
+                                      <StickyNoteTooltip text={SIMUL_INVENTORY_RF05_NOTE}>
+                                        {cellContent}
+                                      </StickyNoteTooltip>
+                                    ) : (
+                                      cellContent
+                                    )}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })}
