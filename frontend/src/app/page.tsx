@@ -11292,11 +11292,14 @@ export default function DashboardPage() {
                           let indentClass = '';
                           // 실판매출 섹션의 시즌 아이템인지 확인
                           const isNetSalesSeasonItem = isSeasonItem && index > netSalesIdx && index < cogsIdx;
+                          const isTagSalesSeasonItem = isSeasonItem && index > tagSalesIdx && index < netSalesIdx;
                           
                           if (isNetSalesSeasonItem) {
                             indentClass = 'pl-12';
+                          } else if (isTagSalesSeasonItem) {
+                            indentClass = 'text-center';
                           } else if (isSeasonItem) {
-                            indentClass = 'pl-12';  // TAG매출 섹션의 시즌
+                            indentClass = 'pl-12';
                           } else if (isEcom || isWholesale || isNetSalesChild || isCogsChild || isDirectCostChild) {
                             indentClass = 'pl-6';
                           }
@@ -11336,6 +11339,8 @@ export default function DashboardPage() {
                               <td className={`${isMainCategory ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${indentClass}`}>
                                 {isEcom ? (
                                   <span>온라인</span>
+                                ) : isTagSalesSeasonItem ? (
+                                  <span>{label}</span>
                                 ) : (
                                   <div className="flex items-center justify-between">
                                     <span>{label}</span>
@@ -13731,7 +13736,7 @@ export default function DashboardPage() {
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`${isFirstRow ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isDetailRow ? 'pl-8' : ''}`}>
+                              <td className={`${isFirstRow ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isDetailRow ? 'text-center' : ''}`}>
                                 {row.label}
                               </td>
                               {row.values.map((val, colIdx) => {
