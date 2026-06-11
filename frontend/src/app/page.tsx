@@ -9486,6 +9486,80 @@ function parseSummaryCSV(csvText: string): Record<string, Record<string, string>
   return data;
 }
 
+type SimulBalanceSheetRow = {
+  label: string;
+  prevYear: string;
+  rf04: string;
+  rf05: string;
+  rf05PrevYear: string;
+  rf05Rf04: string;
+};
+
+const SIMUL_BS_HEADERS = ['구분', '전년', 'RF_04', 'RF_05', 'RF_05 - 전년', 'RF_05 - RF_04'];
+const SIMUL_BS_SECTION_ROWS = new Set(['자산', '부채', '자본']);
+
+const SIMUL_TABLE = {
+  table: 'w-full border-collapse table-fixed text-xs leading-tight',
+  th: 'p-2 text-xs font-semibold border-2 border-gray-400 text-center whitespace-nowrap',
+  thLabel: 'p-2 text-xs font-semibold border-2 border-gray-400 text-left whitespace-nowrap',
+  tdLabel: 'p-2 text-xs border-2 border-gray-300 leading-tight',
+  tdLabelBold: 'p-2 text-xs font-semibold border-2 border-gray-300 leading-tight',
+  tdNum: 'text-right p-2 text-xs border-2 border-gray-300 font-mono tabular-nums font-normal leading-tight',
+  tdNumBold: 'text-right p-2 text-xs border-2 border-gray-300 font-mono tabular-nums font-semibold leading-tight',
+  tdNumLoose: 'text-right p-2 text-xs font-mono tabular-nums font-normal leading-tight',
+} as const;
+
+const parseSimulBalanceNum = (raw: string) => parseFloat((raw || '0').replace(/[,$]/g, '')) || 0;
+
+const formatSimulBalanceNum = (num: number) => {
+  if (num === 0) return '0';
+  const abs = Math.abs(Math.round(num)).toLocaleString();
+  return num < 0 ? `-${abs}` : abs;
+};
+
+const decodeCsvText = (bytes: Uint8Array) => {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return new TextDecoder('utf-16le').decode(bytes);
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder('euc-kr').decode(bytes);
+  }
+};
+
+const parseSimulBalanceSheetCsv = (csvText: string): SimulBalanceSheetRow[] => {
+  const lines = csvText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line)
+    .filter((line) => !line.toLowerCase().startsWith('sep='));
+
+  if (lines.length < 2) return [];
+
+  return lines.slice(1).map((line) => {
+    const values = parseCSVLine(line);
+    const label = (values[0] || '').replace(/^\uFEFF/, '').trim();
+    const prevYear = values[1] || '0';
+    const rf04 = values[2] || '0';
+    const rf05 = values[3] || '0';
+    let rf05PrevYear = values[4] || '';
+    let rf05Rf04 = values[5] || '';
+
+    const prevYearNum = parseSimulBalanceNum(prevYear);
+    const rf04Num = parseSimulBalanceNum(rf04);
+    const rf05Num = parseSimulBalanceNum(rf05);
+
+    if (!rf05PrevYear) rf05PrevYear = formatSimulBalanceNum(rf05Num - prevYearNum);
+    if (!rf05Rf04) rf05Rf04 = formatSimulBalanceNum(rf05Num - rf04Num);
+
+    return { label, prevYear, rf04, rf05, rf05PrevYear, rf05Rf04 };
+  }).filter((row) => row.label);
+};
+
 // Force refresh: 2026-01 data check
 export default function DashboardPage() {
   const [expandAllDetails, setExpandAllDetails] = React.useState(true);
@@ -9513,6 +9587,7 @@ export default function DashboardPage() {
   const [simulPLHeaders, setSimulPLHeaders] = React.useState<string[]>([]);
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, values: string[]}>>([]);
   const [simulInvenHeaders, setSimulInvenHeaders] = React.useState<string[]>([]);
+  const [simulBSData, setSimulBSData] = React.useState<SimulBalanceSheetRow[]>([]);
   // TAG매출용 시즌별 성장률 (모두 100%로 중립화)
   const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
     '27SS': 100,
@@ -9727,6 +9802,22 @@ export default function DashboardPage() {
       })
       .catch(err => {
         console.error('Error loading simulinven.csv:', err);
+      });
+  }, []);
+
+  // 시뮬레이션 재무상태표 CSV 로딩
+  React.useEffect(() => {
+    const timestamp = new Date().getTime();
+    fetch(`/data/simul-balance-sheet.csv?t=${timestamp}`)
+      .then(async (res) => {
+        const buf = await res.arrayBuffer();
+        return decodeCsvText(new Uint8Array(buf));
+      })
+      .then((csvText) => {
+        setSimulBSData(parseSimulBalanceSheetCsv(csvText));
+      })
+      .catch((err) => {
+        console.error('Error loading simul-balance-sheet.csv:', err);
       });
   }, []);
 
@@ -11109,11 +11200,11 @@ export default function DashboardPage() {
         {/* 시뮬레이션 탭 콘텐츠 */}
         {activeTab === "시뮬레이션" && (
           <div className="space-y-6">
-            {/* PL (손익계산서) + 재고표 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* PL (손익계산서) + 재무상태표 + 재고표 */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 [&_.text-lg]:text-sm">
               {/* 손익계산서 */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between py-3">
                   <CardTitle className="text-lg font-bold">26년 손익계산서</CardTitle>
                   <Button
                     variant="outline"
@@ -11137,13 +11228,13 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-sm">
+                    <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
                           {simulPLHeaders.map((header, idx) => (
                             <th
                               key={`pl-header-${idx}`}
-                              className={`p-3 font-semibold border-2 border-gray-400 ${idx === 0 ? 'text-left' : 'text-center'} ${idx > 0 ? 'w-[16.67%]' : ''}`}
+                              className={`${idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th} ${idx > 0 ? 'w-[16.67%]' : ''}`}
                               dangerouslySetInnerHTML={{ __html: header.replace(/\\n/g, '<br/>') }}
                             />
                           ))}
@@ -11242,7 +11333,7 @@ export default function DashboardPage() {
                               style={isHidden ? { display: 'none' } : {}}
                               {...(handleClick ? { onClick: handleClick } : {})}
                             >
-                              <td className={`p-2 border-2 border-gray-300 ${indentClass}`}>
+                              <td className={`${isMainCategory ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${indentClass}`}>
                                 {isEcom ? (
                                   <span>온라인</span>
                                 ) : (
@@ -11252,7 +11343,7 @@ export default function DashboardPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-blue-50/10">
+                              <td className={`${SIMUL_TABLE.tdNum} bg-blue-50/10`}>
                                 {(() => {
                                   // 실판매출 행 - 동적 계산 (온라인 + 홀세일 + 라이센스 + 기타)
                                   if (isNetSales) {
@@ -11298,7 +11389,7 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={`text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-medium bg-amber-50/20 ${
+                              <td className={`${SIMUL_TABLE.tdNum} bg-amber-50/20 ${
                                 isSeasonItem || isEcom 
                                   ? '!border-r-red-400' + (label === '온라인' ? ' !border-t-red-400' : '') 
                                   : ''
@@ -11345,7 +11436,7 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={`text-right p-2 font-mono text-[15px] font-medium ${
+                              <td className={`${SIMUL_TABLE.tdNumLoose} ${
                                 // TAG매출 섹션의 시즌 항목과 온라인만 붉은 테두리
                                 (isSeasonItem || isEcom) && !isNetSalesSeasonItem && !isNetSalesOnline
                                   ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' + 
@@ -12049,7 +12140,7 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
+                              <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전년대비) 값만 표시
                                   const __yoyRawVal = row.yoy ?? '';
@@ -12732,7 +12823,7 @@ export default function DashboardPage() {
                                   return <span className={colorClass}>{Math.round(diff).toLocaleString()}</span>;
                                 })()}
                               </td>
-                              <td className="text-right p-2 border-2 border-gray-300 font-mono text-[15px] font-semibold">
+                              <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전월대비) 값만 표시
                                   const __monthRawVal = row.monthDiff ?? '';
@@ -13426,22 +13517,94 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
+              {/* 재무상태표 */}
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle className="text-lg font-bold">26년 재무상태표</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className={SIMUL_TABLE.table}>
+                      <thead>
+                        <tr className="bg-[#2E5C8A] text-white">
+                          {SIMUL_BS_HEADERS.map((header, idx) => (
+                            <th
+                              key={`bs-header-${idx}`}
+                              className={idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th}
+                              style={{ width: idx === 0 ? '22%' : `${78 / (SIMUL_BS_HEADERS.length - 1)}%` }}
+                            >
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {simulBSData.map((row, index) => {
+                          const isSection = SIMUL_BS_SECTION_ROWS.has(row.label);
+                          const rowBg = row.label === '자산'
+                            ? 'bg-blue-100'
+                            : row.label === '부채'
+                            ? 'bg-rose-100'
+                            : row.label === '자본'
+                            ? 'bg-emerald-100'
+                            : 'bg-white';
+
+                          const renderValue = (value: string, isChangeCol: boolean) => {
+                            if (!value || value === '0') return '';
+                            const num = parseSimulBalanceNum(value);
+                            if (isChangeCol && num !== 0) {
+                              return (
+                                <span className={num > 0 ? 'text-red-600' : 'text-blue-600'}>
+                                  {formatSimulBalanceNum(num)}
+                                </span>
+                              );
+                            }
+                            if (num < 0) {
+                              return <span className="text-red-600">{formatSimulBalanceNum(num)}</span>;
+                            }
+                            return formatSimulBalanceNum(num);
+                          };
+
+                          const values = [row.prevYear, row.rf04, row.rf05, row.rf05PrevYear, row.rf05Rf04];
+
+                          return (
+                            <tr key={`bs-row-${index}`} className={`hover:bg-gray-50 ${rowBg}`}>
+                              <td className={`${isSection ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isSection ? 'pl-2' : 'pl-4'}`}>
+                                {row.label}
+                              </td>
+                              {values.map((value, colIdx) => (
+                                <td
+                                  key={`bs-col-${index}-${colIdx}`}
+                                  className={isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}
+                                >
+                                  {renderValue(value, colIdx >= 3)}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* 재고표 */}
               <Card>
-                <CardHeader>
+                <CardHeader className="py-3">
                   <CardTitle className="text-lg font-bold">재고자산 현황</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse table-fixed">
+                    <table className={SIMUL_TABLE.table}>
                       <thead>
-                        <tr className="bg-[#2E5C8A] text-white text-sm">
+                        <tr className="bg-[#2E5C8A] text-white">
                           {simulInvenHeaders.map((header, idx) => {
                             const isECHeader = header === 'EC 판매' || header === 'EC판매';
                             return (
                               <th 
                                 key={`inven-header-${idx}`}
-                                className={`text-center p-3 font-semibold border-2 ${isECHeader ? 'border-gray-400 !border-b-red-400' : 'border-gray-400'}`}
+                                className={`${SIMUL_TABLE.th} ${isECHeader ? '!border-b-red-400' : ''}`}
                                 style={{ width: `${100 / simulInvenHeaders.length}%` }}
                               >
                                 {header}
@@ -13450,7 +13613,7 @@ export default function DashboardPage() {
                           })}
                         </tr>
                       </thead>
-                      <tbody className="text-sm">
+                      <tbody>
                         {simulInvenData.map((row, index) => {
                           const isFirstRow = index === 0;
                           const isYOY = row.label === 'YOY' || row.label.includes('YOY');
@@ -13568,7 +13731,7 @@ export default function DashboardPage() {
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`p-2 border-2 border-gray-300 ${isFirstRow ? 'font-medium' : ''} ${isDetailRow ? 'pl-8' : ''}`}>
+                              <td className={`${isFirstRow ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isDetailRow ? 'pl-8' : ''}`}>
                                 {row.label}
                               </td>
                               {row.values.map((val, colIdx) => {
@@ -13682,7 +13845,7 @@ export default function DashboardPage() {
                                 }
                                 
                                 const textColorClass = isChangeCol && isNegativeValue(colIdx) ? 'text-red-600' : isChangeCol ? 'text-blue-600' : '';
-                                const fontWeight = isFinalCol || isChangeCol ? 'font-semibold' : 'font-medium';
+                                const numCellClass = isFinalCol || isChangeCol || isFirstRow ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum;
                                 
                                 // 기말 컬럼 색상 추가
                                 let finalTextColor = '';
@@ -13714,7 +13877,7 @@ export default function DashboardPage() {
                                 return (
                                   <td 
                                     key={`inven-col-${colIdx}`}
-                                    className={`text-right p-2 ${borderClass} font-mono text-[15px] ${fontWeight} ${bgClass} ${textColorClass} ${finalTextColor}`}
+                                    className={`${numCellClass} ${borderClass} ${bgClass} ${textColorClass} ${finalTextColor}`}
                                   >
                                     {displayValue}
                                   </td>
