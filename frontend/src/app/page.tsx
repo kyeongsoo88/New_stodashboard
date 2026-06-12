@@ -4667,6 +4667,18 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return get26MonthPlanValue(dataKey, month);
   };
 
+  // 26년 진척률: YTD=누적/연간계획, 당월=당월실적/당월계획
+  const get26ProgressValue = (dataKey: string, month: string): number => {
+    if (viewMode === 'YTD') {
+      const ytd = get26YTDValue(dataKey, month);
+      const plan = get26AnnualPlanValue(dataKey);
+      return plan > 0 ? (ytd / plan * 100) : 0;
+    }
+    const monthVal = get26MonthValue(dataKey, month);
+    const monthPlan = get26MonthPlanValue(dataKey, month);
+    return monthPlan > 0 ? (monthVal / monthPlan * 100) : 0;
+  };
+
   // 현재 표시할 값 (YTD 또는 당월) - 26년 데이터
   const getCurrentValue = (dataKey: string, month: string): number => {
     if (viewMode === "YTD") {
@@ -4684,8 +4696,6 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const totalOperatingExpense25 = viewMode === "YTD" ? get25YTDValue('영업비_총영업비', selectedMonthLocal) : get25MonthValue('영업비_총영업비', selectedMonthLocal);
   const totalOperatingExpenseYOY = totalOperatingExpense25 > 0 ? (totalOperatingExpense / totalOperatingExpense25 * 100) : 0;
 
-  // 진척률 계산용 누적값 (항상 YTD 기준)
-  const totalOperatingExpenseYTD = get26YTDValue('영업비_총영업비', selectedMonthLocal);
   const totalOperatingExpense25YTD = get25YTDValue('영업비_총영업비', selectedMonthLocal);
 
   const personnelCost = getCurrentValue('영업비_인건비', selectedMonthLocal);
@@ -4816,15 +4826,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     const val26 = viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     const val25 = viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
     
-    // 진척률 계산용 누적값 (항상 YTD 기준)
-    const val26YTD = get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal);
     const val25YTD = get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal);
     
     const val25Total = get25TotalValue(`영업비_${cat.key}`); // 25년 전체 합계
     const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
     const valPlan = get26DisplayPlanValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const valAnnualPlan = get26AnnualPlanValue(`영업비_${cat.key}`);
-    const val26Progress = valAnnualPlan > 0 ? (val26YTD / valAnnualPlan * 100) : 0; // 26년 진척률 (누적 기준)
+    const val26Progress = get26ProgressValue(`영업비_${cat.key}`, selectedMonthLocal);
     const diff = val26 - val25;
     const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
     const detail = detailNotes[cat.name] || '';
@@ -4850,7 +4857,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     ytd24: totalOperatingExpense25,
     progress25: get25TotalValue('영업비_총영업비') > 0 ? (totalOperatingExpense25YTD / get25TotalValue('영업비_총영업비') * 100) : 0, // 25년 진척률 (누적 기준)
     ytd25: totalOperatingExpense,
-    progress26: get26AnnualPlanValue('영업비_총영업비') > 0 ? (totalOperatingExpenseYTD / get26AnnualPlanValue('영업비_총영업비') * 100) : 0, // 26년 진척률 (누적 기준)
+    progress26: get26ProgressValue('영업비_총영업비', selectedMonthLocal),
     diff: totalOperatingExpense - totalOperatingExpense25,
     diffRate: totalOperatingExpenseYOY - 100,
     detail: '',
@@ -4882,15 +4889,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       const val26 = viewMode === "YTD" ? get26YTDValue(dataKey, selectedMonthLocal) : get26MonthValue(dataKey, selectedMonthLocal);
       const val25 = viewMode === "YTD" ? get25YTDValue(dataKey, selectedMonthLocal) : get25MonthValue(dataKey, selectedMonthLocal);
       
-      // 진척률 계산용 누적값 (항상 YTD 기준)
-      const val26YTD = get26YTDValue(dataKey, selectedMonthLocal);
       const val25YTD = get25YTDValue(dataKey, selectedMonthLocal);
       
       const val25Total = get25TotalValue(dataKey); // 25년 전체 합계
       const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
       const valPlan = get26DisplayPlanValue(dataKey, selectedMonthLocal);
-      const valAnnualPlan = get26AnnualPlanValue(dataKey);
-      const val26Progress = valAnnualPlan > 0 ? (val26YTD / valAnnualPlan * 100) : 0; // 26년 진척률 (누적 기준)
+      const val26Progress = get26ProgressValue(dataKey, selectedMonthLocal);
       const diff = val26 - val25;
       const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
       const detailKey = `${categoryName}||${sub.name}`;
