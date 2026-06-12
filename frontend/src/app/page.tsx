@@ -4427,12 +4427,13 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       return new TextDecoder('utf-8').decode(bytes);
     };
 
+    const timestamp = Date.now();
     Promise.all([
-      fetch('/data/operatingexpense.csv').then(res => res.text()),
-      fetch('/data/operatingexpense-detail.csv').then(decodeWithBom)
+      fetch(`/data/operatingexpense.csv?t=${timestamp}`).then(decodeWithBom),
+      fetch(`/data/operatingexpense-detail.csv?t=${timestamp}`).then(decodeWithBom)
     ])
       .then(([expenseCsv, detailCsv]) => {
-        const lines = expenseCsv.split('\n').filter(line => line.trim());
+        const lines = expenseCsv.split(/\r?\n/).filter(line => line.trim());
         if (lines.length < 2) {
           setLoading(false);
           return;
@@ -4440,7 +4441,9 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         
         // 헤더 파싱 (첫 번째 줄)
         const headerLine = lines[0];
-        const parsedHeaders = parseCSVLine(headerLine);
+        const parsedHeaders = parseCSVLine(headerLine)
+          .map((h) => (h || '').replace(/^\uFEFF/, '').trim())
+          .filter((h) => h !== '');
         
         // 데이터 파싱
         const data: Record<string, Record<string, string>> = {};
@@ -4454,11 +4457,15 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
           
           const dataKey = values[0].trim();
           const rowData: Record<string, string> = {};
+          const paddedValues = [...values];
+          while (paddedValues.length < parsedHeaders.length) paddedValues.push('');
+          if (paddedValues.length > parsedHeaders.length) paddedValues.length = parsedHeaders.length;
           
-          // 각 월별 데이터 저장
-          for (let j = 1; j < parsedHeaders.length && j < values.length; j++) {
-            const monthKey = parsedHeaders[j].trim();
-            rowData[monthKey] = values[j].trim();
+          // 헤더[i] ↔ values[i] 동일 인덱스 매핑 (AE=당월계획, AF=연간계획)
+          for (let j = 0; j < parsedHeaders.length; j++) {
+            const monthKey = parsedHeaders[j];
+            if (!monthKey || monthKey === '데이터키') continue;
+            rowData[monthKey] = (paddedValues[j] || '').trim();
           }
           
           data[dataKey] = rowData;
@@ -4628,14 +4635,36 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return sum;
   };
 
-  // 26년(계획) 값 가져오기
-  const get26PlanValue = (dataKey: string): number => {
+  // 26년 연간(계획) 값 가져오기 — CSV AF컬럼
+  const get26AnnualPlanValue = (dataKey: string): number => {
     const planKey = '26년(계획)';
     if (csvData[dataKey] && csvData[dataKey][planKey]) {
       const val = csvData[dataKey][planKey].replace(/[^0-9.-]/g, '');
       return parseFloat(val) || 0;
     }
     return 0;
+  };
+
+  // 26년 당월(계획) 값 가져오기 — CSV AE컬럼 (예: 26년 5월(계획))
+  const get26MonthPlanValue = (dataKey: string, month: string): number => {
+    const [year, monthStr] = month.split('-');
+    const monthNum = parseInt(monthStr, 10);
+    if (year !== '2026' || Number.isNaN(monthNum)) return 0;
+
+    const monthPlanKey = `26년 ${monthNum}월(계획)`;
+    if (csvData[dataKey] && csvData[dataKey][monthPlanKey]) {
+      const val = csvData[dataKey][monthPlanKey].replace(/[^0-9.-]/g, '');
+      return parseFloat(val) || 0;
+    }
+    return 0;
+  };
+
+  // 화면 표시용 계획: YTD=AF(연간계획), 당월=AE(당월계획)
+  const get26DisplayPlanValue = (dataKey: string, month: string): number => {
+    if (viewMode === 'YTD') {
+      return get26AnnualPlanValue(dataKey);
+    }
+    return get26MonthPlanValue(dataKey, month);
   };
 
   // 현재 표시할 값 (YTD 또는 당월) - 26년 데이터
@@ -4793,8 +4822,9 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     
     const val25Total = get25TotalValue(`영업비_${cat.key}`); // 25년 전체 합계
     const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
-    const valPlan = get26PlanValue(`영업비_${cat.key}`); // 26년 계획
-    const val26Progress = valPlan > 0 ? (val26YTD / valPlan * 100) : 0; // 26년 진척률 (누적 기준)
+    const valPlan = get26DisplayPlanValue(`영업비_${cat.key}`, selectedMonthLocal);
+    const valAnnualPlan = get26AnnualPlanValue(`영업비_${cat.key}`);
+    const val26Progress = valAnnualPlan > 0 ? (val26YTD / valAnnualPlan * 100) : 0; // 26년 진척률 (누적 기준)
     const diff = val26 - val25;
     const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
     const detail = detailNotes[cat.name] || '';
@@ -4816,11 +4846,11 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const totalRow = {
     name: '합계',
     total25: get25TotalValue('영업비_총영업비'), // 25년 전체 합계
-    plan26: get26PlanValue('영업비_총영업비'), // 26년 계획
+    plan26: get26DisplayPlanValue('영업비_총영업비', selectedMonthLocal),
     ytd24: totalOperatingExpense25,
     progress25: get25TotalValue('영업비_총영업비') > 0 ? (totalOperatingExpense25YTD / get25TotalValue('영업비_총영업비') * 100) : 0, // 25년 진척률 (누적 기준)
     ytd25: totalOperatingExpense,
-    progress26: get26PlanValue('영업비_총영업비') > 0 ? (totalOperatingExpenseYTD / get26PlanValue('영업비_총영업비') * 100) : 0, // 26년 진척률 (누적 기준)
+    progress26: get26AnnualPlanValue('영업비_총영업비') > 0 ? (totalOperatingExpenseYTD / get26AnnualPlanValue('영업비_총영업비') * 100) : 0, // 26년 진척률 (누적 기준)
     diff: totalOperatingExpense - totalOperatingExpense25,
     diffRate: totalOperatingExpenseYOY - 100,
     detail: '',
@@ -4858,8 +4888,9 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       
       const val25Total = get25TotalValue(dataKey); // 25년 전체 합계
       const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
-      const valPlan = get26PlanValue(dataKey); // 26년 계획
-      const val26Progress = valPlan > 0 ? (val26YTD / valPlan * 100) : 0; // 26년 진척률 (누적 기준)
+      const valPlan = get26DisplayPlanValue(dataKey, selectedMonthLocal);
+      const valAnnualPlan = get26AnnualPlanValue(dataKey);
+      const val26Progress = valAnnualPlan > 0 ? (val26YTD / valAnnualPlan * 100) : 0; // 26년 진척률 (누적 기준)
       const diff = val26 - val25;
       const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
       const detailKey = `${categoryName}||${sub.name}`;
@@ -5123,7 +5154,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   <TableHead className="text-right w-[90px] bg-blue-50">합계</TableHead>
                   <TableHead className="text-right w-[90px] bg-blue-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
                   <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-blue-50">진척률</TableHead>
-                  <TableHead className="text-right w-[90px] bg-green-50">계획</TableHead>
+                  <TableHead className="text-right w-[90px] bg-green-50">{viewMode === "YTD" ? "계획" : "당월계획"}</TableHead>
                   <TableHead className="text-right w-[90px] bg-green-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
                   <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-green-50">진척률</TableHead>
                   <TableHead className="text-right w-[90px] bg-amber-50">증감액</TableHead>
