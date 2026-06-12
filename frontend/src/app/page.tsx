@@ -11225,8 +11225,16 @@ export default function DashboardPage() {
             );
           })}
           
-          {/* 요약 Report 버튼 */}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                window.open('https://invenpl.vercel.app/', '_blank');
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
+            >
+              📦 물량 재고 계획
+            </Button>
             <Button
               variant="outline"
               onClick={() => {
