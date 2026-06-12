@@ -7433,7 +7433,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     const isSubItem = label === '매출수금' || label === '물품대 지출' || label === '비용지출' || 
                                      label.startsWith('기타수금') || label.startsWith('기타지출') ||
                                      label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스' ||
-                                     label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용' ||
+                                     label === '인건비' || label === '지급수수료' || label === '광고선전비' ||
+                                     label === '물류운반비' || label === '관세' || label === '세일즈텍스' || label === '기타비용' ||
                                      label === '본사차입' || label === 'STE감자' || label === 'STE청산' || label === 'STE지분매입' || label === '본사차입상환' ||
                                      label === 'STE감자/배당' || label === 'STE주주환원' || label === 'STE주주환원(청산)' ||
                                      label === '본사차입(SPA)' || label === '본사차입상환(SPA)' || 
@@ -7449,7 +7450,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         label === '본사차입(SPA)' || label === '본사차입상환(SPA)' || 
                         label === '본사차입(운영자금)' || label === '본사차입상환(운영자금)') parentKey = '재무활동';
                     else if (label === '온라인(US+EU)' || label === '홀세일' || label === '라이선스') parentKey = '매출수금';
-                    else if (label === '인건비' || label === '지급수수료' || label === '광고선전비' || label === '기타비용') parentKey = '비용지출';
+                    else if (label === '인건비' || label === '지급수수료' || label === '광고선전비' ||
+                             label === '물류운반비' || label === '관세' || label === '세일즈텍스' || label === '기타비용') parentKey = '비용지출';
                     else if (label.startsWith('기타수금') || label.startsWith('기타지출')) parentKey = '재무활동';
 
                     parsed1.push({
@@ -8798,6 +8800,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
 
                             const isParent = row.isParent;
                             const isSubItem = row.isSubItem;
+                            const isRoyaltySub = ['BBUK', 'Movin', 'Benjamin', 'SUGI', 'SUGI FR', 'Silver', 'BDS'].includes(row.label);
                             
                             // 행 스타일
                             let rowClass = "hover:bg-gray-50";
@@ -8862,7 +8865,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             isNegative = signed.isNegative;
                                         }
                                         
-                                        let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300 font-semibold";
+                                        let cellClass = cn(
+                                            "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300",
+                                            isRoyaltySub ? "font-normal" : "font-semibold"
+                                        );
                                         if (isNegative) cellClass += " text-red-600";
                                         else if ((vIdx === 16 || vIdx === 17) && displayValue !== '-' && displayValue !== '0' && !isNegative) cellClass += " text-blue-600";
                                         else cellClass += " text-gray-900";
