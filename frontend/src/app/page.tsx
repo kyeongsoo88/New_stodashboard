@@ -11242,7 +11242,7 @@ export default function DashboardPage() {
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
             >
-              📦 물량 재고 계획
+              📦 5월 상세 분석
             </Button>
             <Button
               variant="outline"
