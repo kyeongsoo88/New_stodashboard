@@ -134,7 +134,7 @@ export function MetricCard({
                   <div className="flex items-center gap-0.5">
                     <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">발주</span>
                     <span className="w-[4px] text-center">|</span>
-                    <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">YoY</span>
+                    <span className="w-[60px] min-w-[60px] text-right whitespace-nowrap">발주 YoY</span>
                     <span className="w-[4px] text-center">|</span>
                     <span className="w-[45px] min-w-[45px] text-right whitespace-nowrap">당년</span>
                     <span className="w-[4px] text-center">|</span>
@@ -153,7 +153,7 @@ export function MetricCard({
                     <div className="flex items-center gap-0.5 text-xs">
                       <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{item.value}</span>
                       <span className="w-[4px] text-center text-gray-300">|</span>
-                      <span className="w-[45px] min-w-[45px] text-right font-medium tabular-nums">{
+                      <span className="w-[60px] min-w-[60px] text-right font-medium tabular-nums">{
                         item.share && typeof item.share === 'string' && item.share.includes('%') 
                           ? (() => {
                               const num = parseFloat(item.share.replace(/[^0-9.-]/g, ''));

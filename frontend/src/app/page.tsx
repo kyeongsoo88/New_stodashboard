@@ -10278,6 +10278,13 @@ export default function DashboardPage() {
               rate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_비율', month, '4.4%')),
               prevRate: formatPercentGlobal(getDataValue('카드_당시즌판매율_아이템_트랙팬츠_전년', month, '0.0%')) 
             },
+            ...(['아이템3', '아이템4', '아이템5'] as const).map((key) => ({
+              name: getDataValue(`카드_당시즌판매율_아이템_${key}_이름`, month, key),
+              value: getDataValue(`카드_당시즌판매율_아이템_${key}_값`, month, ''),
+              share: formatPercentGlobal(getDataValue(`카드_당시즌판매율_아이템_${key}_비중`, month, '')),
+              rate: formatPercentGlobal(getDataValue(`카드_당시즌판매율_아이템_${key}_비율`, month, '')),
+              prevRate: formatPercentGlobal(getDataValue(`카드_당시즌판매율_아이템_${key}_전년`, month, '')),
+            })),
             { 
               name: "Total", 
               value: getDataValue('카드_당시즌판매율_아이템_전체발주_값', month, '$14,811K'), 
