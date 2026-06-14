@@ -22,6 +22,7 @@ interface MetricCardProps {
   itemDetails?: { name: string; value: string; share?: string; rate: string; prevRate?: string; isTotal?: boolean }[]
   topStoresDetails?: { name: string; value: string; yoy: string }[]
   statsDetails?: { name: string; value: string; yoy: string }[]
+  yoyBadges?: { label: string; value: string }[]
   detailsTitle?: string
   expandAll?: boolean
 }
@@ -40,6 +41,7 @@ export function MetricCard({
   itemDetails,
   topStoresDetails,
   statsDetails,
+  yoyBadges,
   detailsTitle,
   expandAll
 }: MetricCardProps) {
@@ -112,6 +114,25 @@ export function MetricCard({
                 {title.includes("US EC 25FW 판매율") ? description.replace(/YoY/g, '전년대비') : description}
               </span>
             )}
+          </div>
+        )}
+
+        {yoyBadges && yoyBadges.some((badge) => badge.value) && (
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            {yoyBadges.filter((badge) => badge.value).map((badge) => {
+              const num = parseFloat(badge.value.replace(/[^0-9.-]/g, ''));
+              const displayValue = isNaN(num)
+                ? badge.value
+                : `${Number.isInteger(num) ? num : num.toFixed(0)}%`;
+              return (
+                <span
+                  key={badge.label}
+                  className="text-xs px-2.5 py-1 rounded font-bold whitespace-nowrap bg-green-50 text-green-700"
+                >
+                  {badge.label} {displayValue}
+                </span>
+              );
+            })}
           </div>
         )}
         

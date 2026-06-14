@@ -10263,6 +10263,8 @@ export default function DashboardPage() {
           subValue: `전년 ${getDataValue('카드_당시즌판매율_전년비교', month, '21.1%')}`,
           subValueColor: "text-red-500" as const,
           description: `YoY ${getDataValue('카드_당시즌판매율_YOY', month, '-4.5%p')}`,
+          orderYoy: getDataValue('카드_당시즌판매율_발주YOY', month, ''),
+          salesYoy: getDataValue('카드_당시즌판매율_판매YOY', month, ''),
           itemDetails: [
             { 
               name: "Track Jacket", 
@@ -14149,6 +14151,10 @@ export default function DashboardPage() {
                  subValue={cardData.metricCards.salesRate.subValue} 
                  subValueColor={cardData.metricCards.salesRate.subValueColor} 
                  description={cardData.metricCards.salesRate.description} 
+                 yoyBadges={[
+                   { label: '발주 YoY', value: cardData.metricCards.salesRate.orderYoy },
+                   { label: '판매 YoY', value: cardData.metricCards.salesRate.salesYoy },
+                 ]}
                  itemDetails={cardData.metricCards.salesRate.itemDetails}
                  expandAll={expandAllDetails}
                />
