@@ -4392,7 +4392,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
   const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-05");
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-06");
   const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
   const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
   const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
@@ -4410,7 +4410,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     { value: '2026-02', label: '26년 2월' },
     { value: '2026-03', label: '26년 3월' },
     { value: '2026-04', label: '26년 4월' },
-    { value: '2026-05', label: '26년 5월' }
+    { value: '2026-05', label: '26년 5월' },
+    { value: '2026-06', label: '26년 6월' }
   ];
 
   React.useEffect(() => {
@@ -9632,13 +9633,13 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-05",
-    "손익계산서": "2026-05",
-    "재무상태표": "2026-05",
-    "현금흐름표": "2026-05",
-    "영업비 분석": "2026-05",
-    "당월 추세": "2026-05",
-    "시뮬레이션": "2026-05",
+    "대시보드": "2026-06",
+    "손익계산서": "2026-06",
+    "재무상태표": "2026-06",
+    "현금흐름표": "2026-06",
+    "영업비 분석": "2026-06",
+    "당월 추세": "2026-06",
+    "시뮬레이션": "2026-06",
   });
   
   // CSV 데이터 로딩 상태
@@ -9909,11 +9910,12 @@ export default function DashboardPage() {
       '2026-02': '26-Feb',
       '2026-03': '26-Mar',
       '2026-04': '26-Apr',
-      '2026-05': '26-May'
+      '2026-05': '26-May',
+      '2026-06': '26-Jun'
     };
-    
+
     const csvMonthKey = monthMapping[month] || month;
-    
+
     if (!dashboardData[dataKey] || !dashboardData[dataKey][csvMonthKey]) {
       return defaultValue;
     }
@@ -9942,11 +9944,12 @@ export default function DashboardPage() {
       '2026-02': '26-Feb',
       '2026-03': '26-Mar',
       '2026-04': '26-Apr',
-      '2026-05': '26-May'
+      '2026-05': '26-May',
+      '2026-06': '26-Jun'
     };
-    
+
     const csvMonthKey = monthMapping[month] || month;
-    
+
     // 손익요약 데이터의 경우 pnlDataSource에 따라 다른 데이터 소스 사용
     const dataSource = dataKey.startsWith('손익요약_') && pnlDataSource === 'USEC' 
       ? dashboardUSECData 
@@ -11022,8 +11025,8 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월', '6월'];
       
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
@@ -11042,7 +11045,8 @@ export default function DashboardPage() {
         '2026-02': '26-Feb',
         '2026-03': '26-Mar',
         '2026-04': '26-Apr',
-        '2026-05': '26-May'
+        '2026-05': '26-May',
+        '2026-06': '26-Jun'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
@@ -11201,6 +11205,7 @@ export default function DashboardPage() {
               <SelectItem value="2026-03">2026년 03월</SelectItem>
               <SelectItem value="2026-04">2026년 04월</SelectItem>
               <SelectItem value="2026-05">2026년 05월</SelectItem>
+              <SelectItem value="2026-06">2026년 06월</SelectItem>
             </SelectContent>
           </Select>
         </div>
