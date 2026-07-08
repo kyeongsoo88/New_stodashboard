@@ -1715,18 +1715,18 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(17).fill(0);
+              const values = csvChartData[dataKey] || Array(18).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(17).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(18).fill(100);
               
               return { name: opt, values, yoyValues };
           });
       } else {
           // Fallback to generated data
           return filterOptions.map(opt => {
-              const values = generateConsistentData(opt + "sales", 17, 2000, 8000);
-              const yoyValues = generateConsistentData(opt + "yoy", 17, 80, 180);
+              const values = generateConsistentData(opt + "sales", 18, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 18, 80, 180);
               return { name: opt, values, yoyValues };
           });
       }
@@ -1743,7 +1743,7 @@ function InteractiveChartSection({
           return csvChartData[key];
       }
       // Fallback: average of available series YOY values
-      return Array(17).fill(0).map((_, i) => {
+      return Array(18).fill(0).map((_, i) => {
           const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
           if (seriesYoys.length === 0) return 0;
           return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
@@ -1752,8 +1752,8 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(17).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, 26.2월, 26.3월, 26.4월, 26.5월)
+      return Array(18).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, ..., 26.6월)
         let monthLabel;
         if (i < 12) {
           monthLabel = `25.${i+1}월`;
@@ -1765,8 +1765,10 @@ function InteractiveChartSection({
           monthLabel = `26.3월`;
         } else if (i === 15) {
           monthLabel = `26.4월`;
-        } else {
+        } else if (i === 16) {
           monthLabel = `26.5월`;
+        } else {
+          monthLabel = `26.6월`;
         }
         const monthItem: any = { name: monthLabel };
           let totalTarget = 0;
@@ -1802,8 +1804,8 @@ function InteractiveChartSection({
 
   // YOY Line Chart Data
   const yoyChartData = React.useMemo(() => {
-      return Array(17).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.5월)
+      return Array(18).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.6월)
         const item: any = { name: i < 12 ? `25.${i+1}월` : `26.${i-11}월` };
           allSeriesData.forEach(series => {
               item[series.name] = series.yoyValues[i];
@@ -10922,8 +10924,8 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-    
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
+
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
     // CSV 키와 표시 이름 매핑
@@ -11063,9 +11065,9 @@ export default function DashboardPage() {
     
     // 3월부터 5월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Mar -> 3월, 26-Apr -> 4월, 26-May -> 5월)
     // 차트에서 구분하기 위해 3월은 공백 추가, 4월은 공백 2개 추가, 5월은 공백 3개 추가
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   '];  // 마지막 구분용 공백
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    '];  // 마지막 구분용 공백
     // CSV 헤더와 매핑
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May'];
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May', '26-Jun'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -11109,6 +11111,10 @@ export default function DashboardPage() {
         period = '26.3실적';
       } else if (monthLabel.startsWith('4월') && idx === 13) {
         period = '26.4실적';
+      } else if (monthLabel.startsWith('5월') && idx === 14) {
+        period = '26.5실적';
+      } else if (monthLabel.startsWith('6월') && idx === 15) {
+        period = '26.6실적';
       } else {
         const periodLabel = monthLabel.replace('월', '').trim();
         period = `25.${periodLabel}실적`;
