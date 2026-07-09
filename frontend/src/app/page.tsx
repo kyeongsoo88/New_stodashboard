@@ -14204,7 +14204,7 @@ export default function DashboardPage() {
                  <Dialog>
                    <DialogTrigger asChild>
                      <Button variant="outline" size="sm" className="w-full text-xs h-7 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800">
-                       25SS 재고소진 계획 상세보기
+                       재고 월별 추세
                      </Button>
                    </DialogTrigger>
                    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
