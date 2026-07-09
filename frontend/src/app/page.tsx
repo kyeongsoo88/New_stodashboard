@@ -1102,11 +1102,24 @@ function StorageCostDialog({ data }: { data: any }) {
                     setLoading(false);
                     return;
                 }
-                
-                const headers = lines[0].split(',').map(h => h.trim());
-                const inventoryRow = lines[1].split(',').map(v => v.trim());
-                const storageCostRow = lines[2].split(',').map(v => v.trim());
-                const percentageRow = lines[3].split(',').map(v => v.trim());
+
+                // 따옴표로 감싸진 필드(엑셀 저장 시 "9,617" 형태)를 올바르게 파싱
+                const parseCSVLine = (line: string): string[] => {
+                    const result: string[] = [];
+                    let cur = '', inQuote = false;
+                    for (const ch of line) {
+                        if (ch === '"') { inQuote = !inQuote; }
+                        else if (ch === ',' && !inQuote) { result.push(cur.trim()); cur = ''; }
+                        else { cur += ch; }
+                    }
+                    result.push(cur.trim());
+                    return result;
+                };
+
+                const headers = parseCSVLine(lines[0]);
+                const inventoryRow = parseCSVLine(lines[1]);
+                const storageCostRow = parseCSVLine(lines[2]);
+                const percentageRow = parseCSVLine(lines[3]);
                 
                 const parsed = [];
                 for (let i = 2; i < headers.length; i++) {
