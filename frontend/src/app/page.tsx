@@ -4514,11 +4514,12 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
 function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [rawRows, setRawRows] = React.useState<Record<string, string>[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [viewTab, setViewTab] = React.useState<'트렌드' | '부서별' | '거래내역'>('트렌드');
+  const [viewTab, setViewTab] = React.useState<'트렌드' | '폭포수' | '부서별' | '벤더' | '거래내역'>('트렌드');
   const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-06');
   const [viewMode, setViewMode] = React.useState<'당월' | 'YTD'>('당월');
   const [activePL, setActivePL] = React.useState<Set<string>>(new Set(['HQ', 'Benefits', 'Contractors', 'Advertising', 'Professional Service']));
   const [drillPL, setDrillPL] = React.useState<string | null>(null);
+  const [drillVendor, setDrillVendor] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
   const [txPage, setTxPage] = React.useState(0);
   const PAGE_SIZE = 50;
@@ -4540,33 +4541,18 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const PL_ITEMS = ['HQ', 'Benefits', 'Contractors', 'Bonus', 'Advertising', 'Professional Service', 'Rent', 'T&E', 'Sample', 'Other', 'Depreciation & Amortization'];
 
   const PL_COLORS: Record<string, string> = {
-    'HQ': '#6366f1',
-    'Benefits': '#10b981',
-    'Contractors': '#f59e0b',
-    'Bonus': '#ef4444',
-    'Advertising': '#3b82f6',
-    'Professional Service': '#ec4899',
-    'Rent': '#14b8a6',
-    'T&E': '#f97316',
-    'Sample': '#84cc16',
-    'Other': '#64748b',
-    'Depreciation & Amortization': '#a855f7',
+    'HQ': '#6366f1', 'Benefits': '#10b981', 'Contractors': '#f59e0b', 'Bonus': '#ef4444',
+    'Advertising': '#3b82f6', 'Professional Service': '#ec4899', 'Rent': '#14b8a6',
+    'T&E': '#f97316', 'Sample': '#84cc16', 'Other': '#64748b', 'Depreciation & Amortization': '#a855f7',
   };
 
   const DEPT_COLORS: Record<string, string> = {
-    'Brand Marketing': '#3b82f6',
-    'Administration': '#10b981',
-    'Ecommerce': '#f59e0b',
-    'Design': '#8b5cf6',
-    'Executive': '#ef4444',
-    'Licensing': '#06b6d4',
-    'Merchandising': '#f97316',
-    'Production': '#84cc16',
-    'Wholesale': '#ec4899',
+    'Brand Marketing': '#3b82f6', 'Administration': '#10b981', 'Ecommerce': '#f59e0b',
+    'Design': '#8b5cf6', 'Executive': '#ef4444', 'Licensing': '#06b6d4',
+    'Merchandising': '#f97316', 'Production': '#84cc16', 'Wholesale': '#ec4899',
   };
 
   const DEPTS = ['Brand Marketing', 'Administration', 'Ecommerce', 'Design', 'Executive', 'Licensing', 'Merchandising', 'Production', 'Wholesale'];
-
   const MONTHS_2025 = Array.from({ length: 12 }, (_, i) => `2025-${String(i + 1).padStart(2, '0')}`);
   const MONTHS_2026 = Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`);
   const ALL_MONTHS = [...MONTHS_2025, ...MONTHS_2026];
@@ -4578,17 +4564,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       .then(buf => {
         const bytes = new Uint8Array(buf);
         let text: string;
-        if (bytes[0] === 0xff && bytes[1] === 0xfe) {
-          text = new TextDecoder('utf-16le').decode(buf);
-        } else if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-          text = new TextDecoder('utf-8').decode(buf);
-        } else {
-          text = new TextDecoder('utf-8').decode(buf);
-        }
+        if (bytes[0] === 0xff && bytes[1] === 0xfe) text = new TextDecoder('utf-16le').decode(buf);
+        else if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) text = new TextDecoder('utf-8').decode(buf);
+        else text = new TextDecoder('utf-8').decode(buf);
         const lines = text.split(/\r?\n/).filter(l => l.trim());
         if (lines.length < 2) { setLoading(false); return; }
         const headers = parseCSVLine(lines[0]).map((h: string) => h.replace(/^﻿/, '').trim());
-        // Jan-25 → 2025-01 변환 함수
         const normDate2 = (d: string): string => {
           const MM: Record<string, string> = {
             'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
@@ -4613,12 +4594,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       .catch(() => setLoading(false));
   }, []);
 
-  // Monthly aggregation by P&L Line Item
   const monthlyByPL = React.useMemo(() => {
     const result: Record<string, Record<string, number>> = {};
     for (const row of rawRows) {
-      const month = row['Date2'];
-      const pl = row['P&L Line Item'];
+      const month = row['Date2']; const pl = row['P&L Line Item'];
       const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
       if (!month || !pl) continue;
       if (!result[month]) result[month] = {};
@@ -4627,7 +4606,6 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return result;
   }, [rawRows]);
 
-  // Monthly aggregation by Department
   const monthlyByDept = React.useMemo(() => {
     const result: Record<string, Record<string, number>> = {};
     for (const row of rawRows) {
@@ -4641,7 +4619,6 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return result;
   }, [rawRows]);
 
-  // Monthly total
   const monthlyTotal = React.useMemo(() => {
     const result: Record<string, number> = {};
     for (const [month, byPL] of Object.entries(monthlyByPL)) {
@@ -4658,17 +4635,14 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     if (!pl) return monthlyTotal[month] || 0;
     return monthlyByPL[month]?.[pl] || 0;
   };
-
   const getYTDVal = (upToMonth: string, pl?: string) => {
     const [yr, mo] = upToMonth.split('-');
     let sum = 0;
     for (let m = 1; m <= parseInt(mo); m++) {
-      const key = `${yr}-${String(m).padStart(2, '0')}`;
-      sum += getMonthVal(key, pl);
+      sum += getMonthVal(`${yr}-${String(m).padStart(2, '0')}`, pl);
     }
     return sum;
   };
-
   const getCurVal = (pl?: string) => viewMode === 'YTD' ? getYTDVal(selectedMonthLocal, pl) : getMonthVal(selectedMonthLocal, pl);
   const getPrevVal = (pl?: string) => {
     const prevKey = `${prevYr}-${String(curMonthNum).padStart(2, '0')}`;
@@ -4678,8 +4652,9 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const currentTotal = getCurVal();
   const prevTotal = getPrevVal();
   const yoyPct = prevTotal > 0 ? ((currentTotal / prevTotal - 1) * 100) : 0;
+  const yoyAmt = currentTotal - prevTotal;
 
-  // Dept x PL cross table (memoized)
+  // Dept × PL cross
   const deptPLCross = React.useMemo(() => {
     const result: Record<string, Record<string, number>> = {};
     for (const row of rawRows) {
@@ -4696,6 +4671,27 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return result;
   }, [rawRows, viewMode, curYr, selectedMonthLocal]);
 
+  // Vendor ranking
+  const vendorRank = React.useMemo(() => {
+    const result: Record<string, { total: number; count: number; pls: Set<string>; dept: string }> = {};
+    for (const row of rawRows) {
+      const inPeriod = viewMode === 'YTD'
+        ? row['Date2'] >= `${curYr}-01` && row['Date2'] <= selectedMonthLocal
+        : row['Date2'] === selectedMonthLocal;
+      if (!inPeriod) continue;
+      const vendor = (row['Name'] || '').trim() || 'Unknown';
+      const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
+      if (!result[vendor]) result[vendor] = { total: 0, count: 0, pls: new Set(), dept: row['Dept. Mapping for G&A'] || '' };
+      result[vendor].total += amt;
+      result[vendor].count += 1;
+      if (row['P&L Line Item']) result[vendor].pls.add(row['P&L Line Item']);
+    }
+    return Object.entries(result)
+      .map(([name, d]) => ({ name, total: d.total, count: d.count, pl: [...d.pls].join(' / '), dept: d.dept }))
+      .filter(v => v.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [rawRows, viewMode, curYr, selectedMonthLocal]);
+
   // Transaction rows (filtered)
   const txRows = React.useMemo(() => {
     return rawRows.filter(r => {
@@ -4704,6 +4700,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         : r['Date2'] === selectedMonthLocal;
       if (!inPeriod) return false;
       if (drillPL && r['P&L Line Item'] !== drillPL) return false;
+      if (drillVendor && (r['Name'] || '').trim() !== drillVendor) return false;
       if (searchText) {
         const q = searchText.toLowerCase();
         if (!r['Name'].toLowerCase().includes(q) &&
@@ -4712,109 +4709,181 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       }
       return true;
     }).sort((a, b) => Math.abs(parseFloat((b['Amount'] || '').replace(/,/g, '')) || 0) - Math.abs(parseFloat((a['Amount'] || '').replace(/,/g, '')) || 0));
-  }, [rawRows, viewMode, curYr, selectedMonthLocal, drillPL, searchText]);
+  }, [rawRows, viewMode, curYr, selectedMonthLocal, drillPL, drillVendor, searchText]);
 
   const txTotal = txRows.reduce((s, r) => s + (parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0), 0);
   const txPages = Math.ceil(txRows.length / PAGE_SIZE);
   const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
-
   const txCount = txRows.length;
-
   const topPL = PL_ITEMS.reduce((best, pl) => getCurVal(pl) > getCurVal(best) ? pl : best, PL_ITEMS[0]);
 
-  // Recent 12 months up to selectedMonthLocal
+  // KPI derived values
+  const personnelItems = ['HQ', 'Benefits', 'Contractors', 'Bonus'];
+  const personnelTotal = personnelItems.reduce((s, pl) => s + getCurVal(pl), 0);
+  const personnelRatio = currentTotal > 0 ? (personnelTotal / currentTotal * 100) : 0;
+  const marketingTotal = getCurVal('Advertising');
+  const marketingPrev = getPrevVal('Advertising');
+  const marketingYoy = marketingPrev > 0 ? ((marketingTotal / marketingPrev - 1) * 100) : 0;
+  const fixedItems = ['Rent', 'Depreciation & Amortization'];
+  const fixedTotal = fixedItems.reduce((s, pl) => s + getCurVal(pl), 0);
+  const fixedRatio = currentTotal > 0 ? (fixedTotal / currentTotal * 100) : 0;
+  const top5VendorTotal = vendorRank.slice(0, 5).reduce((s, v) => s + v.total, 0);
+  const top5Conc = currentTotal > 0 ? (top5VendorTotal / currentTotal * 100) : 0;
+  // 단건 $50K 이상 거래 (이상 거래 지표)
+  const anomalyCount = txRows.filter(r => Math.abs(parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0) >= 50000).length;
+
+  // Trend months (last 12)
   const trendMonths = React.useMemo(() => {
-    const avail = ALL_MONTHS.filter(m => m <= selectedMonthLocal);
-    return avail.slice(-12);
+    return ALL_MONTHS.filter(m => m <= selectedMonthLocal).slice(-12);
   }, [selectedMonthLocal]);
 
-  const fmtK = (v: number) => `$${Math.abs(Math.round(v / 1000)).toLocaleString()}K${v < 0 ? ' (-)' : ''}`;
-  const fmtKshort = (v: number) => v === 0 ? '-' : `$${Math.round(v / 1000).toLocaleString()}K`;
+  // Waterfall items
+  const waterfallItems = PL_ITEMS.map(pl => ({
+    pl, label: PL_KR[pl] || pl,
+    cur: getCurVal(pl), prev: getPrevVal(pl),
+    delta: getCurVal(pl) - getPrevVal(pl),
+  })).sort((a, b) => b.delta - a.delta);
 
-  // SVG Trend Chart (multi-line)
+  const fmtK = (v: number) => `$${Math.abs(Math.round(v / 1000)).toLocaleString()}K`;
+  const fmtKsigned = (v: number) => (v >= 0 ? '+' : '-') + `$${Math.abs(Math.round(v / 1000)).toLocaleString()}K`;
+  const fmtKshort = (v: number) => v === 0 ? '–' : `$${Math.round(v / 1000).toLocaleString()}K`;
+
+  // Category summary
+  const categorySummary = PL_ITEMS.map(pl => ({
+    pl, cur: getCurVal(pl), prev: getPrevVal(pl),
+    yoy: getPrevVal(pl) > 0 ? ((getCurVal(pl) / getPrevVal(pl) - 1) * 100) : 0,
+    share: currentTotal > 0 ? (getCurVal(pl) / currentTotal * 100) : 0,
+  })).sort((a, b) => b.cur - a.cur);
+
+  // ── SVG: Trend multi-line chart ──
   const TrendChart = () => {
-    const W = 760, H = 220;
-    const PAD = { t: 20, r: 24, b: 36, l: 58 };
-    const chartW = W - PAD.l - PAD.r;
-    const chartH = H - PAD.t - PAD.b;
-    const activePLArr = PL_ITEMS.filter(pl => activePL.has(pl));
-    const allVals = trendMonths.flatMap(m => activePLArr.map(pl => Math.max(0, getMonthVal(m, pl))));
-    const maxVal = Math.max(...allVals, 1000);
-    const gridCount = 4;
-    const xPos = (i: number) => PAD.l + (trendMonths.length < 2 ? chartW / 2 : (i / (trendMonths.length - 1)) * chartW);
-    const yPos = (v: number) => PAD.t + chartH - Math.max(0, (v / maxVal)) * chartH;
+    const W = 760, H = 220, PAD = { t: 20, r: 24, b: 36, l: 60 };
+    const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+    const active = PL_ITEMS.filter(pl => activePL.has(pl));
+    const maxVal = Math.max(...trendMonths.flatMap(m => active.map(pl => Math.max(0, getMonthVal(m, pl)))), 1);
+    const xP = (i: number) => PAD.l + (trendMonths.length < 2 ? cW / 2 : (i / (trendMonths.length - 1)) * cW);
+    const yP = (v: number) => PAD.t + cH - Math.max(0, v / maxVal) * cH;
     return (
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
-        {Array.from({ length: gridCount + 1 }, (_, i) => {
-          const y = PAD.t + (i / gridCount) * chartH;
-          const v = Math.round(maxVal * (1 - i / gridCount) / 1000);
-          return (
-            <g key={i}>
-              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-              <text x={PAD.l - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">${v}K</text>
-            </g>
-          );
+        {[0,1,2,3,4].map(i => {
+          const y = PAD.t + (i / 4) * cH;
+          return <g key={i}>
+            <line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1"/>
+            <text x={PAD.l-5} y={y+4} textAnchor="end" fontSize="9" fill="#94a3b8">${Math.round(maxVal*(1-i/4)/1000)}K</text>
+          </g>;
         })}
-        {activePLArr.map(pl => {
-          const pts = trendMonths.map((m, i) => `${xPos(i)},${yPos(getMonthVal(m, pl))}`).join(' ');
-          return (
-            <g key={pl}>
-              <polyline points={pts} fill="none" stroke={PL_COLORS[pl]} strokeWidth="2" strokeLinejoin="round" />
-              {trendMonths.map((m, i) => (
-                <circle key={m} cx={xPos(i)} cy={yPos(getMonthVal(m, pl))} r="3" fill={PL_COLORS[pl]} />
-              ))}
-            </g>
-          );
-        })}
-        {trendMonths.map((m, i) => (
-          <text key={m} x={xPos(i)} y={H - PAD.b + 14} textAnchor="middle" fontSize="9" fill="#64748b">
-            {m.replace('2025-', "'25/").replace('2026-', "'26/")}
+        {active.map(pl => (
+          <g key={pl}>
+            <polyline points={trendMonths.map((m,i) => `${xP(i)},${yP(getMonthVal(m,pl))}`).join(' ')}
+              fill="none" stroke={PL_COLORS[pl]} strokeWidth="2" strokeLinejoin="round"/>
+            {trendMonths.map((m,i) => <circle key={m} cx={xP(i)} cy={yP(getMonthVal(m,pl))} r="3" fill={PL_COLORS[pl]}/>)}
+          </g>
+        ))}
+        {trendMonths.map((m,i) => (
+          <text key={m} x={xP(i)} y={H-PAD.b+14} textAnchor="middle" fontSize="9" fill="#64748b">
+            {m.replace('2025-',"'25/").replace('2026-',"'26/")}
           </text>
         ))}
       </svg>
     );
   };
 
-  // SVG Stacked Bar Chart (dept breakdown)
-  const DeptBarChart = () => {
-    const W = 760, H = 220;
-    const PAD = { t: 20, r: 24, b: 36, l: 58 };
-    const chartW = W - PAD.l - PAD.r;
-    const chartH = H - PAD.t - PAD.b;
-    const months = trendMonths;
-    const totals = months.map(m => DEPTS.reduce((s, d) => s + Math.max(0, monthlyByDept[m]?.[d] || 0), 0));
-    const maxVal = Math.max(...totals, 1);
-    const bw = (chartW / months.length) * 0.65;
-    const xPos = (i: number) => PAD.l + (i / months.length) * chartW + (chartW / months.length - bw) / 2;
-    const gridCount = 4;
+  // ── SVG: Waterfall chart ──
+  const WaterfallChart = () => {
+    const W = 820, H = 260, PAD = { t: 30, r: 20, b: 60, l: 70 };
+    const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+    // bars: [prev_total, ...per-category deltas..., cur_total]
+    const bars: { label: string; value: number; base: number; type: 'total' | 'up' | 'down' }[] = [];
+    bars.push({ label: `${prevYr}년`, value: prevTotal, base: 0, type: 'total' });
+    let running = prevTotal;
+    for (const item of waterfallItems) {
+      if (Math.abs(item.delta) < 1) continue;
+      bars.push({
+        label: item.label,
+        value: Math.abs(item.delta),
+        base: item.delta >= 0 ? running : running + item.delta,
+        type: item.delta >= 0 ? 'up' : 'down',
+      });
+      running += item.delta;
+    }
+    bars.push({ label: `${curYr}년`, value: currentTotal, base: 0, type: 'total' });
+
+    const maxVal = Math.max(...bars.map(b => b.base + b.value), 1);
+    const bw = Math.min(cW / bars.length * 0.6, 48);
+    const xP = (i: number) => PAD.l + (i + 0.5) * (cW / bars.length) - bw / 2;
+    const yTop = (base: number, val: number) => PAD.t + cH - ((base + val) / maxVal) * cH;
+    const barH = (val: number) => (val / maxVal) * cH;
+
     return (
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
-        {Array.from({ length: gridCount + 1 }, (_, i) => {
-          const y = PAD.t + (i / gridCount) * chartH;
-          const v = Math.round(maxVal * (1 - i / gridCount) / 1000);
+        {[0,1,2,3,4].map(i => {
+          const y = PAD.t + (i / 4) * cH;
+          return <g key={i}>
+            <line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1"/>
+            <text x={PAD.l-5} y={y+4} textAnchor="end" fontSize="9" fill="#94a3b8">${Math.round(maxVal*(1-i/4)/1000)}K</text>
+          </g>;
+        })}
+        {bars.map((bar, i) => {
+          const color = bar.type === 'total' ? '#334155'
+            : bar.type === 'up' ? '#ef4444' : '#10b981';
+          const y = yTop(bar.base, bar.value);
+          const h = Math.max(barH(bar.value), 2);
+          const labelVal = bar.type === 'total' ? fmtK(bar.value)
+            : bar.type === 'up' ? `+${fmtK(bar.value)}` : `-${fmtK(bar.value)}`;
           return (
             <g key={i}>
-              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" />
-              <text x={PAD.l - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">${v}K</text>
+              {/* connector line to previous bar */}
+              {i > 0 && bar.type !== 'total' && (
+                <line
+                  x1={xP(i-1) + bw} x2={xP(i)}
+                  y1={yTop(bars[i-1].base, bars[i-1].value) + (bars[i-1].type === 'total' ? 0 : (bar.type === 'up' ? barH(bars[i-1].value) : 0))}
+                  y2={y + (bar.type === 'up' ? h : 0)}
+                  stroke="#cbd5e1" strokeWidth="1" strokeDasharray="3,2"
+                />
+              )}
+              <rect x={xP(i)} y={y} width={bw} height={h} fill={color} opacity={bar.type==='total' ? 0.9 : 0.8} rx="2"/>
+              <text x={xP(i)+bw/2} y={y - 5} textAnchor="middle" fontSize="9" fontWeight="600"
+                fill={bar.type==='up' ? '#dc2626' : bar.type==='down' ? '#059669' : '#334155'}>
+                {labelVal}
+              </text>
+              <text x={xP(i)+bw/2} y={H-PAD.b+14} textAnchor="middle" fontSize="9" fill="#64748b">{bar.label}</text>
             </g>
           );
         })}
-        {months.map((m, i) => {
-          let yBottom = PAD.t + chartH;
+      </svg>
+    );
+  };
+
+  // ── SVG: Dept stacked bar ──
+  const DeptBarChart = () => {
+    const W = 760, H = 220, PAD = { t: 20, r: 24, b: 36, l: 60 };
+    const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+    const totals = trendMonths.map(m => DEPTS.reduce((s,d) => s + Math.max(0, monthlyByDept[m]?.[d]||0), 0));
+    const maxVal = Math.max(...totals, 1);
+    const bw = (cW / trendMonths.length) * 0.65;
+    const xP = (i: number) => PAD.l + (i / trendMonths.length)*cW + (cW/trendMonths.length - bw)/2;
+    return (
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+        {[0,1,2,3,4].map(i => {
+          const y = PAD.t + (i/4)*cH;
+          return <g key={i}>
+            <line x1={PAD.l} x2={W-PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1"/>
+            <text x={PAD.l-5} y={y+4} textAnchor="end" fontSize="9" fill="#94a3b8">${Math.round(maxVal*(1-i/4)/1000)}K</text>
+          </g>;
+        })}
+        {trendMonths.map((m,i) => {
+          let yBottom = PAD.t + cH;
           return (
             <g key={m}>
               {DEPTS.map(d => {
-                const v = Math.max(0, monthlyByDept[m]?.[d] || 0);
+                const v = Math.max(0, monthlyByDept[m]?.[d]||0);
                 if (v <= 0) return null;
-                const h = (v / maxVal) * chartH;
-                yBottom -= h;
-                return (
-                  <rect key={d} x={xPos(i)} y={yBottom} width={bw} height={h}
-                    fill={DEPT_COLORS[d] || '#94a3b8'} opacity="0.85" rx="1" />
-                );
+                const h = (v/maxVal)*cH; yBottom -= h;
+                return <rect key={d} x={xP(i)} y={yBottom} width={bw} height={h}
+                  fill={DEPT_COLORS[d]||'#94a3b8'} opacity="0.85" rx="1"/>;
               })}
-              <text x={xPos(i) + bw / 2} y={H - PAD.b + 14} textAnchor="middle" fontSize="9" fill="#64748b">
-                {m.replace('2025-', "'25/").replace('2026-', "'26/")}
+              <text x={xP(i)+bw/2} y={H-PAD.b+14} textAnchor="middle" fontSize="9" fill="#64748b">
+                {m.replace('2025-',"'25/").replace('2026-',"'26/")}
               </text>
             </g>
           );
@@ -4823,13 +4892,35 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     );
   };
 
-  const categorySummary = PL_ITEMS.map(pl => ({
-    pl,
-    cur: getCurVal(pl),
-    prev: getPrevVal(pl),
-    yoy: getPrevVal(pl) > 0 ? ((getCurVal(pl) / getPrevVal(pl) - 1) * 100) : 0,
-    share: currentTotal > 0 ? (getCurVal(pl) / currentTotal * 100) : 0,
-  })).sort((a, b) => b.cur - a.cur);
+  // ── SVG: Vendor horizontal bar ──
+  const VendorBarChart = ({ vendors }: { vendors: typeof vendorRank }) => {
+    const top = vendors.slice(0, 15);
+    const maxVal = Math.max(...top.map(v => v.total), 1);
+    const ROW_H = 26, PAD_L = 160, PAD_R = 80, W = 760;
+    const BAR_W = W - PAD_L - PAD_R;
+    const H = top.length * ROW_H + 20;
+    return (
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+        {top.map((v, i) => {
+          const y = i * ROW_H + 10;
+          const bw = Math.max((v.total / maxVal) * BAR_W, 2);
+          const color = PL_COLORS[v.pl.split(' / ')[0]] || '#6366f1';
+          return (
+            <g key={v.name}>
+              <text x={PAD_L - 8} y={y + ROW_H/2 + 4} textAnchor="end" fontSize="10" fill="#374151"
+                className="cursor-pointer" style={{ fontWeight: i < 3 ? 600 : 400 }}>
+                {v.name.length > 22 ? v.name.slice(0, 22) + '…' : v.name}
+              </text>
+              <rect x={PAD_L} y={y + 4} width={bw} height={ROW_H - 10} fill={color} opacity="0.75" rx="2"/>
+              <text x={PAD_L + bw + 6} y={y + ROW_H/2 + 4} fontSize="10" fill="#6b7280">
+                {fmtK(v.total)} ({v.count}건)
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
 
   if (loading) {
     return (
@@ -4844,9 +4935,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       {/* Control Bar */}
       <div className="flex items-center gap-3 flex-wrap">
         <Select value={selectedMonthLocal} onValueChange={v => setSelectedMonthLocal(v)}>
-          <SelectTrigger className="w-[130px]">
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             {ALL_MONTHS.map(m => {
               const [yr, mo] = m.split('-');
@@ -4864,7 +4953,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         </div>
         <div className="flex-1" />
         <div className="flex rounded border border-gray-200 overflow-hidden">
-          {(['트렌드', '부서별', '거래내역'] as const).map(tab => (
+          {(['트렌드', '폭포수', '부서별', '벤더', '거래내역'] as const).map(tab => (
             <button key={tab} onClick={() => setViewTab(tab)}
               className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
                 viewTab === tab ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
@@ -4873,73 +4962,114 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — 2 rows × 4 */}
       <div className="grid grid-cols-4 gap-3">
+        {/* Row 1 */}
         <Card className="border-gray-100">
           <CardContent className="pt-4 pb-4">
             <p className="text-xs text-gray-500 mb-1">총 영업비 ({viewMode})</p>
-            <p className="text-2xl font-bold text-gray-900">{fmtK(currentTotal)}</p>
+            <p className="text-xl font-bold text-gray-900">{fmtK(currentTotal)}</p>
             <p className={cn("text-xs font-medium mt-1", yoyPct > 0 ? "text-red-500" : "text-emerald-600")}>
               YoY {yoyPct > 0 ? '+' : ''}{yoyPct.toFixed(1)}% vs {prevYr}년
             </p>
           </CardContent>
         </Card>
+
         <Card className="border-gray-100">
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-gray-500 mb-1">전년 동기 ({prevYr}년)</p>
-            <p className="text-2xl font-bold text-gray-400">{fmtK(prevTotal)}</p>
-            <p className="text-xs text-gray-400 mt-1">차이 {fmtK(currentTotal - prevTotal)}</p>
+            <p className="text-xs text-gray-500 mb-1">인건비 합계 <span className="text-gray-300">(HQ 포함)</span></p>
+            <p className="text-xl font-bold text-indigo-700">{fmtK(personnelTotal)}</p>
+            <p className="text-xs text-gray-400 mt-1">총영업비의 {personnelRatio.toFixed(1)}%</p>
           </CardContent>
         </Card>
+
         <Card className="border-gray-100">
           <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-gray-500 mb-1">거래 건수</p>
-            <p className="text-2xl font-bold text-gray-900">{txCount.toLocaleString()}건</p>
-            <p className="text-xs text-gray-400 mt-1">{rawRows.length.toLocaleString()}건 전체</p>
+            <p className="text-xs text-gray-500 mb-1">마케팅 비용</p>
+            <p className="text-xl font-bold text-blue-600">{fmtK(marketingTotal)}</p>
+            <p className={cn("text-xs font-medium mt-1", marketingYoy > 0 ? "text-red-500" : "text-emerald-600")}>
+              YoY {marketingYoy > 0 ? '+' : ''}{marketingYoy.toFixed(1)}%
+            </p>
           </CardContent>
         </Card>
+
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">고정비 비율 <span className="text-gray-300">(임차+감가)</span></p>
+            <p className="text-xl font-bold text-teal-600">{fixedRatio.toFixed(1)}%</p>
+            <p className="text-xs text-gray-400 mt-1">{fmtK(fixedTotal)}</p>
+          </CardContent>
+        </Card>
+
+        {/* Row 2 */}
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">전년 대비 증감</p>
+            <p className={cn("text-xl font-bold", yoyAmt > 0 ? "text-red-600" : "text-emerald-600")}>
+              {fmtKsigned(yoyAmt)}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">전년 {fmtK(prevTotal)}</p>
+          </CardContent>
+        </Card>
+
         <Card className="border-gray-100">
           <CardContent className="pt-4 pb-4">
             <p className="text-xs text-gray-500 mb-1">최대 비용 카테고리</p>
-            <p className="text-lg font-bold text-gray-900">{PL_KR[topPL] || topPL}</p>
-            <p className="text-xs text-gray-400 mt-1">{fmtK(getCurVal(topPL))}</p>
+            <p className="text-base font-bold text-gray-900 leading-tight">{PL_KR[topPL] || topPL}</p>
+            <p className="text-xs text-gray-400 mt-1">{fmtK(getCurVal(topPL))} ({currentTotal>0?(getCurVal(topPL)/currentTotal*100).toFixed(0):0}%)</p>
+          </CardContent>
+        </Card>
+
+        <Card className={cn("border-gray-100 cursor-pointer hover:border-amber-300 transition-colors")}
+          onClick={() => { setViewTab('벤더'); }}>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">Top 5 벤더 집중도</p>
+            <p className="text-xl font-bold text-amber-600">{top5Conc.toFixed(1)}%</p>
+            <p className="text-xs text-gray-400 mt-1">{vendorRank[0]?.name?.slice(0,18) || '–'} 外</p>
+          </CardContent>
+        </Card>
+
+        <Card className={cn("border-gray-100 cursor-pointer hover:border-orange-300 transition-colors",
+          anomalyCount > 0 ? "ring-1 ring-orange-200" : "")}
+          onClick={() => { setViewTab('거래내역'); setSearchText(''); setDrillPL(null); }}>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">대형 거래 <span className="text-gray-300">($50K+)</span></p>
+            <p className={cn("text-xl font-bold", anomalyCount > 0 ? "text-orange-600" : "text-gray-400")}>
+              {anomalyCount}건
+            </p>
+            <p className="text-xs text-gray-400 mt-1">클릭하면 거래내역으로</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 트렌드 탭 */}
+      {/* ── 트렌드 탭 ── */}
       {viewTab === '트렌드' && (
         <div className="space-y-4">
           <Card className="border-gray-100">
             <CardHeader className="pb-2 pt-4">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-sm font-semibold text-gray-700">카테고리별 월별 트렌드 (최근 12개월)</CardTitle>
-                <button
-                  onClick={() => setActivePL(activePL.size === PL_ITEMS.length ? new Set() : new Set(PL_ITEMS))}
-                  className="text-xs text-gray-400 hover:text-gray-600 underline"
-                >
+                <button onClick={() => setActivePL(activePL.size === PL_ITEMS.length ? new Set() : new Set(PL_ITEMS))}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline">
                   {activePL.size === PL_ITEMS.length ? '전체 해제' : '전체 선택'}
                 </button>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {PL_ITEMS.map(pl => (
-                  <button key={pl}
-                    onClick={() => {
-                      const next = new Set(activePL);
-                      next.has(pl) ? next.delete(pl) : next.add(pl);
-                      setActivePL(next);
-                    }}
+                  <button key={pl} onClick={() => {
+                    const next = new Set(activePL);
+                    next.has(pl) ? next.delete(pl) : next.add(pl);
+                    setActivePL(next);
+                  }}
                     className={cn("px-2 py-0.5 rounded text-xs font-medium border transition-all",
-                      activePL.has(pl) ? 'text-white border-transparent' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+                      activePL.has(pl) ? 'text-white border-transparent' : 'bg-white text-gray-400 border-gray-200'
                     )}
                     style={activePL.has(pl) ? { backgroundColor: PL_COLORS[pl] } : {}}
                   >{PL_KR[pl] || pl}</button>
                 ))}
               </div>
             </CardHeader>
-            <CardContent className="pb-4">
-              <TrendChart />
-            </CardContent>
+            <CardContent className="pb-4"><TrendChart /></CardContent>
           </Card>
 
           <Card className="border-gray-100">
@@ -4965,32 +5095,26 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   {categorySummary.map(({ pl, cur, prev, yoy, share }, idx) => (
                     <tr key={pl}
                       className={cn("border-b border-gray-50 cursor-pointer hover:bg-blue-50/40 transition-colors",
-                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
-                      )}
-                      onClick={() => { setViewTab('거래내역'); setDrillPL(pl); setTxPage(0); }}
-                    >
-                      <td className="px-4 py-2">
-                        <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }} />
-                      </td>
+                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20')}
+                      onClick={() => { setViewTab('거래내역'); setDrillPL(pl); setTxPage(0); }}>
+                      <td className="px-4 py-2"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }}/></td>
                       <td className="px-2 py-2 font-medium text-gray-800">{PL_KR[pl] || pl}</td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(cur)}</td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-400 tabular-nums">{fmtKshort(prev)}</td>
-                      <td className={cn("px-3 py-2 text-right font-mono font-medium tabular-nums",
-                        yoy > 15 ? 'text-red-600' : yoy < -15 ? 'text-emerald-600' : 'text-gray-500'
-                      )}>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900">{fmtKshort(cur)}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prev)}</td>
+                      <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-medium",
+                        yoy > 15 ? 'text-red-600' : yoy < -15 ? 'text-emerald-600' : 'text-gray-500')}>
                         {prev > 0 ? (yoy > 0 ? '+' : '') + yoy.toFixed(1) + '%' : 'N/A'}
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums text-gray-500 text-xs">{share.toFixed(1)}%</td>
                       <td className="px-3 py-2">
                         <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="h-1.5 rounded-full transition-all"
-                            style={{ width: `${Math.min(share, 100)}%`, backgroundColor: PL_COLORS[pl] }} />
+                          <div className="h-1.5 rounded-full" style={{ width: `${Math.min(share,100)}%`, backgroundColor: PL_COLORS[pl] }}/>
                         </div>
                       </td>
                     </tr>
                   ))}
                   <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
-                    <td className="px-4 py-2.5" />
+                    <td className="px-4 py-2.5"/>
                     <td className="px-2 py-2.5 text-gray-900 font-bold">합계</td>
                     <td className="px-3 py-2.5 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(currentTotal)}</td>
                     <td className="px-3 py-2.5 text-right font-mono text-gray-400 tabular-nums">{fmtKshort(prevTotal)}</td>
@@ -4998,7 +5122,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
                     </td>
                     <td className="px-3 py-2.5 text-right text-gray-500 text-xs">100%</td>
-                    <td />
+                    <td/>
                   </tr>
                 </tbody>
               </table>
@@ -5007,7 +5131,84 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         </div>
       )}
 
-      {/* 부서별 탭 */}
+      {/* ── 폭포수 탭 ── */}
+      {viewTab === '폭포수' && (
+        <div className="space-y-4">
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                전년 대비 영업비 증감 분해 ({prevYr}년 → {curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월` : `${curMonthNum}월`})
+              </CardTitle>
+              <p className="text-xs text-gray-400 mt-1">
+                <span className="inline-block w-3 h-3 rounded-sm bg-red-500 mr-1 align-middle"/>증가 &nbsp;
+                <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500 mr-1 align-middle"/>감소 &nbsp;
+                <span className="inline-block w-3 h-3 rounded-sm bg-slate-600 mr-1 align-middle"/>합계
+              </p>
+            </CardHeader>
+            <CardContent className="pb-4"><WaterfallChart /></CardContent>
+          </Card>
+
+          <Card className="border-gray-100">
+            <CardHeader className="pb-1 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">카테고리별 증감 상세</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-medium w-6"/>
+                    <th className="text-left px-2 py-2.5 text-xs text-gray-500 font-medium">카테고리</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{prevYr}년</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{curYr}년</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감액</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감률</th>
+                    <th className="w-28 px-3 py-2.5 text-xs text-gray-500 font-medium text-center">방향</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {waterfallItems.map(({ pl, label, cur, prev, delta }, idx) => (
+                    <tr key={pl} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20')}>
+                      <td className="px-4 py-2"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }}/></td>
+                      <td className="px-2 py-2 font-medium text-gray-800">{label}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prev)}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900">{fmtKshort(cur)}</td>
+                      <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold",
+                        delta > 0 ? 'text-red-600' : delta < 0 ? 'text-emerald-600' : 'text-gray-400')}>
+                        {delta !== 0 ? fmtKsigned(delta) : '–'}
+                      </td>
+                      <td className={cn("px-3 py-2 text-right font-mono tabular-nums",
+                        delta > 0 ? 'text-red-500' : delta < 0 ? 'text-emerald-500' : 'text-gray-400')}>
+                        {prev > 0 ? (delta > 0 ? '+' : '') + ((delta/prev)*100).toFixed(1) + '%' : 'N/A'}
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={cn("inline-block px-2 py-0.5 rounded text-xs font-medium",
+                          delta > 0 ? 'bg-red-50 text-red-600' : delta < 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400')}>
+                          {delta > 0 ? '▲ 증가' : delta < 0 ? '▼ 감소' : '변동없음'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
+                    <td className="px-4 py-2.5"/>
+                    <td className="px-2 py-2.5 text-gray-900">합계</td>
+                    <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prevTotal)}</td>
+                    <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-900">{fmtKshort(currentTotal)}</td>
+                    <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums font-bold",
+                      yoyAmt > 0 ? 'text-red-600' : 'text-emerald-600')}>{fmtKsigned(yoyAmt)}</td>
+                    <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums",
+                      yoyPct > 0 ? 'text-red-500' : 'text-emerald-500')}>
+                      {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
+                    </td>
+                    <td/>
+                  </tr>
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── 부서별 탭 ── */}
       {viewTab === '부서별' && (
         <div className="space-y-4">
           <Card className="border-gray-100">
@@ -5019,8 +5220,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <div className="flex flex-wrap gap-3 mt-3">
                 {DEPTS.map(d => (
                   <div key={d} className="flex items-center gap-1.5">
-                    <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                      style={{ backgroundColor: DEPT_COLORS[d] || '#94a3b8' }} />
+                    <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: DEPT_COLORS[d]||'#94a3b8' }}/>
                     <span className="text-xs text-gray-600">{d}</span>
                   </div>
                 ))}
@@ -5040,47 +5240,36 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="text-left px-3 py-2.5 text-gray-500 font-medium sticky left-0 bg-gray-50 min-w-36">부서</th>
                     {PL_ITEMS.map(pl => (
-                      <th key={pl} className="text-right px-2 py-2.5 text-gray-500 font-medium min-w-20 whitespace-nowrap">
-                        {PL_KR[pl] || pl}
-                      </th>
+                      <th key={pl} className="text-right px-2 py-2.5 text-gray-500 font-medium min-w-20 whitespace-nowrap">{PL_KR[pl]||pl}</th>
                     ))}
                     <th className="text-right px-3 py-2.5 text-gray-700 font-bold min-w-20 bg-slate-50">합계</th>
                   </tr>
                 </thead>
                 <tbody>
                   {DEPTS.map((dept, idx) => {
-                    const deptTotal = Object.values(deptPLCross[dept] || {}).reduce((s, v) => s + v, 0);
+                    const deptTotal = Object.values(deptPLCross[dept]||{}).reduce((s,v)=>s+v,0);
                     return (
-                      <tr key={dept} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                      <tr key={dept} className={cn("border-b border-gray-50", idx%2===0 ? 'bg-white' : 'bg-gray-50/30')}>
                         <td className="px-3 py-2 font-medium text-gray-800 sticky left-0 bg-inherit border-r border-gray-100">{dept}</td>
                         {PL_ITEMS.map(pl => {
-                          const v = deptPLCross[dept]?.[pl] || 0;
-                          return (
-                            <td key={pl} className={cn("px-2 py-2 text-right font-mono tabular-nums",
-                              v < -100 ? 'text-emerald-600' : v > 0 ? 'text-gray-800' : 'text-gray-300'
-                            )}>
-                              {Math.abs(v) >= 1000 ? fmtKshort(v) : v !== 0 ? `$${Math.round(v / 100) / 10}K` : '–'}
-                            </td>
-                          );
+                          const v = deptPLCross[dept]?.[pl]||0;
+                          return <td key={pl} className={cn("px-2 py-2 text-right font-mono tabular-nums",
+                            v<-100 ? 'text-emerald-600' : v>0 ? 'text-gray-800' : 'text-gray-300')}>
+                            {Math.abs(v)>=1000 ? fmtKshort(v) : v!==0 ? `$${Math.round(v/100)/10}K` : '–'}
+                          </td>;
                         })}
-                        <td className="px-3 py-2 text-right font-mono font-bold text-gray-900 bg-slate-50/60">
-                          {fmtKshort(deptTotal)}
-                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-gray-900 bg-slate-50/60">{fmtKshort(deptTotal)}</td>
                       </tr>
                     );
                   })}
                   <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
                     <td className="px-3 py-2.5 font-bold text-gray-900 sticky left-0 bg-slate-50 border-r border-gray-200">합계</td>
                     {PL_ITEMS.map(pl => {
-                      const v = DEPTS.reduce((s, d) => s + (deptPLCross[d]?.[pl] || 0), 0);
-                      return (
-                        <td key={pl} className="px-2 py-2.5 text-right font-mono text-gray-900 tabular-nums">
-                          {fmtKshort(v)}
-                        </td>
-                      );
+                      const v = DEPTS.reduce((s,d)=>s+(deptPLCross[d]?.[pl]||0),0);
+                      return <td key={pl} className="px-2 py-2.5 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(v)}</td>;
                     })}
                     <td className="px-3 py-2.5 text-right font-mono font-bold text-gray-900">
-                      {fmtKshort(DEPTS.reduce((s, d) => s + Object.values(deptPLCross[d] || {}).reduce((a, b) => a + b, 0), 0))}
+                      {fmtKshort(DEPTS.reduce((s,d)=>s+Object.values(deptPLCross[d]||{}).reduce((a,b)=>a+b,0),0))}
                     </td>
                   </tr>
                 </tbody>
@@ -5090,7 +5279,86 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         </div>
       )}
 
-      {/* 거래내역 탭 */}
+      {/* ── 벤더 분석 탭 ── */}
+      {viewTab === '벤더' && (
+        <div className="space-y-4">
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                Top 벤더 지출 랭킹 ({curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`})
+              </CardTitle>
+              <p className="text-xs text-gray-400 mt-0.5">클릭하면 해당 벤더 거래내역으로 이동</p>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <VendorBarChart vendors={vendorRank} />
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-100">
+            <CardHeader className="pb-1 pt-4">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  벤더별 상세 ({vendorRank.length}개 / 합계 {fmtKshort(currentTotal)})
+                </CardTitle>
+                <div className="flex-1"/>
+                <span className="text-xs text-gray-400">Top 5 집중도: <strong className="text-amber-600">{top5Conc.toFixed(1)}%</strong></span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-center px-3 py-2.5 text-gray-500 font-medium w-8">순위</th>
+                    <th className="text-left px-3 py-2.5 text-gray-500 font-medium">벤더명</th>
+                    <th className="text-left px-3 py-2.5 text-gray-500 font-medium">카테고리</th>
+                    <th className="text-right px-3 py-2.5 text-gray-500 font-medium">지출액</th>
+                    <th className="text-right px-3 py-2.5 text-gray-500 font-medium">건수</th>
+                    <th className="text-right px-3 py-2.5 text-gray-500 font-medium">비중</th>
+                    <th className="w-24 px-3 py-2.5"/>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vendorRank.slice(0, 30).map((v, i) => {
+                    const share = currentTotal > 0 ? (v.total / currentTotal * 100) : 0;
+                    const firstPL = v.pl.split(' / ')[0];
+                    return (
+                      <tr key={v.name}
+                        className={cn("border-b border-gray-50 cursor-pointer hover:bg-amber-50/40 transition-colors",
+                          i % 2 === 0 ? 'bg-white' : 'bg-gray-50/20', i < 5 ? 'font-medium' : '')}
+                        onClick={() => { setViewTab('거래내역'); setDrillVendor(v.name); setDrillPL(null); setTxPage(0); }}>
+                        <td className="px-3 py-2 text-center">
+                          <span className={cn("inline-block w-5 h-5 rounded-full text-center text-xs leading-5",
+                            i === 0 ? 'bg-amber-400 text-white font-bold' :
+                            i === 1 ? 'bg-gray-300 text-white font-bold' :
+                            i === 2 ? 'bg-orange-300 text-white font-bold' : 'text-gray-400'
+                          )}>{i + 1}</span>
+                        </td>
+                        <td className="px-3 py-2 text-gray-800 max-w-48 truncate">{v.name}</td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: PL_COLORS[firstPL]||'#94a3b8' }}/>
+                            <span className="text-gray-500">{v.pl.split(' / ').map(p => PL_KR[p]||p).join(' / ')}</span>
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900 font-medium">{fmtKshort(v.total)}</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-500">{v.count}건</td>
+                        <td className="px-3 py-2 text-right tabular-nums text-gray-500">{share.toFixed(1)}%</td>
+                        <td className="px-3 py-2">
+                          <div className="w-full bg-gray-100 rounded-full h-1.5">
+                            <div className="h-1.5 rounded-full bg-amber-400" style={{ width: `${Math.min(share*3, 100)}%` }}/>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ── 거래내역 탭 ── */}
       {viewTab === '거래내역' && (
         <Card className="border-gray-100">
           <CardHeader className="pb-2 pt-4">
@@ -5098,22 +5366,21 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <CardTitle className="text-sm font-semibold text-gray-700">
                 거래내역 — {txRows.length.toLocaleString()}건 / 합계 {fmtKshort(txTotal)}
               </CardTitle>
-              <div className="flex-1" />
-              <select
-                value={drillPL || ''}
-                onChange={e => { setDrillPL(e.target.value || null); setTxPage(0); }}
-                className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8"
-              >
+              <div className="flex-1"/>
+              {drillVendor && (
+                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded flex items-center gap-1">
+                  벤더: {drillVendor.slice(0, 20)}
+                  <button onClick={() => setDrillVendor(null)} className="ml-1 hover:text-red-600">×</button>
+                </span>
+              )}
+              <select value={drillPL||''} onChange={e => { setDrillPL(e.target.value||null); setTxPage(0); }}
+                className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8">
                 <option value="">전체 카테고리</option>
-                {PL_ITEMS.map(pl => <option key={pl} value={pl}>{PL_KR[pl] || pl}</option>)}
+                {PL_ITEMS.map(pl => <option key={pl} value={pl}>{PL_KR[pl]||pl}</option>)}
               </select>
-              <input
-                type="text"
-                placeholder="거래처 / 메모 검색..."
-                value={searchText}
-                onChange={e => { setSearchText(e.target.value); setTxPage(0); }}
-                className="border border-gray-200 rounded px-3 py-1 text-xs w-44 bg-white h-8"
-              />
+              <input type="text" placeholder="거래처 / 메모 검색..."
+                value={searchText} onChange={e => { setSearchText(e.target.value); setTxPage(0); }}
+                className="border border-gray-200 rounded px-3 py-1 text-xs w-44 bg-white h-8"/>
             </div>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
@@ -5132,21 +5399,19 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 {txSlice.map((r, i) => {
                   const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
                   return (
-                    <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                    <tr key={i} className={cn("border-b border-gray-50", i%2===0 ? 'bg-white' : 'bg-gray-50/30')}>
                       <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }} />
-                          <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[r['P&L Line Item']]||'#94a3b8' }}/>
+                          <span className="text-gray-700">{PL_KR[r['P&L Line Item']]||r['P&L Line Item']}</span>
                         </span>
                       </td>
-                      <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                      <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A']||'–'}</td>
                       <td className="px-3 py-1.5 text-gray-800 max-w-56 truncate">{r['Name']}</td>
                       <td className="px-3 py-1.5 text-gray-400 max-w-40 truncate">{r['Account (GL)']}</td>
                       <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
-                        amt < 0 ? 'text-emerald-600' : 'text-gray-900'
-                      )}>
+                        amt < 0 ? 'text-emerald-600' : Math.abs(amt) >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
                         {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
                       </td>
                     </tr>
@@ -5157,17 +5422,17 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             {txPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
                 <span className="text-xs text-gray-400">
-                  {txPage * PAGE_SIZE + 1}–{Math.min((txPage + 1) * PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
+                  {txPage*PAGE_SIZE+1}–{Math.min((txPage+1)*PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
                 </span>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setTxPage(0)} disabled={txPage === 0}
+                  <button onClick={() => setTxPage(0)} disabled={txPage===0}
                     className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">처음</button>
-                  <button onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0}
+                  <button onClick={() => setTxPage(p=>Math.max(0,p-1))} disabled={txPage===0}
                     className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">← 이전</button>
-                  <span className="text-xs text-gray-500">{txPage + 1} / {txPages}</span>
-                  <button onClick={() => setTxPage(p => Math.min(txPages - 1, p + 1))} disabled={txPage >= txPages - 1}
+                  <span className="text-xs text-gray-500">{txPage+1} / {txPages}</span>
+                  <button onClick={() => setTxPage(p=>Math.min(txPages-1,p+1))} disabled={txPage>=txPages-1}
                     className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">다음 →</button>
-                  <button onClick={() => setTxPage(txPages - 1)} disabled={txPage >= txPages - 1}
+                  <button onClick={() => setTxPage(txPages-1)} disabled={txPage>=txPages-1}
                     className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">마지막</button>
                 </div>
               </div>
@@ -5178,6 +5443,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     </div>
   );
 }
+
 
 
 const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전자본', '기타자산/부채', '자본', '자산-부채'];
