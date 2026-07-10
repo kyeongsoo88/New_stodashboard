@@ -355,6 +355,7 @@ function DetailedMetricCard({
     const [isDirectProfitYtdExpanded, setIsDirectProfitYtdExpanded] = React.useState(false);
     const [isTopStoresExpanded, setIsTopStoresExpanded] = React.useState(false);
     const [expandedExpenseItems, setExpandedExpenseItems] = React.useState<Set<number>>(new Set());
+    const [activeSubPopup, setActiveSubPopup] = React.useState<string | null>(null);
     
     // YoY 값에서 괄호 제거하는 헬퍼 함수 (전년을 YoY로 변환)
     const removeYoYParentheses = (yoyValue: string): string => {
@@ -654,10 +655,70 @@ function DetailedMetricCard({
                                                             <div className="space-y-0.5 pl-2 mt-0.5 border-l-2 border-sky-100">
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
                                                                     <div key={subIdx} className={cn("flex justify-between items-center py-0.5 px-1 text-xs", subItem.isTotal && "border-t border-gray-200 mt-0.5 pt-1 font-semibold")}>
-                                                                        <span className="text-gray-600 min-w-[120px]">{subItem.name}</span>
+                                                                        {subItem.popupId
+                                                                            ? <span onClick={() => setActiveSubPopup(subItem.popupId)} className="text-blue-600 underline cursor-pointer min-w-[120px]">{subItem.name}</span>
+                                                                            : <span className="text-gray-600 min-w-[120px]">{subItem.name}</span>
+                                                                        }
                                                                         <span className={cn("tabular-nums text-right", subItem.isTotal ? "text-gray-800" : "text-gray-500", parseFloat((subItem.value||'').replace(/,/g,'')) < 0 && "text-red-500")}>{subItem.value}</span>
                                                                     </div>
                                                                 ))}
+                                                            </div>
+                                                        )}
+                                                        {/* 팝업들 */}
+                                                        {activeSubPopup === 'inventoryWD' && (
+                                                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setActiveSubPopup(null)}>
+                                                                <div className="bg-white rounded-lg shadow-2xl p-4 max-w-3xl w-full mx-4" onClick={e => e.stopPropagation()}>
+                                                                    <div className="flex justify-between items-center mb-3">
+                                                                        <h3 className="font-bold text-sm text-gray-800">Inventory Write Down 상세</h3>
+                                                                        <button onClick={() => setActiveSubPopup(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+                                                                    </div>
+                                                                    <div className="overflow-x-auto">
+                                                                        <table className="w-full text-xs border-collapse">
+                                                                            <thead>
+                                                                                <tr className="bg-[#2E5C8A] text-white">
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-left">시즌구분</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-center">재고 평가 근거</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-right">재계산</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-right">부대비용</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-right">소계</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-right">LDP</th>
+                                                                                    <th className="border border-gray-300 px-2 py-1.5 text-right text-[10px] leading-tight">If 소계 &gt; LDP, 평가감 "0"<br/>If 소계 &lt; LDP, 평가감 "LDP - 소계"</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {[
+                                                                                    { season: '기타과시즌', basis: 'Zero Value',  recalc: '0',         indirect: '0',       subtotal: '0',         ldp: '',            writedown: '193,167' },
+                                                                                    { season: 'CORE',     basis: 'MSRP 80%',   recalc: '570,658',   indirect: '15,321',  subtotal: '585,979',   ldp: '128,513',     writedown: '0' },
+                                                                                    { season: 'F25',      basis: 'MSRP 30%',   recalc: '3,318,507', indirect: '219,668', subtotal: '3,538,175', ldp: '2,351,465',   writedown: '0' },
+                                                                                    { season: 'S25',      basis: 'MSRP 15%',   recalc: '486,144',   indirect: '3,667',   subtotal: '489,811',   ldp: '646,824',     writedown: '157,014' },
+                                                                                    { season: 's26',      basis: 'Net Sales',  recalc: '4,245,370', indirect: '0',       subtotal: '4,245,370', ldp: '2,022,884',   writedown: '0' },
+                                                                                ].map((row, i) => (
+                                                                                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                                        <td className="border border-gray-200 px-2 py-1">{row.season}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-center">{row.basis}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-right tabular-nums">{row.recalc}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-right tabular-nums">{row.indirect}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-right tabular-nums">{row.subtotal}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-right tabular-nums">{row.ldp}</td>
+                                                                                        <td className="border border-gray-200 px-2 py-1 text-right tabular-nums font-medium">{row.writedown}</td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                                <tr className="bg-gray-100 font-semibold">
+                                                                                    <td colSpan={6} className="border border-gray-300 px-2 py-1">합계</td>
+                                                                                    <td className="border border-gray-300 px-2 py-1 text-right tabular-nums">350,181</td>
+                                                                                </tr>
+                                                                                <tr className="bg-white">
+                                                                                    <td colSpan={6} className="border border-gray-200 px-2 py-1 text-gray-600">기존평가감</td>
+                                                                                    <td className="border border-gray-200 px-2 py-1 text-right tabular-nums">191,474</td>
+                                                                                </tr>
+                                                                                <tr className="bg-gray-50 font-semibold">
+                                                                                    <td colSpan={6} className="border border-gray-300 px-2 py-1">추가 평가감 비용</td>
+                                                                                    <td className="border border-gray-300 px-2 py-1 text-right tabular-nums">158,707</td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -10233,7 +10294,7 @@ export default function DashboardPage() {
             value: formatNumber(getDataValue('카드_영업비_기타비용_값', month, '134')),
             yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%'),
             subItems: [
-              { name: "Inventory Write Down", value: "163,707" },
+              { name: "Inventory Write Down", value: "163,707", popupId: "inventoryWD" },
               { name: "Taxes and Licenses",   value: "4,169" },
               { name: "Utilities",            value: "175" },
               { name: "Miscellaneous Expense",value: "79" },
