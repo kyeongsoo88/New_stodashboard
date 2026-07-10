@@ -5706,16 +5706,16 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const valueIndex = headerIdx - 1;
                       const value = row.values[valueIndex] ?? '';
                       const isDetailCol = headers[headerIdx] === '상세';
-                      const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
                       const colHeader = (headers[headerIdx] || '').trim();
                       const isChangeCol = colHeader.includes('RF_05 - RF');
                       const isYoyCol = colHeader.includes('- 전년');
+                      const isAnyChangeCol = isChangeCol || isYoyCol;
                       const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                      const rawDisplay = isDetailCol ? (value || '') : formatCurrency(value);
+                      const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                       let valueColorClass = '';
-                      if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                      if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
                         valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
-                      } else if (isYoyCol) {
-                        valueColorClass = 'text-gray-500';
                       } else {
                         valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                       }
@@ -5724,12 +5724,10 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                           key={`${rowIndex}-${headerIdx}`}
                           className={cn(
                             "text-right px-2 border border-gray-300 tabular-nums",
-                            // 일반 컬럼: 최소 너비, 말줄임
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
-                            // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
                             !isDetailCol && valueColorClass,
-                            isSection && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
+                            isSection && !isNegative(value) && !isAnyChangeCol && "font-bold"
                           )}
                         >
                           {displayValue}
@@ -6179,31 +6177,29 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                         const valueIndex = headerIdx - 1;
                         const value = row.values[valueIndex] ?? '';
                         const isDetailCol = headers[headerIdx] === '상세';
-                        const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
                         const colHeader = (headers[headerIdx] || '').trim();
                         const isChangeCol = colHeader.includes('RF_05 - RF');
                         const isYoyCol = colHeader.includes('- 전년');
+                        const isAnyChangeCol = isChangeCol || isYoyCol;
                         const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                        const rawDisplay = isDetailCol ? (value || '') : formatCurrency(value);
+                        const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                         let valueColorClass = '';
-                        if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                        if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
                           valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
-                        } else if (isYoyCol) {
-                          valueColorClass = 'text-gray-500';
                         } else {
                           valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                         }
-                        
+
                         return (
                           <TableCell
                             key={`${rowIndex}-${headerIdx}`}
                             className={cn(
                               "text-right px-2 border border-gray-300 tabular-nums",
-                              // 일반 컬럼: 최소 너비, 말줄임
                               !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
-                              // 상세 컬럼: 최소 너비, 줄바꿈 허용
                               isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
                               !isDetailCol && valueColorClass,
-                              isMain && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
+                              isMain && !isNegative(value) && !isAnyChangeCol && "font-bold"
                             )}
                           >
                             {displayValue}
@@ -6477,16 +6473,16 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const valueIndex = headerIdx - 1;
                       const value = row.values[valueIndex] ?? '';
                       const isDetailCol = headers[headerIdx] === '상세';
-                      const displayValue = isDetailCol ? (value || '') : formatCurrency(value);
                       const colHeader = (headers[headerIdx] || '').trim();
                       const isChangeCol = colHeader.includes('RF_05 - RF');
                       const isYoyCol = colHeader.includes('- 전년');
+                      const isAnyChangeCol = isChangeCol || isYoyCol;
                       const numVal = parseFloat((value || '').replace(/[$,]/g, ''));
+                      const rawDisplay = isDetailCol ? (value || '') : formatCurrency(value);
+                      const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                       let valueColorClass = '';
-                      if (isChangeCol && !isNaN(numVal) && numVal !== 0) {
+                      if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
                         valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
-                      } else if (isYoyCol) {
-                        valueColorClass = 'text-gray-500';
                       } else {
                         valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                       }
@@ -6495,12 +6491,10 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                           key={`${rowIndex}-${headerIdx}`}
                           className={cn(
                             "text-right px-2 border border-gray-300 tabular-nums",
-                            // 일반 컬럼: 최소 너비, 말줄임
                             !isDetailCol && "min-w-[80px] whitespace-nowrap truncate",
-                            // 상세 컬럼: 최소 너비, 줄바꿈 허용
                             isDetailCol && "min-w-[300px] text-left whitespace-normal break-words",
                             !isDetailCol && valueColorClass,
-                            isSection && !isNegative(value) && !isChangeCol && !isYoyCol && "font-bold"
+                            isSection && !isNegative(value) && !isAnyChangeCol && "font-bold"
                           )}
                         >
                           {displayValue}
