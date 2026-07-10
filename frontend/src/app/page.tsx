@@ -4608,7 +4608,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     for (const row of rawRows) {
       const month = row['Date2'];
       const pl = row['P&L Line Item'];
-      const amt = parseFloat(row['Amount']) || 0;
+      const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
       if (!month || !pl) continue;
       if (!result[month]) result[month] = {};
       result[month][pl] = (result[month][pl] || 0) + amt;
@@ -4622,7 +4622,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     for (const row of rawRows) {
       const month = row['Date2'];
       const dept = row['Dept. Mapping for G&A'] || 'No Department';
-      const amt = parseFloat(row['Amount']) || 0;
+      const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
       if (!month) continue;
       if (!result[month]) result[month] = {};
       result[month][dept] = (result[month][dept] || 0) + amt;
@@ -4678,7 +4678,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       if (!inPeriod) continue;
       const dept = row['Dept. Mapping for G&A'] || 'No Department';
       const pl = row['P&L Line Item'];
-      const amt = parseFloat(row['Amount']) || 0;
+      const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
       if (!result[dept]) result[dept] = {};
       result[dept][pl] = (result[dept][pl] || 0) + amt;
     }
@@ -4700,10 +4700,10 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             !(r['Account (GL)'] || '').toLowerCase().includes(q)) return false;
       }
       return true;
-    }).sort((a, b) => Math.abs(parseFloat(b['Amount']) || 0) - Math.abs(parseFloat(a['Amount']) || 0));
+    }).sort((a, b) => Math.abs(parseFloat((b['Amount'] || '').replace(/,/g, '')) || 0) - Math.abs(parseFloat((a['Amount'] || '').replace(/,/g, '')) || 0));
   }, [rawRows, viewMode, curYr, selectedMonthLocal, drillPL, searchText]);
 
-  const txTotal = txRows.reduce((s, r) => s + (parseFloat(r['Amount']) || 0), 0);
+  const txTotal = txRows.reduce((s, r) => s + (parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0), 0);
   const txPages = Math.ceil(txRows.length / PAGE_SIZE);
   const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
 
@@ -5119,7 +5119,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               </thead>
               <tbody>
                 {txSlice.map((r, i) => {
-                  const amt = parseFloat(r['Amount']) || 0;
+                  const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
                   return (
                     <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
                       <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
