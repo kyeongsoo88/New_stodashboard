@@ -68,7 +68,7 @@ const StickyNoteTooltip = ({ text, children }: { text: string, children: React.R
   );
 };
 
-const SIMUL_INVENTORY_RF05_NOTE = '재고평가감 제외시 $2,938K X M/U 5배수 = MSRP기준 26년 기말 재고 $14,690K 예상';
+const SIMUL_INVENTORY_RF05_NOTE = '재고평가감 제외, 재고원가 $2,741K X M/U 5배수 = MSRP 기준 26년 기말 재고 $13,705K 연말 재고 예상';
 
 // --- Mock Data Generator ---
 // Helper to generate consistent random data for demo
@@ -13819,7 +13819,7 @@ export default function DashboardPage() {
                                     key={`bs-col-${index}-${colIdx}`}
                                     className={cn(
                                       isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum,
-                                      showInventoryNote && 'bg-amber-50/50'
+                                      showInventoryNote && 'bg-amber-100 cursor-pointer'
                                     )}
                                   >
                                     {showInventoryNote ? (
