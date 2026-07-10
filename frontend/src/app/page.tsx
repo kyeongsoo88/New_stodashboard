@@ -4588,12 +4588,23 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
         if (lines.length < 2) { setLoading(false); return; }
         const headers = parseCSVLine(lines[0]).map((h: string) => h.replace(/^﻿/, '').trim());
+        // Jan-25 → 2025-01 변환 함수
+        const normDate2 = (d: string): string => {
+          const MM: Record<string, string> = {
+            'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
+            'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'
+          };
+          const m = d.match(/^([A-Za-z]{3})-(\d{2})$/);
+          if (m && MM[m[1]]) return `20${m[2]}-${MM[m[1]]}`;
+          return d;
+        };
         const rows: Record<string, string>[] = [];
         for (let i = 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue;
           const vals = parseCSVLine(lines[i]);
           const row: Record<string, string> = {};
           headers.forEach((h: string, j: number) => { row[h] = (vals[j] || '').trim(); });
+          if (row['Date2']) row['Date2'] = normDate2(row['Date2']);
           if (row['Date2'] && row['P&L Line Item']) rows.push(row);
         }
         setRawRows(rows);
