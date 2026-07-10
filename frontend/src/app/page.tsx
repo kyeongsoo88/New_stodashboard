@@ -5715,7 +5715,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                       let valueColorClass = '';
                       if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
-                        valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                        valueColorClass = numVal > 0 ? 'text-blue-600' : 'text-red-600';
                       } else {
                         valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                       }
@@ -6186,7 +6186,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                         const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                         let valueColorClass = '';
                         if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
-                          valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                          valueColorClass = numVal > 0 ? 'text-blue-600' : 'text-red-600';
                         } else {
                           valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                         }
@@ -6482,7 +6482,7 @@ function STEBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                       const displayValue = isAnyChangeCol && !isDetailCol && !isNaN(numVal) && numVal > 0 ? `+${rawDisplay}` : rawDisplay;
                       let valueColorClass = '';
                       if (isAnyChangeCol && !isNaN(numVal) && numVal !== 0) {
-                        valueColorClass = numVal > 0 ? 'text-red-600' : 'text-blue-600';
+                        valueColorClass = numVal > 0 ? 'text-blue-600' : 'text-red-600';
                       } else {
                         valueColorClass = isNegative(value) ? 'text-red-600 font-normal' : 'text-gray-900';
                       }
