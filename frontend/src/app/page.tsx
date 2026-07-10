@@ -688,65 +688,65 @@ function DetailedMetricCard({
                                                             };
                                                             return (
                                                                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setActiveSubPopup(null)}>
-                                                                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+                                                                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden mx-4" style={{width:'fit-content', minWidth:'520px', maxWidth:'700px'}} onClick={e => e.stopPropagation()}>
                                                                         {/* 헤더 */}
-                                                                        <div className="flex justify-between items-center px-5 py-3.5 bg-[#2E5C8A]">
+                                                                        <div className="flex justify-between items-center px-4 py-2.5 bg-[#2E5C8A]">
                                                                             <div>
                                                                                 <h3 className="font-bold text-sm text-white tracking-wide">Inventory Write Down 상세</h3>
-                                                                                <p className="text-[11px] text-blue-200 mt-0.5">단위: K USD</p>
+                                                                                <p className="text-[10px] text-blue-200 mt-0.5">단위: K USD</p>
                                                                             </div>
-                                                                            <button onClick={() => setActiveSubPopup(null)} className="text-blue-200 hover:text-white text-xl leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-white/20 transition-colors">✕</button>
+                                                                            <button onClick={() => setActiveSubPopup(null)} className="text-blue-200 hover:text-white text-lg leading-none w-6 h-6 flex items-center justify-center rounded hover:bg-white/20 transition-colors">✕</button>
                                                                         </div>
                                                                         {/* 테이블 */}
                                                                         <div className="overflow-x-auto">
-                                                                            <table className="w-full text-xs border-collapse">
+                                                                            <table className="text-xs border-collapse" style={{tableLayout:'fixed', width:'100%'}}>
                                                                                 <colgroup>
-                                                                                    <col style={{width:'13%'}}/>
-                                                                                    <col style={{width:'16%'}}/>
-                                                                                    <col style={{width:'13%'}}/>
-                                                                                    <col style={{width:'12%'}}/>
-                                                                                    <col style={{width:'13%'}}/>
-                                                                                    <col style={{width:'13%'}}/>
-                                                                                    <col style={{width:'20%'}}/>
+                                                                                    <col style={{width:'72px'}}/>
+                                                                                    <col style={{width:'80px'}}/>
+                                                                                    <col style={{width:'60px'}}/>
+                                                                                    <col style={{width:'56px'}}/>
+                                                                                    <col style={{width:'60px'}}/>
+                                                                                    <col style={{width:'60px'}}/>
+                                                                                    <col style={{width:'80px'}}/>
                                                                                 </colgroup>
                                                                                 <thead>
-                                                                                    <tr className="bg-slate-700 text-white text-[11px]">
-                                                                                        <th className="px-3 py-2 text-left font-semibold border-r border-slate-600">시즌구분</th>
-                                                                                        <th className="px-3 py-2 text-center font-semibold border-r border-slate-600">재고 평가 근거</th>
-                                                                                        <th className="px-3 py-2 text-right font-semibold border-r border-slate-600">재계산</th>
-                                                                                        <th className="px-3 py-2 text-right font-semibold border-r border-slate-600">부대비용</th>
-                                                                                        <th className="px-3 py-2 text-right font-semibold border-r border-slate-600">소계</th>
-                                                                                        <th className="px-3 py-2 text-right font-semibold border-r border-slate-600">LDP</th>
-                                                                                        <th className="px-3 py-2 text-right font-semibold leading-tight text-[10px]">If 소계 &gt; LDP → "0"<br/>If 소계 &lt; LDP → LDP - 소계</th>
+                                                                                    <tr className="bg-slate-700 text-white text-[10px]">
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">시즌구분</th>
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">재고 평가 근거</th>
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">재계산</th>
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">부대비용</th>
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">소계</th>
+                                                                                        <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">LDP</th>
+                                                                                        <th className="px-1 py-1.5 text-center font-semibold leading-tight text-[9px]">소계&gt;LDP→0<br/>소계&lt;LDP→차이</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
                                                                                     {wdRows.map((row, i) => (
                                                                                         <tr key={i} className={cn("border-b border-gray-100 hover:bg-blue-50/30 transition-colors", i % 2 === 0 ? 'bg-white' : 'bg-slate-50/60')}>
-                                                                                            <td className="px-3 py-2 font-medium text-gray-700 border-r border-gray-100">{row.season}</td>
-                                                                                            <td className="px-3 py-2 border-r border-gray-100">
-                                                                                                <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", basisColor[row.basis] || 'bg-gray-100 text-gray-600')}>{row.basis}</span>
+                                                                                            <td className="px-2 py-1.5 font-medium text-gray-700 border-r border-gray-100 truncate">{row.season}</td>
+                                                                                            <td className="px-2 py-1.5 border-r border-gray-100 text-center">
+                                                                                                <span className={cn("px-1 py-0.5 rounded text-[9px] font-medium whitespace-nowrap", basisColor[row.basis] || 'bg-gray-100 text-gray-600')}>{row.basis}</span>
                                                                                             </td>
-                                                                                            <td className="px-3 py-2 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.recalc)}</td>
-                                                                                            <td className="px-3 py-2 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.indirect)}</td>
-                                                                                            <td className="px-3 py-2 text-right tabular-nums text-gray-700 font-medium border-r border-gray-100">{toK(row.subtotal)}</td>
-                                                                                            <td className="px-3 py-2 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.ldp)}</td>
-                                                                                            <td className={cn("px-3 py-2 text-right tabular-nums font-semibold", parseFloat(row.writedown.replace(/,/g,'')) > 0 ? 'text-red-600' : 'text-gray-400')}>{toK(row.writedown)}</td>
+                                                                                            <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.recalc)}</td>
+                                                                                            <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.indirect)}</td>
+                                                                                            <td className="px-2 py-1.5 text-right tabular-nums text-gray-700 font-medium border-r border-gray-100">{toK(row.subtotal)}</td>
+                                                                                            <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.ldp)}</td>
+                                                                                            <td className={cn("px-2 py-1.5 text-right tabular-nums font-semibold", parseFloat(row.writedown.replace(/,/g,'')) > 0 ? 'text-red-600' : 'text-gray-400')}>{toK(row.writedown)}</td>
                                                                                         </tr>
                                                                                     ))}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr className="bg-slate-100 border-t-2 border-slate-300">
-                                                                                        <td colSpan={6} className="px-3 py-2 font-bold text-gray-800 border-r border-gray-200">합계</td>
-                                                                                        <td className="px-3 py-2 text-right tabular-nums font-bold text-red-600">350</td>
+                                                                                        <td colSpan={6} className="px-2 py-1.5 font-bold text-gray-800 border-r border-gray-200">합계</td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-red-600">350</td>
                                                                                     </tr>
                                                                                     <tr className="bg-white border-t border-gray-200">
-                                                                                        <td colSpan={6} className="px-3 py-2 text-gray-500 text-[11px] border-r border-gray-100 pl-5">└ 기존평가감</td>
-                                                                                        <td className="px-3 py-2 text-right tabular-nums text-gray-500 text-[11px]">191</td>
+                                                                                        <td colSpan={6} className="px-2 py-1.5 text-gray-500 text-[10px] border-r border-gray-100 pl-4">└ 기존평가감</td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums text-gray-500 text-[10px]">191</td>
                                                                                     </tr>
                                                                                     <tr className="bg-amber-50 border-t border-amber-100">
-                                                                                        <td colSpan={6} className="px-3 py-2.5 font-bold text-amber-800 border-r border-amber-100 pl-5">└ 추가 평가감 비용</td>
-                                                                                        <td className="px-3 py-2.5 text-right tabular-nums font-bold text-amber-700">159</td>
+                                                                                        <td colSpan={6} className="px-2 py-1.5 font-bold text-amber-800 border-r border-amber-100 pl-4">└ 추가 평가감 비용</td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-amber-700">159</td>
                                                                                     </tr>
                                                                                 </tfoot>
                                                                             </table>
