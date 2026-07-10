@@ -5611,7 +5611,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
           </Card>
           </div>{/* end 하단 오른쪽 */}
 
-        </div>{/* end grid */}
+        </div>
       )}
     </div>
   );
