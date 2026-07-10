@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 // Force refresh: Fix chart keys and XAxis labels
 
@@ -2493,14 +2493,16 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             >
                 JSON Export
             </Button>
-            <Button 
-                variant="outline" 
-                size="sm" 
+            {/* 시나리오 PL 비교 버튼 — 보고 시 숨김 처리
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowSPLPopup(true)}
                 className="bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300"
             >
                 시나리오 PL 비교
             </Button>
+            */}
             <Button 
                 variant="outline" 
                 size="sm" 
@@ -5418,6 +5420,14 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     });
   };
 
+  const bsHeaderLabel = (h: string) => {
+    if (h === 'RF_05 - RF_04') return 'RF_06 - RF_05';
+    if (h === 'RF_05 - 전년') return 'RF_06 - 전년';
+    if (h === 'RF_05') return 'RF_06';
+    if (h === 'RF_04') return 'RF_05';
+    return h;
+  };
+
   const visibleHeaderIndices = getStoBalanceSheetVisibleHeaderIndices(headers, showAllMonths);
 
   const annotatedRows = React.useMemo(() => {
@@ -5516,7 +5526,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
                     )}
                     style={{ backgroundColor: '#2E5C8A' }}
                   >
-                    {header}
+                    {bsHeaderLabel(header)}
                   </TableHead>
                 )})}
               </TableRow>
@@ -8404,16 +8414,16 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    RF_04
+                                    RF_05
                                 </TableHead>
-                                <TableHead 
+                                <TableHead
                                     colSpan={3}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    RF_05
+                                    RF_06
                                 </TableHead>
-                                <TableHead 
+                                <TableHead
                                     rowSpan={2}
                                     className="text-xs font-bold text-white h-10 px-2 text-center min-w-[300px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
@@ -8422,7 +8432,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 </TableHead>
                             </TableRow>
                         )}
-                        
+
                         {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                             {(tableType !== 'flow' && tableType !== 'balance' && tableType !== 'working') && headers.map((h, i) => {
@@ -8466,19 +8476,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_05
+                                        RF_06
                                     </TableHead>
-                                    <TableHead 
+                                    <TableHead
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_05 - 전년
+                                        RF_06 - 전년
                                     </TableHead>
-                                    <TableHead 
+                                    <TableHead
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_04대비 증감
+                                        RF_06 - RF_05
                                     </TableHead>
                                 </>
                             )}
@@ -8786,16 +8796,16 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_04
+                                RF_05
                             </TableHead>
-                            <TableHead 
+                            <TableHead
                                 colSpan={3}
                                 className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_05
+                                RF_06
                             </TableHead>
-                            <TableHead 
+                            <TableHead
                                 rowSpan={2}
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[300px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
@@ -8803,7 +8813,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 상세
                             </TableHead>
                         </TableRow>
-                        
+
                         {/* 두 번째 헤더 행: 실제 컬럼 헤더 */}
                         <TableRow className="hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                             {showAllMonths && (
@@ -8826,19 +8836,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_05
+                                RF_06
                             </TableHead>
-                            <TableHead 
+                            <TableHead
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_05 - 전년
+                                RF_06 - 전년
                             </TableHead>
-                            <TableHead 
+                            <TableHead
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_04대비 증감
+                                RF_06 - RF_05
                             </TableHead>
                         </TableRow>
                     </TableHeader>
