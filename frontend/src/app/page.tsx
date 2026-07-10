@@ -10328,12 +10328,12 @@ export default function DashboardPage() {
             value: formatNumber(getDataValue('카드_영업비_기타비용_값', month, '134')),
             yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%'),
             subItems: [
-              { name: "Inventory Write Down", value: "163,707", popupId: "inventoryWD" },
+              { name: "Inventory Write Down", value: "158,707", popupId: "inventoryWD" },
               { name: "Taxes and Licenses",   value: "4,169" },
-              { name: "Utilities",            value: "175" },
+              { name: "Utilities",            value: "6,175" },
               { name: "Miscellaneous Expense",value: "79" },
               { name: "Bad Debt Expenses",    value: "-32,965" },
-              { name: "합계",                 value: "135,164", isTotal: true },
+              { name: "합계",                 value: "136,165", isTotal: true },
             ]
           }
         ]
