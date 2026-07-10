@@ -13819,7 +13819,7 @@ export default function DashboardPage() {
                                     key={`bs-col-${index}-${colIdx}`}
                                     className={cn(
                                       isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum,
-                                      showInventoryNote && 'bg-amber-100 cursor-pointer'
+                                      showInventoryNote && 'bg-sky-100 ring-1 ring-inset ring-sky-300 cursor-pointer'
                                     )}
                                   >
                                     {showInventoryNote ? (
