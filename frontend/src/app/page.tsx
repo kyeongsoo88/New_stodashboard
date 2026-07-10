@@ -9679,6 +9679,7 @@ export default function DashboardPage() {
   const [simulInvenData, setSimulInvenData] = React.useState<Array<{label: string, values: string[]}>>([]);
   const [simulInvenHeaders, setSimulInvenHeaders] = React.useState<string[]>([]);
   const [simulBSData, setSimulBSData] = React.useState<SimulBalanceSheetRow[]>([]);
+  const [simulBSHeaders, setSimulBSHeaders] = React.useState<string[]>(SIMUL_BS_HEADERS);
   // TAG매출용 시즌별 성장률 (모두 100%로 중립화)
   const [tagSeasonGrowthRates, setTagSeasonGrowthRates] = React.useState<Record<string, number>>({
     '27SS': 100,
@@ -9905,6 +9906,8 @@ export default function DashboardPage() {
         return decodeCsvText(new Uint8Array(buf));
       })
       .then((csvText) => {
+        const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.toLowerCase().startsWith('sep='));
+        if (lines.length > 0) setSimulBSHeaders(parseCSVLine(lines[0]));
         setSimulBSData(parseSimulBalanceSheetCsv(csvText));
       })
       .catch((err) => {
@@ -13648,11 +13651,11 @@ export default function DashboardPage() {
                     <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          {SIMUL_BS_HEADERS.map((header, idx) => (
+                          {simulBSHeaders.map((header, idx) => (
                             <th
                               key={`bs-header-${idx}`}
                               className={idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th}
-                              style={{ width: idx === 0 ? '22%' : `${78 / (SIMUL_BS_HEADERS.length - 1)}%` }}
+                              style={{ width: idx === 0 ? '22%' : `${78 / (simulBSHeaders.length - 1)}%` }}
                             >
                               {header}
                             </th>
