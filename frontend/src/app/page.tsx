@@ -4510,866 +4510,664 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   );
 }
 
-// 영업비 분석 CSV 파싱 및 표시 컴포넌트
+// 영업비 분석 - Raw 거래 데이터 기반 빅데이터 분석
 function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
-  const [csvData, setCsvData] = React.useState<Record<string, Record<string, string>>>({});
-  const [detailNotes, setDetailNotes] = React.useState<Record<string, string>>({});
+  const [rawRows, setRawRows] = React.useState<Record<string, string>[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || "2026-06");
-  const [viewMode, setViewMode] = React.useState<"당월" | "YTD">("당월");
-  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(new Set());
-  const [selectedCategoryForPie, setSelectedCategoryForPie] = React.useState<string | null>(null);
+  const [viewTab, setViewTab] = React.useState<'트렌드' | '부서별' | '거래내역'>('트렌드');
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-06');
+  const [viewMode, setViewMode] = React.useState<'당월' | 'YTD'>('당월');
+  const [activePL, setActivePL] = React.useState<Set<string>>(new Set(['HQ', 'Benefits', 'Contractors', 'Advertising', 'Professional Service']));
+  const [drillPL, setDrillPL] = React.useState<string | null>(null);
+  const [searchText, setSearchText] = React.useState('');
+  const [txPage, setTxPage] = React.useState(0);
+  const PAGE_SIZE = 50;
 
-  // 월 옵션 (25년 1월~12월, 26년 1월~5월)
-  const monthOptions = [
-    ...Array.from({ length: 12 }, (_, i) => {
-      const month = i + 1;
-      return {
-        value: `2025-${String(month).padStart(2, '0')}`,
-        label: `25년 ${month}월`
-      };
-    }),
-    { value: '2026-01', label: '26년 1월' },
-    { value: '2026-02', label: '26년 2월' },
-    { value: '2026-03', label: '26년 3월' },
-    { value: '2026-04', label: '26년 4월' },
-    { value: '2026-05', label: '26년 5월' },
-    { value: '2026-06', label: '26년 6월' }
-  ];
+  const PL_KR: Record<string, string> = {
+    'Advertising': '광고선전비',
+    'Professional Service': '지급수수료',
+    'Other': '기타비용',
+    'Rent': '사무실임차료',
+    'T&E': '식대/출장비',
+    'Sample': '샘플/개발비',
+    'Depreciation & Amortization': '감가상각비',
+    'HQ': 'HQ배분',
+    'Benefits': '복리후생비',
+    'Bonus': '인센티브/보너스',
+    'Contractors': '계약직인건비',
+  };
+
+  const PL_ITEMS = ['HQ', 'Benefits', 'Contractors', 'Bonus', 'Advertising', 'Professional Service', 'Rent', 'T&E', 'Sample', 'Other', 'Depreciation & Amortization'];
+
+  const PL_COLORS: Record<string, string> = {
+    'HQ': '#6366f1',
+    'Benefits': '#10b981',
+    'Contractors': '#f59e0b',
+    'Bonus': '#ef4444',
+    'Advertising': '#3b82f6',
+    'Professional Service': '#ec4899',
+    'Rent': '#14b8a6',
+    'T&E': '#f97316',
+    'Sample': '#84cc16',
+    'Other': '#64748b',
+    'Depreciation & Amortization': '#a855f7',
+  };
+
+  const DEPT_COLORS: Record<string, string> = {
+    'Brand Marketing': '#3b82f6',
+    'Administration': '#10b981',
+    'Ecommerce': '#f59e0b',
+    'Design': '#8b5cf6',
+    'Executive': '#ef4444',
+    'Licensing': '#06b6d4',
+    'Merchandising': '#f97316',
+    'Production': '#84cc16',
+    'Wholesale': '#ec4899',
+  };
+
+  const DEPTS = ['Brand Marketing', 'Administration', 'Ecommerce', 'Design', 'Executive', 'Licensing', 'Merchandising', 'Production', 'Wholesale'];
+
+  const MONTHS_2025 = Array.from({ length: 12 }, (_, i) => `2025-${String(i + 1).padStart(2, '0')}`);
+  const MONTHS_2026 = Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`);
+  const ALL_MONTHS = [...MONTHS_2025, ...MONTHS_2026];
 
   React.useEffect(() => {
-    setLoading(true);
-    const decodeWithBom = async (res: Response) => {
-      const buf = await res.arrayBuffer();
-      const bytes = new Uint8Array(buf);
-      if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-        return new TextDecoder('utf-16le').decode(bytes);
-      }
-      if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-        return new TextDecoder('utf-8').decode(bytes);
-      }
-      return new TextDecoder('utf-8').decode(bytes);
-    };
-
-    const timestamp = Date.now();
-    Promise.all([
-      fetch(`/data/operatingexpense.csv?t=${timestamp}`).then(decodeWithBom),
-      fetch(`/data/operatingexpense-detail.csv?t=${timestamp}`).then(decodeWithBom)
-    ])
-      .then(([expenseCsv, detailCsv]) => {
-        const lines = expenseCsv.split(/\r?\n/).filter(line => line.trim());
-        if (lines.length < 2) {
-          setLoading(false);
-          return;
+    const ts = Date.now();
+    fetch(`/data/STO_operating_raw.csv?t=${ts}`)
+      .then(r => r.arrayBuffer())
+      .then(buf => {
+        const bytes = new Uint8Array(buf);
+        let text: string;
+        if (bytes[0] === 0xff && bytes[1] === 0xfe) {
+          text = new TextDecoder('utf-16le').decode(buf);
+        } else if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+          text = new TextDecoder('utf-8').decode(buf);
+        } else {
+          text = new TextDecoder('utf-8').decode(buf);
         }
-        
-        // 헤더 파싱 (첫 번째 줄)
-        const headerLine = lines[0];
-        const parsedHeaders = parseCSVLine(headerLine)
-          .map((h) => (h || '').replace(/^\uFEFF/, '').trim())
-          .filter((h) => h !== '');
-        
-        // 데이터 파싱
-        const data: Record<string, Record<string, string>> = {};
-        
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { setLoading(false); return; }
+        const headers = parseCSVLine(lines[0]).map((h: string) => h.replace(/^﻿/, '').trim());
+        const rows: Record<string, string>[] = [];
         for (let i = 1; i < lines.length; i++) {
-          const line = lines[i];
-          if (!line.trim()) continue;
-          
-          const values = parseCSVLine(line);
-          if (values.length < 2 || !values[0]) continue;
-          
-          const dataKey = values[0].trim();
-          const rowData: Record<string, string> = {};
-          const paddedValues = [...values];
-          while (paddedValues.length < parsedHeaders.length) paddedValues.push('');
-          if (paddedValues.length > parsedHeaders.length) paddedValues.length = parsedHeaders.length;
-          
-          // 헤더[i] ↔ values[i] 동일 인덱스 매핑 (AE=당월계획, AF=연간계획)
-          for (let j = 0; j < parsedHeaders.length; j++) {
-            const monthKey = parsedHeaders[j];
-            if (!monthKey || monthKey === '데이터키') continue;
-            rowData[monthKey] = (paddedValues[j] || '').trim();
-          }
-          
-          data[dataKey] = rowData;
+          if (!lines[i].trim()) continue;
+          const vals = parseCSVLine(lines[i]);
+          const row: Record<string, string> = {};
+          headers.forEach((h: string, j: number) => { row[h] = (vals[j] || '').trim(); });
+          if (row['Date2'] && row['P&L Line Item']) rows.push(row);
         }
-
-        const detailLines = detailCsv
-          .split(/\r?\n/)
-          .map(line => line.trim())
-          .filter(Boolean)
-          .map((line) => {
-            let t = line.trim();
-            if (t.includes('\t')) {
-              t = t.replace(/\t/g, ',');
-            }
-            if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
-              t = t.slice(1, -1).replace(/""/g, '"');
-            }
-            return t;
-          })
-          .filter(Boolean);
-
-        const detailMap: Record<string, string> = {};
-        if (detailLines.length > 0) {
-          const detailHeaders = parseCSVLine(detailLines[0]).map(h => (h || '').replace(/^\uFEFF/, '').trim());
-          const catIdx = detailHeaders.findIndex(h => h === '대분류');
-          const subIdx = detailHeaders.findIndex(h => h === '중분류');
-          const detailIdx = detailHeaders.findIndex(h => h === '상세');
-
-          if (catIdx >= 0 && detailIdx >= 0) {
-            for (let i = 1; i < detailLines.length; i++) {
-              const values = parseCSVLine(detailLines[i]);
-              const cat = (values[catIdx] || '').trim();
-              const sub = subIdx >= 0 ? (values[subIdx] || '').trim() : '';
-              const detail = (values[detailIdx] || '').trim();
-              if (!cat) continue;
-              const key = sub ? `${cat}||${sub}` : cat;
-              detailMap[key] = detail;
-            }
-          }
-        }
-        
-        setCsvData(data);
-        setDetailNotes(detailMap);
+        setRawRows(rows);
         setLoading(false);
       })
-      .catch(err => {
-        console.error('CSV 로드 오류:', err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
-  // 선택된 월의 CSV 키 매핑 (2025-10 -> 25년 10월)
-  const getMonthKey = (month: string): string => {
-    const monthNum = parseInt(month.split('-')[1]);
-    return `25년 ${monthNum}월`;
-  };
-
-  // 데이터 값 가져오기
-  const getDataValue = (dataKey: string, month: string, defaultValue: string = '0'): string => {
-    const monthKey = getMonthKey(month);
-    if (!csvData[dataKey] || !csvData[dataKey][monthKey]) {
-      return defaultValue;
+  // Monthly aggregation by P&L Line Item
+  const monthlyByPL = React.useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+    for (const row of rawRows) {
+      const month = row['Date2'];
+      const pl = row['P&L Line Item'];
+      const amt = parseFloat(row['Amount']) || 0;
+      if (!month || !pl) continue;
+      if (!result[month]) result[month] = {};
+      result[month][pl] = (result[month][pl] || 0) + amt;
     }
-    return csvData[dataKey][monthKey];
+    return result;
+  }, [rawRows]);
+
+  // Monthly aggregation by Department
+  const monthlyByDept = React.useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+    for (const row of rawRows) {
+      const month = row['Date2'];
+      const dept = row['Dept. Mapping for G&A'] || 'No Department';
+      const amt = parseFloat(row['Amount']) || 0;
+      if (!month) continue;
+      if (!result[month]) result[month] = {};
+      result[month][dept] = (result[month][dept] || 0) + amt;
+    }
+    return result;
+  }, [rawRows]);
+
+  // Monthly total
+  const monthlyTotal = React.useMemo(() => {
+    const result: Record<string, number> = {};
+    for (const [month, byPL] of Object.entries(monthlyByPL)) {
+      result[month] = Object.values(byPL).reduce((a, b) => a + b, 0);
+    }
+    return result;
+  }, [monthlyByPL]);
+
+  const curYr = selectedMonthLocal.startsWith('2026') ? '2026' : '2025';
+  const prevYr = curYr === '2026' ? '2025' : '2024';
+  const curMonthNum = parseInt(selectedMonthLocal.split('-')[1]);
+
+  const getMonthVal = (month: string, pl?: string) => {
+    if (!pl) return monthlyTotal[month] || 0;
+    return monthlyByPL[month]?.[pl] || 0;
   };
 
-  // YTD 값 계산 (1월부터 선택된 월까지 합계)
-  const getYTDValue = (dataKey: string, month: string, defaultValue: string = '0'): number => {
-    const monthNum = parseInt(month.split('-')[1]);
+  const getYTDVal = (upToMonth: string, pl?: string) => {
+    const [yr, mo] = upToMonth.split('-');
     let sum = 0;
-    let hasValue = false;
-    
-    for (let i = 1; i <= monthNum; i++) {
-      const monthKey = `25년 ${i}월`;
-      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
-          sum += num;
-          hasValue = true;
-        }
-      }
+    for (let m = 1; m <= parseInt(mo); m++) {
+      const key = `${yr}-${String(m).padStart(2, '0')}`;
+      sum += getMonthVal(key, pl);
     }
-    
-    if (!hasValue) return parseFloat(defaultValue) || 0;
     return sum;
   };
 
-  // 25년 당월 값 가져오기 (전년 비교용)
-  const get25MonthValue = (dataKey: string, month: string): number => {
-    const monthNum = parseInt(month.split('-')[1]);
-    const monthKey = `25년 ${monthNum}월`;
-    if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-      const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-      return parseFloat(val) || 0;
-    }
-    return 0;
+  const getCurVal = (pl?: string) => viewMode === 'YTD' ? getYTDVal(selectedMonthLocal, pl) : getMonthVal(selectedMonthLocal, pl);
+  const getPrevVal = (pl?: string) => {
+    const prevKey = `${prevYr}-${String(curMonthNum).padStart(2, '0')}`;
+    return viewMode === 'YTD' ? getYTDVal(prevKey, pl) : getMonthVal(prevKey, pl);
   };
 
-  // 25년 YTD 값 계산 (전년 비교용)
-  const get25YTDValue = (dataKey: string, month: string): number => {
-    const monthNum = parseInt(month.split('-')[1]);
-    let sum = 0;
-    
-    // 25년 데이터는 같은 키에 25년 월별 컬럼으로 저장됨
-    for (let i = 1; i <= monthNum; i++) {
-      const monthKey = `25년 ${i}월`;
-      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
-          sum += num;
-        }
+  const currentTotal = getCurVal();
+  const prevTotal = getPrevVal();
+  const yoyPct = prevTotal > 0 ? ((currentTotal / prevTotal - 1) * 100) : 0;
+
+  // Dept x PL cross table (memoized)
+  const deptPLCross = React.useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+    for (const row of rawRows) {
+      const inPeriod = viewMode === 'YTD'
+        ? row['Date2'] >= `${curYr}-01` && row['Date2'] <= selectedMonthLocal
+        : row['Date2'] === selectedMonthLocal;
+      if (!inPeriod) continue;
+      const dept = row['Dept. Mapping for G&A'] || 'No Department';
+      const pl = row['P&L Line Item'];
+      const amt = parseFloat(row['Amount']) || 0;
+      if (!result[dept]) result[dept] = {};
+      result[dept][pl] = (result[dept][pl] || 0) + amt;
+    }
+    return result;
+  }, [rawRows, viewMode, curYr, selectedMonthLocal]);
+
+  // Transaction rows (filtered)
+  const txRows = React.useMemo(() => {
+    return rawRows.filter(r => {
+      const inPeriod = viewMode === 'YTD'
+        ? r['Date2'] >= `${curYr}-01` && r['Date2'] <= selectedMonthLocal
+        : r['Date2'] === selectedMonthLocal;
+      if (!inPeriod) return false;
+      if (drillPL && r['P&L Line Item'] !== drillPL) return false;
+      if (searchText) {
+        const q = searchText.toLowerCase();
+        if (!r['Name'].toLowerCase().includes(q) &&
+            !r['Memo'].toLowerCase().includes(q) &&
+            !(r['Account (GL)'] || '').toLowerCase().includes(q)) return false;
       }
-    }
-    
-    return sum;
+      return true;
+    }).sort((a, b) => Math.abs(parseFloat(b['Amount']) || 0) - Math.abs(parseFloat(a['Amount']) || 0));
+  }, [rawRows, viewMode, curYr, selectedMonthLocal, drillPL, searchText]);
+
+  const txTotal = txRows.reduce((s, r) => s + (parseFloat(r['Amount']) || 0), 0);
+  const txPages = Math.ceil(txRows.length / PAGE_SIZE);
+  const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
+
+  const txCount = txRows.length;
+
+  const topPL = PL_ITEMS.reduce((best, pl) => getCurVal(pl) > getCurVal(best) ? pl : best, PL_ITEMS[0]);
+
+  // Recent 12 months up to selectedMonthLocal
+  const trendMonths = React.useMemo(() => {
+    const avail = ALL_MONTHS.filter(m => m <= selectedMonthLocal);
+    return avail.slice(-12);
+  }, [selectedMonthLocal]);
+
+  const fmtK = (v: number) => `$${Math.abs(Math.round(v / 1000)).toLocaleString()}K${v < 0 ? ' (-)' : ''}`;
+  const fmtKshort = (v: number) => v === 0 ? '-' : `$${Math.round(v / 1000).toLocaleString()}K`;
+
+  // SVG Trend Chart (multi-line)
+  const TrendChart = () => {
+    const W = 760, H = 220;
+    const PAD = { t: 20, r: 24, b: 36, l: 58 };
+    const chartW = W - PAD.l - PAD.r;
+    const chartH = H - PAD.t - PAD.b;
+    const activePLArr = PL_ITEMS.filter(pl => activePL.has(pl));
+    const allVals = trendMonths.flatMap(m => activePLArr.map(pl => Math.max(0, getMonthVal(m, pl))));
+    const maxVal = Math.max(...allVals, 1000);
+    const gridCount = 4;
+    const xPos = (i: number) => PAD.l + (trendMonths.length < 2 ? chartW / 2 : (i / (trendMonths.length - 1)) * chartW);
+    const yPos = (v: number) => PAD.t + chartH - Math.max(0, (v / maxVal)) * chartH;
+    return (
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+        {Array.from({ length: gridCount + 1 }, (_, i) => {
+          const y = PAD.t + (i / gridCount) * chartH;
+          const v = Math.round(maxVal * (1 - i / gridCount) / 1000);
+          return (
+            <g key={i}>
+              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" />
+              <text x={PAD.l - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">${v}K</text>
+            </g>
+          );
+        })}
+        {activePLArr.map(pl => {
+          const pts = trendMonths.map((m, i) => `${xPos(i)},${yPos(getMonthVal(m, pl))}`).join(' ');
+          return (
+            <g key={pl}>
+              <polyline points={pts} fill="none" stroke={PL_COLORS[pl]} strokeWidth="2" strokeLinejoin="round" />
+              {trendMonths.map((m, i) => (
+                <circle key={m} cx={xPos(i)} cy={yPos(getMonthVal(m, pl))} r="3" fill={PL_COLORS[pl]} />
+              ))}
+            </g>
+          );
+        })}
+        {trendMonths.map((m, i) => (
+          <text key={m} x={xPos(i)} y={H - PAD.b + 14} textAnchor="middle" fontSize="9" fill="#64748b">
+            {m.replace('2025-', "'25/").replace('2026-', "'26/")}
+          </text>
+        ))}
+      </svg>
+    );
   };
 
-  // 25년 전체 합계 (1월~12월)
-  const get25TotalValue = (dataKey: string): number => {
-    let sum = 0;
-    
-    // 25년 1월~12월 데이터 합산
-    for (let i = 1; i <= 12; i++) {
-      const monthKey = `25년 ${i}월`;
-      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
-          sum += num;
-        }
-      }
-    }
-    
-    return sum;
+  // SVG Stacked Bar Chart (dept breakdown)
+  const DeptBarChart = () => {
+    const W = 760, H = 220;
+    const PAD = { t: 20, r: 24, b: 36, l: 58 };
+    const chartW = W - PAD.l - PAD.r;
+    const chartH = H - PAD.t - PAD.b;
+    const months = trendMonths;
+    const totals = months.map(m => DEPTS.reduce((s, d) => s + Math.max(0, monthlyByDept[m]?.[d] || 0), 0));
+    const maxVal = Math.max(...totals, 1);
+    const bw = (chartW / months.length) * 0.65;
+    const xPos = (i: number) => PAD.l + (i / months.length) * chartW + (chartW / months.length - bw) / 2;
+    const gridCount = 4;
+    return (
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+        {Array.from({ length: gridCount + 1 }, (_, i) => {
+          const y = PAD.t + (i / gridCount) * chartH;
+          const v = Math.round(maxVal * (1 - i / gridCount) / 1000);
+          return (
+            <g key={i}>
+              <line x1={PAD.l} x2={W - PAD.r} y1={y} y2={y} stroke="#e2e8f0" strokeWidth="1" />
+              <text x={PAD.l - 5} y={y + 4} textAnchor="end" fontSize="9" fill="#94a3b8">${v}K</text>
+            </g>
+          );
+        })}
+        {months.map((m, i) => {
+          let yBottom = PAD.t + chartH;
+          return (
+            <g key={m}>
+              {DEPTS.map(d => {
+                const v = Math.max(0, monthlyByDept[m]?.[d] || 0);
+                if (v <= 0) return null;
+                const h = (v / maxVal) * chartH;
+                yBottom -= h;
+                return (
+                  <rect key={d} x={xPos(i)} y={yBottom} width={bw} height={h}
+                    fill={DEPT_COLORS[d] || '#94a3b8'} opacity="0.85" rx="1" />
+                );
+              })}
+              <text x={xPos(i) + bw / 2} y={H - PAD.b + 14} textAnchor="middle" fontSize="9" fill="#64748b">
+                {m.replace('2025-', "'25/").replace('2026-', "'26/")}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
   };
 
-  // 26년 당월 값 가져오기 (당년 데이터)
-  const get26MonthValue = (dataKey: string, month: string): number => {
-    const monthNum = parseInt(month.split('-')[1]);
-    const monthKey = `26년 ${monthNum}월`;
-    if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-      const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-      return parseFloat(val) || 0;
-    }
-    return 0;
-  };
-
-  // 26년 YTD 값 가져오기 (1월부터 선택한 월까지 합계)
-  const get26YTDValue = (dataKey: string, month: string): number => {
-    const monthNum = parseInt(month.split('-')[1]);
-    let sum = 0;
-    
-    // 26년 1월부터 선택한 월까지 합산
-    for (let i = 1; i <= monthNum; i++) {
-      const monthKey = `26년 ${i}월`;
-      if (csvData[dataKey] && csvData[dataKey][monthKey]) {
-        const val = csvData[dataKey][monthKey].replace(/[^0-9.-]/g, '');
-        const num = parseFloat(val);
-        if (!isNaN(num)) {
-          sum += num;
-        }
-      }
-    }
-    
-    return sum;
-  };
-
-  // 26년 연간(계획) 값 가져오기 — CSV AF컬럼
-  const get26AnnualPlanValue = (dataKey: string): number => {
-    const planKey = '26년(계획)';
-    if (csvData[dataKey] && csvData[dataKey][planKey]) {
-      const val = csvData[dataKey][planKey].replace(/[^0-9.-]/g, '');
-      return parseFloat(val) || 0;
-    }
-    return 0;
-  };
-
-  // 26년 당월(계획) 값 가져오기 — CSV AE컬럼 (예: 26년 5월(계획))
-  const get26MonthPlanValue = (dataKey: string, month: string): number => {
-    const [year, monthStr] = month.split('-');
-    const monthNum = parseInt(monthStr, 10);
-    if (year !== '2026' || Number.isNaN(monthNum)) return 0;
-
-    const monthPlanKey = `26년 ${monthNum}월(계획)`;
-    if (csvData[dataKey] && csvData[dataKey][monthPlanKey]) {
-      const val = csvData[dataKey][monthPlanKey].replace(/[^0-9.-]/g, '');
-      return parseFloat(val) || 0;
-    }
-    return 0;
-  };
-
-  // 화면 표시용 계획: YTD=AF(연간계획), 당월=AE(당월계획)
-  const get26DisplayPlanValue = (dataKey: string, month: string): number => {
-    if (viewMode === 'YTD') {
-      return get26AnnualPlanValue(dataKey);
-    }
-    return get26MonthPlanValue(dataKey, month);
-  };
-
-  // 26년 진척률: YTD=누적/연간계획, 당월=당월실적/당월계획
-  const get26ProgressValue = (dataKey: string, month: string): number => {
-    if (viewMode === 'YTD') {
-      const ytd = get26YTDValue(dataKey, month);
-      const plan = get26AnnualPlanValue(dataKey);
-      return plan > 0 ? (ytd / plan * 100) : 0;
-    }
-    const monthVal = get26MonthValue(dataKey, month);
-    const monthPlan = get26MonthPlanValue(dataKey, month);
-    return monthPlan > 0 ? (monthVal / monthPlan * 100) : 0;
-  };
-
-  // 현재 표시할 값 (YTD 또는 당월) - 26년 데이터
-  const getCurrentValue = (dataKey: string, month: string): number => {
-    if (viewMode === "YTD") {
-      return get26YTDValue(dataKey, month);
-    } else {
-      return get26MonthValue(dataKey, month);
-    }
-  };
-
-  // 현재 월 숫자
-  const currentMonthNum = parseInt(selectedMonthLocal.split('-')[1]);
-
-  // KPI 데이터
-  const totalOperatingExpense = getCurrentValue('영업비_총영업비', selectedMonthLocal);
-  const totalOperatingExpense25 = viewMode === "YTD" ? get25YTDValue('영업비_총영업비', selectedMonthLocal) : get25MonthValue('영업비_총영업비', selectedMonthLocal);
-  const totalOperatingExpenseYOY = totalOperatingExpense25 > 0 ? (totalOperatingExpense / totalOperatingExpense25 * 100) : 0;
-
-  const totalOperatingExpense25YTD = get25YTDValue('영업비_총영업비', selectedMonthLocal);
-
-  const personnelCost = getCurrentValue('영업비_인건비', selectedMonthLocal);
-  const personnelCostRatio = totalOperatingExpense > 0 ? (personnelCost / totalOperatingExpense * 100) : 0;
-
-  const headcount = getCurrentValue('영업비_인원수', selectedMonthLocal) || 26;
-  
-  // 인당 영업비: 총 영업비 / 인원수
-  const perPersonExpense = headcount > 0 ? totalOperatingExpense / headcount : 0;
-
-  const sales = getCurrentValue('영업비_매출', selectedMonthLocal);
-  const efficiencyRatio = sales > 0 ? (totalOperatingExpense / sales * 100) : 0;
-
-  // 계정별 비용 데이터
-  const accountCategories = [
-    { key: '인건비', name: '인건비' },
-    { key: '광고선전비', name: '광고선전비' },
-    { key: '지급수수료', name: '지급수수료' },
-    { key: '식대출장비', name: '식대/출장비' },
-    { key: '사무실임차료', name: '사무실임차료' },
-    { key: '샘플개발비', name: '샘플/개발비' },
-    { key: '감가상각비', name: '감가상각비' },
-    { key: '기타비용', name: '기타비용' },
-  ];
-
-  // 대분류별 중분류 매핑
-  const subCategoriesMap: Record<string, { key: string; name: string }[]> = {
-    '인건비': [
-      { key: '정규직인건비', name: '정규직인건비' },
-      { key: '계약직인건비', name: '계약직인건비' },
-      { key: '해고급여', name: '해고급여' },
-      { key: '인센티브 지급', name: '인센티브 지급' },
-      { key: 'PTO', name: 'PTO(퇴직자 휴가급여)' },
-      { key: '기타복후비', name: '기타복후비' },
-      { key: '직원복리후생비', name: '직원복후비' },
-      { key: '직원보험', name: '직원보험' },
-      { key: '커미션', name: '커미션' },
-    ],
-    '광고선전비': [
-      { key: 'Photography', name: 'Photography' },
-      { key: 'Advertising', name: 'Advertising' },
-      { key: 'SEM브랜드마케팅', name: 'SEM 브랜드 마케팅' },
-      { key: 'Events', name: 'Events' },
-      { key: 'Model', name: 'Model' },
-      { key: 'Seeding', name: 'Seeding' },
-    ],
-    '지급수수료': [
-      { key: '리크루팅서비스', name: '리크루팅서비스' },
-      { key: '페이롤서비스', name: '페이롤서비스' },
-      { key: '회계법률서비스', name: '회계법률서비스' },
-      { key: '전문용역비', name: '전문용역비(기타전문용역비)' },
-      { key: '보험료', name: '보험료' },
-      { key: '소프트웨어사용비', name: '소프트웨어 사용비' },
-      { key: '결제수수료', name: '결제수수료' },
-      { key: '멤버쉽', name: '멤버쉽' },
-    ],
-    '식대/출장비': [],
-    '사무실임차료': [],
-    '샘플/개발비': [
-      { key: '원단소재샘플', name: '원단 & 소재샘플' },
-      { key: '개발모델피팅', name: '개발 모델 피팅' },
-      { key: '상품개발비', name: '상품 개발비' },
-      { key: '샘플비', name: '샘플비' },
-    ],
-    '감가상각비': [],
-    '기타비용': [
-      { key: '기타버퍼비용', name: '기타 버퍼 비용' },
-      { key: '수도광열비', name: '수도광열비' },
-      { key: '매출채널외운반비', name: '매출채널 외 운반비' },
-      { key: '전화', name: '전화' },
-      { key: '대손상각비', name: '대손상각비' },
-      { key: '재고평가감', name: '재고평가감' },
-      { key: '세금과공과', name: '세금과공과' },
-    ],
-  };
-
-  const year25Label = viewMode === "YTD" ? "25년 YTD" : `25년 ${currentMonthNum}월`;
-  const year26Label = viewMode === "YTD" ? "26년 YTD" : `26년 ${currentMonthNum}월`;
-  
-  const chartData = accountCategories.map(cat => ({
-    name: cat.name,
-    [year25Label]: viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
-    [year26Label]: viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal),
-  }));
-
-  // 선택된 대분류에 따른 파이 차트 데이터
-  const getPieChartData = () => {
-    const categoryName = selectedCategoryForPie || '인건비'; // 기본값: 인건비
-    const subCats = subCategoriesMap[categoryName] || [];
-    const categoryKey = accountCategories.find(c => c.name === categoryName)?.key || '';
-    const totalValue = getCurrentValue(`영업비_${categoryKey}`, selectedMonthLocal);
-    
-    if (totalValue === 0) {
-      return [];
-    }
-    
-    // 하위항목이 없으면 대분류 자체를 단일 항목으로 표시
-    if (!subCats.length) {
-      return [{
-        name: categoryName,
-        value: totalValue,
-        percentage: '100',
-      }];
-    }
-    
-    // 하위항목이 있으면 하위항목들을 표시
-    return subCats.map(item => {
-      const dataKey = `영업비_${categoryKey}_${item.key}`;
-      const val = getCurrentValue(dataKey, selectedMonthLocal);
-      return {
-        name: item.name,
-        value: val,
-        percentage: totalValue > 0 ? (val / totalValue * 100).toFixed(0) : '0',
-      };
-    }).filter(item => item.value > 0);
-  };
-
-  const pieData = getPieChartData();
-  const COLORS = [
-    '#1e293b', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', 
-    '#3b82f6', '#ec4899', '#06b6d4', '#f97316', '#6366f1', 
-    '#84cc16', '#d946ef', '#14b8a6', '#eab308', '#a855f7',
-    '#f43f5e', '#22c55e', '#64748b', '#0ea5e9', '#d946ef'
-  ];
-
-  // 대분류별 상세 테이블 데이터
-  const detailTableData = accountCategories.map(cat => {
-    const val26 = viewMode === "YTD" ? get26YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get26MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const val25 = viewMode === "YTD" ? get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal) : get25MonthValue(`영업비_${cat.key}`, selectedMonthLocal);
-    
-    const val25YTD = get25YTDValue(`영업비_${cat.key}`, selectedMonthLocal);
-    
-    const val25Total = get25TotalValue(`영업비_${cat.key}`); // 25년 전체 합계
-    const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
-    const valPlan = get26DisplayPlanValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const val26Progress = get26ProgressValue(`영업비_${cat.key}`, selectedMonthLocal);
-    const diff = val26 - val25;
-    const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
-    const detail = detailNotes[cat.name] || '';
-    
-    return {
-      name: cat.name,
-      total25: val25Total,
-      plan26: valPlan,
-      ytd24: val25,
-      progress25: val25Progress,
-      ytd25: val26,
-      progress26: val26Progress,
-      diff: diff,
-      diffRate: diffRate,
-      detail: detail,
-    };
-  });
-
-  const totalRow = {
-    name: '합계',
-    total25: get25TotalValue('영업비_총영업비'), // 25년 전체 합계
-    plan26: get26DisplayPlanValue('영업비_총영업비', selectedMonthLocal),
-    ytd24: totalOperatingExpense25,
-    progress25: get25TotalValue('영업비_총영업비') > 0 ? (totalOperatingExpense25YTD / get25TotalValue('영업비_총영업비') * 100) : 0, // 25년 진척률 (누적 기준)
-    ytd25: totalOperatingExpense,
-    progress26: get26ProgressValue('영업비_총영업비', selectedMonthLocal),
-    diff: totalOperatingExpense - totalOperatingExpense25,
-    diffRate: totalOperatingExpenseYOY - 100,
-    detail: '',
-  };
-
-  const toggleCategory = (name: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(name)) {
-      newExpanded.delete(name);
-      // 축소할 때 파이 차트도 초기화
-      if (selectedCategoryForPie === name) {
-        setSelectedCategoryForPie(null);
-      }
-    } else {
-      newExpanded.add(name);
-      // 확장할 때 파이 차트에 반영
-      setSelectedCategoryForPie(name);
-    }
-    setExpandedCategories(newExpanded);
-  };
-
-  // 중분류 데이터 가져오기
-  const getSubCategoryData = (categoryName: string) => {
-    const categoryKey = accountCategories.find(c => c.name === categoryName)?.key || '';
-    const subCats = subCategoriesMap[categoryName] || [];
-    
-    return subCats.map(sub => {
-      const dataKey = `영업비_${categoryKey}_${sub.key}`;
-      const val26 = viewMode === "YTD" ? get26YTDValue(dataKey, selectedMonthLocal) : get26MonthValue(dataKey, selectedMonthLocal);
-      const val25 = viewMode === "YTD" ? get25YTDValue(dataKey, selectedMonthLocal) : get25MonthValue(dataKey, selectedMonthLocal);
-      
-      const val25YTD = get25YTDValue(dataKey, selectedMonthLocal);
-      
-      const val25Total = get25TotalValue(dataKey); // 25년 전체 합계
-      const val25Progress = val25Total > 0 ? (val25YTD / val25Total * 100) : 0; // 25년 진척률 (누적 기준)
-      const valPlan = get26DisplayPlanValue(dataKey, selectedMonthLocal);
-      const val26Progress = get26ProgressValue(dataKey, selectedMonthLocal);
-      const diff = val26 - val25;
-      const diffRate = val25 > 0 ? (val26 / val25 * 100) : 0;
-      const detailKey = `${categoryName}||${sub.name}`;
-      const detail = detailNotes[detailKey] || '';
-      
-      return {
-        name: sub.name,
-        total25: val25Total,
-        plan26: valPlan,
-        ytd24: val25,
-        progress25: val25Progress,
-        ytd25: val26,
-        progress26: val26Progress,
-        diff: diff,
-        diffRate: diffRate,
-        detail: detail,
-      };
-    });
-  };
+  const categorySummary = PL_ITEMS.map(pl => ({
+    pl,
+    cur: getCurVal(pl),
+    prev: getPrevVal(pl),
+    yoy: getPrevVal(pl) > 0 ? ((getCurVal(pl) / getPrevVal(pl) - 1) * 100) : 0,
+    share: currentTotal > 0 ? (getCurVal(pl) / currentTotal * 100) : 0,
+  })).sort((a, b) => b.cur - a.cur);
 
   if (loading) {
     return (
-      <Card className="p-8">
-        <div className="text-center text-gray-500">데이터를 불러오는 중...</div>
-      </Card>
+      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+        거래 데이터 로딩 중... (5,363건)
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* 헤더 영역 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl font-bold mb-1">STO 영업비 분석</CardTitle>
-            </div>
-            <div className="flex gap-2 items-center">
-              <Select value={selectedMonthLocal} onValueChange={setSelectedMonthLocal}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex gap-1">
-                <Button
-                  variant={viewMode === "YTD" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("YTD")}
-                  className={cn("h-9 text-xs px-3", viewMode === "YTD" ? "bg-slate-800 hover:bg-slate-900" : "")}
-                >
-                  YTD ({currentMonthNum}월)
-                </Button>
-                <Button
-                  variant={viewMode === "당월" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewMode("당월")}
-                  className={cn("h-9 text-xs px-3", viewMode === "당월" ? "bg-slate-800 hover:bg-slate-900" : "")}
-                >
-                  당월 ({currentMonthNum}월)
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+    <div className="space-y-4">
+      {/* Control Bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <Select value={selectedMonthLocal} onValueChange={v => setSelectedMonthLocal(v)}>
+          <SelectTrigger className="w-[130px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ALL_MONTHS.map(m => {
+              const [yr, mo] = m.split('-');
+              return <SelectItem key={m} value={m}>{`${yr.slice(2)}년 ${parseInt(mo)}월`}</SelectItem>;
+            })}
+          </SelectContent>
+        </Select>
+        <div className="flex rounded border border-gray-200 overflow-hidden">
+          {(['당월', 'YTD'] as const).map(mode => (
+            <button key={mode} onClick={() => setViewMode(mode)}
+              className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
+                viewMode === mode ? "bg-slate-800 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+              )}>{mode}</button>
+          ))}
+        </div>
+        <div className="flex-1" />
+        <div className="flex rounded border border-gray-200 overflow-hidden">
+          {(['트렌드', '부서별', '거래내역'] as const).map(tab => (
+            <button key={tab} onClick={() => setViewTab(tab)}
+              className={cn("px-3 py-1.5 text-xs font-medium transition-colors",
+                viewTab === tab ? "bg-indigo-600 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
+              )}>{tab}</button>
+          ))}
+        </div>
+      </div>
 
-      {/* 상단 KPI 카드 */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">총 영업비</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-1">${totalOperatingExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</div>
-            <div className={cn("text-sm font-medium", totalOperatingExpenseYOY >= 100 ? "text-red-600" : "text-emerald-600")}>
-              YOY {totalOperatingExpenseYOY.toFixed(0)}%
-            </div>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-4 gap-3">
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">총 영업비 ({viewMode})</p>
+            <p className="text-2xl font-bold text-gray-900">{fmtK(currentTotal)}</p>
+            <p className={cn("text-xs font-medium mt-1", yoyPct > 0 ? "text-red-500" : "text-emerald-600")}>
+              YoY {yoyPct > 0 ? '+' : ''}{yoyPct.toFixed(1)}% vs {prevYr}년
+            </p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">인건비 비중</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-1">{personnelCostRatio.toFixed(1)}%</div>
-            <div className="text-xs text-gray-500">전체 비용 중</div>
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">전년 동기 ({prevYr}년)</p>
+            <p className="text-2xl font-bold text-gray-400">{fmtK(prevTotal)}</p>
+            <p className="text-xs text-gray-400 mt-1">차이 {fmtK(currentTotal - prevTotal)}</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">인당 영업비</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-1">${perPersonExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</div>
-            <div className="text-xs text-gray-500">{headcount}명 연간</div>
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">거래 건수</p>
+            <p className="text-2xl font-bold text-gray-900">{txCount.toLocaleString()}건</p>
+            <p className="text-xs text-gray-400 mt-1">{rawRows.length.toLocaleString()}건 전체</p>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-600">효율성 지표</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold mb-1">{efficiencyRatio.toFixed(1)}%</div>
-            <div className="text-xs text-gray-500">매출 대비</div>
+        <Card className="border-gray-100">
+          <CardContent className="pt-4 pb-4">
+            <p className="text-xs text-gray-500 mb-1">최대 비용 카테고리</p>
+            <p className="text-lg font-bold text-gray-900">{PL_KR[topPL] || topPL}</p>
+            <p className="text-xs text-gray-400 mt-1">{fmtK(getCurVal(topPL))}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 하단 차트 영역 */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* 계정별 비용 비교 막대 그래프 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-bold">계정별 비용 비교</CardTitle>
-              <Button variant="outline" size="sm" className="h-7 text-xs">{viewMode === "YTD" ? "YTD 분석" : "당월 분석"}</Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart 
-                data={chartData}
-                onClick={(data: any) => {
-                  // 클릭된 데이터 포인트 찾기
-                  let clickedCategory: string | null = null;
-                  if (data && data.activeLabel) {
-                    clickedCategory = data.activeLabel;
-                  } else if (data && data.activePayload && data.activePayload[0] && data.activePayload[0].payload) {
-                    clickedCategory = data.activePayload[0].payload.name;
-                  }
-                  
-                  if (clickedCategory) {
-                    setSelectedCategoryForPie(clickedCategory);
-                    // 해당 카테고리만 열고 다른 항목들은 모두 접기
-                    setExpandedCategories(new Set([clickedCategory]));
-                  }
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} fontSize={11} />
-                <YAxis 
-                  label={{ value: 'K $', angle: -90, position: 'insideLeft' }} 
-                  fontSize={11}
-                  tickFormatter={(value) => value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                />
-                <Tooltip formatter={(value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}K`} />
-                <Legend />
-                <Bar 
-                  dataKey={year25Label} 
-                  fill="#e5e7eb"
+      {/* 트렌드 탭 */}
+      {viewTab === '트렌드' && (
+        <div className="space-y-4">
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <div className="flex items-start justify-between">
+                <CardTitle className="text-sm font-semibold text-gray-700">카테고리별 월별 트렌드 (최근 12개월)</CardTitle>
+                <button
+                  onClick={() => setActivePL(activePL.size === PL_ITEMS.length ? new Set() : new Set(PL_ITEMS))}
+                  className="text-xs text-gray-400 hover:text-gray-600 underline"
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-25-${index}`} 
-                      fill="#e5e7eb"
-                      style={{ cursor: 'pointer' }}
-                    />
-                  ))}
-                </Bar>
-                <Bar 
-                  dataKey={year26Label} 
-                  fill="#374151"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-26-${index}`} 
-                      fill="#374151"
-                      style={{ cursor: 'pointer' }}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+                  {activePL.size === PL_ITEMS.length ? '전체 해제' : '전체 선택'}
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {PL_ITEMS.map(pl => (
+                  <button key={pl}
+                    onClick={() => {
+                      const next = new Set(activePL);
+                      next.has(pl) ? next.delete(pl) : next.add(pl);
+                      setActivePL(next);
+                    }}
+                    className={cn("px-2 py-0.5 rounded text-xs font-medium border transition-all",
+                      activePL.has(pl) ? 'text-white border-transparent' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+                    )}
+                    style={activePL.has(pl) ? { backgroundColor: PL_COLORS[pl] } : {}}
+                  >{PL_KR[pl] || pl}</button>
+                ))}
+              </div>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <TrendChart />
+            </CardContent>
+          </Card>
 
-        {/* 세부내역 파이 차트 (동적 변경) */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-bold">
-                {selectedCategoryForPie ? `${selectedCategoryForPie} 세부내역` : '인건비 세부내역'}
+          <Card className="border-gray-100">
+            <CardHeader className="pb-1 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                카테고리별 요약 ({curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`})
               </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-7 text-xs"
-                onClick={() => {
-                  setSelectedCategoryForPie(null);
-                  setExpandedCategories(new Set());
-                }}
+            </CardHeader>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/80">
+                    <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-medium w-6"></th>
+                    <th className="text-left px-2 py-2.5 text-xs text-gray-500 font-medium">카테고리</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{curYr}년</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{prevYr}년</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">YoY</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">비중</th>
+                    <th className="w-24 px-3 py-2.5"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categorySummary.map(({ pl, cur, prev, yoy, share }, idx) => (
+                    <tr key={pl}
+                      className={cn("border-b border-gray-50 cursor-pointer hover:bg-blue-50/40 transition-colors",
+                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
+                      )}
+                      onClick={() => { setViewTab('거래내역'); setDrillPL(pl); setTxPage(0); }}
+                    >
+                      <td className="px-4 py-2">
+                        <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }} />
+                      </td>
+                      <td className="px-2 py-2 font-medium text-gray-800">{PL_KR[pl] || pl}</td>
+                      <td className="px-3 py-2 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(cur)}</td>
+                      <td className="px-3 py-2 text-right font-mono text-gray-400 tabular-nums">{fmtKshort(prev)}</td>
+                      <td className={cn("px-3 py-2 text-right font-mono font-medium tabular-nums",
+                        yoy > 15 ? 'text-red-600' : yoy < -15 ? 'text-emerald-600' : 'text-gray-500'
+                      )}>
+                        {prev > 0 ? (yoy > 0 ? '+' : '') + yoy.toFixed(1) + '%' : 'N/A'}
+                      </td>
+                      <td className="px-3 py-2 text-right tabular-nums text-gray-500 text-xs">{share.toFixed(1)}%</td>
+                      <td className="px-3 py-2">
+                        <div className="w-full bg-gray-100 rounded-full h-1.5">
+                          <div className="h-1.5 rounded-full transition-all"
+                            style={{ width: `${Math.min(share, 100)}%`, backgroundColor: PL_COLORS[pl] }} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
+                    <td className="px-4 py-2.5" />
+                    <td className="px-2 py-2.5 text-gray-900 font-bold">합계</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(currentTotal)}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-gray-400 tabular-nums">{fmtKshort(prevTotal)}</td>
+                    <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums", yoyPct > 0 ? 'text-red-600' : 'text-emerald-600')}>
+                      {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-gray-500 text-xs">100%</td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* 부서별 탭 */}
+      {viewTab === '부서별' && (
+        <div className="space-y-4">
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">부서별 월별 영업비 추이 (최근 12개월)</CardTitle>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <DeptBarChart />
+              <div className="flex flex-wrap gap-3 mt-3">
+                {DEPTS.map(d => (
+                  <div key={d} className="flex items-center gap-1.5">
+                    <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: DEPT_COLORS[d] || '#94a3b8' }} />
+                    <span className="text-xs text-gray-600">{d}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-gray-100">
+            <CardHeader className="pb-1 pt-4">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                부서 × 카테고리 교차 분석 ({curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-3 py-2.5 text-gray-500 font-medium sticky left-0 bg-gray-50 min-w-36">부서</th>
+                    {PL_ITEMS.map(pl => (
+                      <th key={pl} className="text-right px-2 py-2.5 text-gray-500 font-medium min-w-20 whitespace-nowrap">
+                        {PL_KR[pl] || pl}
+                      </th>
+                    ))}
+                    <th className="text-right px-3 py-2.5 text-gray-700 font-bold min-w-20 bg-slate-50">합계</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DEPTS.map((dept, idx) => {
+                    const deptTotal = Object.values(deptPLCross[dept] || {}).reduce((s, v) => s + v, 0);
+                    return (
+                      <tr key={dept} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                        <td className="px-3 py-2 font-medium text-gray-800 sticky left-0 bg-inherit border-r border-gray-100">{dept}</td>
+                        {PL_ITEMS.map(pl => {
+                          const v = deptPLCross[dept]?.[pl] || 0;
+                          return (
+                            <td key={pl} className={cn("px-2 py-2 text-right font-mono tabular-nums",
+                              v < -100 ? 'text-emerald-600' : v > 0 ? 'text-gray-800' : 'text-gray-300'
+                            )}>
+                              {Math.abs(v) >= 1000 ? fmtKshort(v) : v !== 0 ? `$${Math.round(v / 100) / 10}K` : '–'}
+                            </td>
+                          );
+                        })}
+                        <td className="px-3 py-2 text-right font-mono font-bold text-gray-900 bg-slate-50/60">
+                          {fmtKshort(deptTotal)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
+                    <td className="px-3 py-2.5 font-bold text-gray-900 sticky left-0 bg-slate-50 border-r border-gray-200">합계</td>
+                    {PL_ITEMS.map(pl => {
+                      const v = DEPTS.reduce((s, d) => s + (deptPLCross[d]?.[pl] || 0), 0);
+                      return (
+                        <td key={pl} className="px-2 py-2.5 text-right font-mono text-gray-900 tabular-nums">
+                          {fmtKshort(v)}
+                        </td>
+                      );
+                    })}
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-gray-900">
+                      {fmtKshort(DEPTS.reduce((s, d) => s + Object.values(deptPLCross[d] || {}).reduce((a, b) => a + b, 0), 0))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* 거래내역 탭 */}
+      {viewTab === '거래내역' && (
+        <Card className="border-gray-100">
+          <CardHeader className="pb-2 pt-4">
+            <div className="flex items-center gap-3 flex-wrap">
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                거래내역 — {txRows.length.toLocaleString()}건 / 합계 {fmtKshort(txTotal)}
+              </CardTitle>
+              <div className="flex-1" />
+              <select
+                value={drillPL || ''}
+                onChange={e => { setDrillPL(e.target.value || null); setTxPage(0); }}
+                className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8"
               >
-                닫기
-              </Button>
+                <option value="">전체 카테고리</option>
+                {PL_ITEMS.map(pl => <option key={pl} value={pl}>{PL_KR[pl] || pl}</option>)}
+              </select>
+              <input
+                type="text"
+                placeholder="거래처 / 메모 검색..."
+                value={searchText}
+                onChange={e => { setSearchText(e.target.value); setTxPage(0); }}
+                className="border border-gray-200 rounded px-3 py-1 text-xs w-44 bg-white h-8"
+              />
             </div>
           </CardHeader>
-          <CardContent>
-            {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="40%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(entry: any) => parseFloat(entry.percentage) >= 5 ? `${entry.percentage}%` : ''}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number, name: string, props: any) => [`$${value.toFixed(0)}K (${props.payload.percentage}%)`, name]} />
-                  <Legend 
-                    layout="vertical" 
-                    verticalAlign="middle" 
-                    align="right"
-                    wrapperStyle={{ fontSize: "11px", maxWidth: "45%" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-[300px] flex items-center justify-center text-gray-500">
-                데이터가 없습니다
+          <CardContent className="p-0 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">월</th>
+                  <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">카테고리</th>
+                  <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">부서 (G&A)</th>
+                  <th className="text-left px-3 py-2.5 text-gray-500 font-medium">거래처</th>
+                  <th className="text-left px-3 py-2.5 text-gray-500 font-medium">계정 (GL)</th>
+                  <th className="text-right px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">금액 (USD)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {txSlice.map((r, i) => {
+                  const amt = parseFloat(r['Amount']) || 0;
+                  return (
+                    <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                      <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }} />
+                          <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                      <td className="px-3 py-1.5 text-gray-800 max-w-56 truncate">{r['Name']}</td>
+                      <td className="px-3 py-1.5 text-gray-400 max-w-40 truncate">{r['Account (GL)']}</td>
+                      <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
+                        amt < 0 ? 'text-emerald-600' : 'text-gray-900'
+                      )}>
+                        {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {txPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+                <span className="text-xs text-gray-400">
+                  {txPage * PAGE_SIZE + 1}–{Math.min((txPage + 1) * PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
+                </span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setTxPage(0)} disabled={txPage === 0}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">처음</button>
+                  <button onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">← 이전</button>
+                  <span className="text-xs text-gray-500">{txPage + 1} / {txPages}</span>
+                  <button onClick={() => setTxPage(p => Math.min(txPages - 1, p + 1))} disabled={txPage >= txPages - 1}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">다음 →</button>
+                  <button onClick={() => setTxPage(txPages - 1)} disabled={txPage >= txPages - 1}
+                    className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">마지막</button>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* 대분류별 영업비 상세 테이블 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-bold">대분류별 영업비 상세</CardTitle>
-          <CardDescription className="text-xs">클릭하여 세부 항목 보기</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead rowSpan={2} className="w-[140px] align-middle border-r-2 border-gray-300">대분류</TableHead>
-                  <TableHead colSpan={3} className="text-center border-r-2 border-gray-300 bg-blue-50">2025년</TableHead>
-                  <TableHead colSpan={3} className="text-center border-r-2 border-gray-300 bg-green-50">2026년</TableHead>
-                  <TableHead colSpan={2} className="text-center border-r-2 border-gray-300 bg-amber-50">비교</TableHead>
-                  <TableHead rowSpan={2} className="text-center w-[280px] align-middle">상세</TableHead>
-                </TableRow>
-                <TableRow>
-                  <TableHead className="text-right w-[90px] bg-blue-50">합계</TableHead>
-                  <TableHead className="text-right w-[90px] bg-blue-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
-                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-blue-50">진척률</TableHead>
-                  <TableHead className="text-right w-[90px] bg-green-50">{viewMode === "YTD" ? "계획" : "당월계획"}</TableHead>
-                  <TableHead className="text-right w-[90px] bg-green-50">{viewMode === "YTD" ? "YTD" : "당월"}</TableHead>
-                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-green-50">진척률</TableHead>
-                  <TableHead className="text-right w-[90px] bg-amber-50">증감액</TableHead>
-                  <TableHead className="text-right w-[90px] border-r-2 border-gray-300 bg-amber-50">증감률</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {detailTableData.map((row) => (
-                  <React.Fragment key={row.name}>
-                    <TableRow 
-                      className="cursor-pointer hover:bg-gray-50"
-                      onClick={() => toggleCategory(row.name)}
-                    >
-                      <TableCell className="font-medium w-[140px] border-r-2 border-gray-300">
-                        <div className="flex items-center gap-2">
-                          {expandedCategories.has(row.name) ? (
-                            <ChevronUpIcon className="h-4 w-4" />
-                          ) : (
-                            <ChevronDownIcon className="h-4 w-4" />
-                          )}
-                          {row.name}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right w-[90px]">${row.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className="text-right w-[90px]">${row.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{row.progress25.toFixed(1)}%</TableCell>
-                      <TableCell className="text-right w-[90px]">${row.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className="text-right w-[90px]">${row.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                      <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{row.progress26.toFixed(1)}%</TableCell>
-                      <TableCell className={cn("text-right font-medium w-[90px]", row.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                        {row.diff >= 0 ? '+' : ''}${row.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
-                      </TableCell>
-                      <TableCell className={cn("text-right font-medium w-[90px] border-r-2 border-gray-300", row.diffRate > 100 ? "text-red-600" : row.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
-                        {row.diffRate.toFixed(1)}%
-                      </TableCell>
-                      <TableCell className="text-left w-[280px]">{row.detail}</TableCell>
-                    </TableRow>
-                    {/* 확장된 세부 항목 표시 */}
-                    {expandedCategories.has(row.name) && getSubCategoryData(row.name).map((subRow) => (
-                      <TableRow key={`${row.name}-${subRow.name}`} className="bg-gray-50">
-                        <TableCell className="font-medium pl-8 w-[140px] border-r-2 border-gray-300">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs">└</span>
-                            {subRow.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right w-[90px]">${subRow.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className="text-right w-[90px]">${subRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{subRow.progress25.toFixed(1)}%</TableCell>
-                        <TableCell className="text-right w-[90px]">${subRow.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className="text-right w-[90px]">${subRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                        <TableCell className="text-right w-[90px] border-r-2 border-gray-300">{subRow.progress26.toFixed(1)}%</TableCell>
-                        <TableCell className={cn("text-right font-medium w-[90px]", subRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                          {subRow.diff >= 0 ? '+' : ''}${subRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
-                        </TableCell>
-                        <TableCell className={cn("text-right font-medium w-[90px] border-r-2 border-gray-300", subRow.diffRate > 100 ? "text-red-600" : subRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
-                          {subRow.diffRate.toFixed(1)}%
-                        </TableCell>
-                        <TableCell className="text-left w-[280px]">{subRow.detail}</TableCell>
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-                <TableRow className="bg-blue-50 font-bold">
-                  <TableCell className="font-bold w-[140px] border-r-2 border-gray-300">{totalRow.name}</TableCell>
-                  <TableCell className="text-right font-bold w-[90px]">${totalRow.total25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd24.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className="text-right font-bold w-[90px] border-r-2 border-gray-300">{totalRow.progress25.toFixed(1)}%</TableCell>
-                  <TableCell className="text-right font-bold w-[90px]">${totalRow.plan26.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className="text-right font-bold w-[90px]">${totalRow.ytd25.toLocaleString(undefined, { maximumFractionDigits: 0 })}K</TableCell>
-                  <TableCell className="text-right font-bold w-[90px] border-r-2 border-gray-300">{totalRow.progress26.toFixed(1)}%</TableCell>
-                  <TableCell className={cn("text-right font-bold w-[90px]", totalRow.diff >= 0 ? "text-red-600" : "text-green-600")}>
-                    {totalRow.diff >= 0 ? '+' : ''}${totalRow.diff.toLocaleString(undefined, { maximumFractionDigits: 0 })}K
-                  </TableCell>
-                  <TableCell className={cn("text-right font-bold w-[90px] border-r-2 border-gray-300", totalRow.diffRate > 100 ? "text-red-600" : totalRow.diffRate < 100 ? "text-green-600" : "text-gray-600")}>
-                    {totalRow.diffRate.toFixed(1)}%
-                  </TableCell>
-                  <TableCell className="text-left font-bold w-[280px]">{totalRow.detail}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }
+
 
 const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전자본', '기타자산/부채', '자본', '자산-부채'];
 
