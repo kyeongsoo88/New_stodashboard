@@ -4671,23 +4671,29 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     return result;
   }, [rawRows, viewMode, curYr, selectedMonthLocal]);
 
-  // Vendor ranking
+  // Vendor ranking — Unknown을 GL계정으로 세분화
   const vendorRank = React.useMemo(() => {
-    const result: Record<string, { total: number; count: number; pls: Set<string>; dept: string }> = {};
+    const result: Record<string, { total: number; count: number; pls: Set<string>; dept: string; isAnon: boolean }> = {};
     for (const row of rawRows) {
       const inPeriod = viewMode === 'YTD'
         ? row['Date2'] >= `${curYr}-01` && row['Date2'] <= selectedMonthLocal
         : row['Date2'] === selectedMonthLocal;
       if (!inPeriod) continue;
-      const vendor = (row['Name'] || '').trim() || 'Unknown';
+      const rawName = (row['Name'] || '').trim();
+      const isAnon = !rawName || rawName === '0';
+      // 이름 없는 경우: P&L항목 + GL계정으로 의미있는 레이블 생성
+      const glShort = (row['Account (GL)'] || row['GL Mapping'] || '').split(':').pop()?.trim() || '';
+      const vendor = isAnon
+        ? `[${row['P&L Line Item']}] ${glShort || '미상'}`
+        : rawName;
       const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
-      if (!result[vendor]) result[vendor] = { total: 0, count: 0, pls: new Set(), dept: row['Dept. Mapping for G&A'] || '' };
+      if (!result[vendor]) result[vendor] = { total: 0, count: 0, pls: new Set(), dept: row['Dept. Mapping for G&A'] || '', isAnon };
       result[vendor].total += amt;
       result[vendor].count += 1;
       if (row['P&L Line Item']) result[vendor].pls.add(row['P&L Line Item']);
     }
     return Object.entries(result)
-      .map(([name, d]) => ({ name, total: d.total, count: d.count, pl: [...d.pls].join(' / '), dept: d.dept }))
+      .map(([name, d]) => ({ name, total: d.total, count: d.count, pl: [...d.pls].join(' / '), dept: d.dept, isAnon: d.isAnon }))
       .filter(v => v.total > 0)
       .sort((a, b) => b.total - a.total);
   }, [rawRows, viewMode, curYr, selectedMonthLocal]);
@@ -4716,6 +4722,46 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
   const txCount = txRows.length;
   const topPL = PL_ITEMS.reduce((best, pl) => getCurVal(pl) > getCurVal(best) ? pl : best, PL_ITEMS[0]);
+
+  // 계획 vs 실적: Source='STO P&L (Forecast)'=계획, 나머지=실적
+  const planActualByPL = React.useMemo(() => {
+    const result: Record<string, { actual26: number; plan26: number; actual25: number }> = {};
+    for (const pl of PL_ITEMS) result[pl] = { actual26: 0, plan26: 0, actual25: 0 };
+    for (const row of rawRows) {
+      const pl = row['P&L Line Item'];
+      if (!pl || !result[pl]) continue;
+      const amt = parseFloat((row['Amount'] || '').replace(/,/g, '')) || 0;
+      const isForecast = row['Source'] === 'STO P&L (Forecast)';
+      if (row['Date2'] >= '2026-01' && row['Date2'] <= '2026-12') {
+        if (isForecast) result[pl].plan26 += amt;
+        else result[pl].actual26 += amt;
+      } else if (row['Date2'] >= '2025-01' && row['Date2'] <= '2025-12') {
+        result[pl].actual25 += amt;
+      }
+    }
+    return result;
+  }, [rawRows]);
+
+  // 2026 가장 큰 카테고리의 연간 계획 진척률
+  const annualPlanByPL = PL_ITEMS.map(pl => {
+    const d = planActualByPL[pl];
+    const fullYearPlan = d.actual26 + d.plan26; // H1 실적 + H2 계획 = 연간
+    const progress = fullYearPlan > 0 ? (d.actual26 / fullYearPlan * 100) : 0;
+    return { pl, actual: d.actual26, plan: fullYearPlan, progress };
+  }).sort((a, b) => b.plan - a.plan);
+  const topCatPlan = annualPlanByPL[0]; // 가장 큰 카테고리
+
+  // 2025-06 vs 2026-06 비교
+  const juneCmp = PL_ITEMS.map(pl => ({
+    pl,
+    jun25: getMonthVal('2025-06', pl),
+    jun26: getMonthVal('2026-06', pl),
+    delta: getMonthVal('2026-06', pl) - getMonthVal('2025-06', pl),
+  })).sort((a, b) => b.jun26 - a.jun26);
+  const juneTotal25 = getMonthVal('2025-06');
+  const juneTotal26 = getMonthVal('2026-06');
+  const juneDelta = juneTotal26 - juneTotal25;
+  const juneYoy = juneTotal25 > 0 ? ((juneTotal26 / juneTotal25 - 1) * 100) : 0;
 
   // KPI derived values
   const personnelItems = ['HQ', 'Benefits', 'Contractors', 'Bonus'];
@@ -5198,6 +5244,129 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                     <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums",
                       yoyPct > 0 ? 'text-red-500' : 'text-emerald-500')}>
                       {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
+                    </td>
+                    <td/>
+                  </tr>
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+
+          {/* ── 계획 대비 진척률 ── */}
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <div className="flex items-start justify-between">
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  2026년 카테고리별 연간 계획 대비 진척률 (1~6월 실적 / 연간)
+                </CardTitle>
+                {topCatPlan && (
+                  <span className="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2">
+                    최대: {PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">연간 = 1~6월 실적 + 7~12월 계획 (Forecast)</p>
+            </CardHeader>
+            <CardContent className="pb-4">
+              <div className="space-y-3">
+                {annualPlanByPL.filter(d => d.plan > 0).map(d => {
+                  const bar = Math.min(d.progress, 100);
+                  return (
+                    <div key={d.pl} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-gray-700 w-32 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
+                        <div className="flex-1 mx-3">
+                          <div className="w-full bg-gray-100 rounded-full h-5 relative overflow-hidden">
+                            <div className={cn("h-5 rounded-full transition-all flex items-center justify-end pr-2",
+                              bar > 60 ? 'bg-red-400' : bar > 45 ? 'bg-amber-400' : 'bg-emerald-400'
+                            )} style={{ width: `${bar}%` }}>
+                              <span className="text-white text-xs font-bold">{d.progress.toFixed(0)}%</span>
+                            </div>
+                            {/* 50% 기준선 */}
+                            <div className="absolute top-0 bottom-0 w-px bg-gray-400 opacity-50" style={{ left: '50%' }}/>
+                          </div>
+                        </div>
+                        <span className="text-gray-500 w-28 text-right tabular-nums">
+                          {fmtKshort(d.actual)} / {fmtKshort(d.plan)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
+            </CardContent>
+          </Card>
+
+          {/* ── 2025-06 vs 2026-06 비교 ── */}
+          <Card className="border-gray-100">
+            <CardHeader className="pb-2 pt-4">
+              <div className="flex items-center gap-4">
+                <CardTitle className="text-sm font-semibold text-gray-700">2025년 6월 vs 2026년 6월 동월 비교</CardTitle>
+                <div className="flex gap-4 text-xs">
+                  <span className="text-gray-500">25년 6월: <strong className="text-gray-700">{fmtKshort(juneTotal25)}</strong></span>
+                  <span className="text-gray-500">26년 6월: <strong className="text-gray-700">{fmtKshort(juneTotal26)}</strong></span>
+                  <span className={cn("font-semibold", juneYoy > 0 ? "text-red-600" : "text-emerald-600")}>
+                    YoY {juneYoy > 0 ? '+' : ''}{juneYoy.toFixed(1)}% ({juneYoy > 0 ? '+' : ''}{fmtKshort(juneDelta)})
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-medium w-6"/>
+                    <th className="text-left px-2 py-2.5 text-xs text-gray-500 font-medium">카테고리</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">2025-06</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">2026-06</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감액</th>
+                    <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감률</th>
+                    <th className="w-36 px-3 py-2.5 text-xs text-gray-500 font-medium">비교 바</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {juneCmp.map(({ pl, jun25, jun26, delta }, idx) => {
+                    const maxJ = Math.max(jun25, jun26, 1);
+                    const yoyJ = jun25 > 0 ? ((jun26 / jun25 - 1) * 100) : 0;
+                    return (
+                      <tr key={pl} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20')}>
+                        <td className="px-4 py-2"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }}/></td>
+                        <td className="px-2 py-2 font-medium text-gray-800">{PL_KR[pl] || pl}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-400">{fmtKshort(jun25)}</td>
+                        <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900">{fmtKshort(jun26)}</td>
+                        <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-medium",
+                          delta > 0 ? 'text-red-600' : delta < 0 ? 'text-emerald-600' : 'text-gray-400')}>
+                          {delta !== 0 ? fmtKsigned(delta) : '–'}
+                        </td>
+                        <td className={cn("px-3 py-2 text-right font-mono tabular-nums text-xs",
+                          yoyJ > 15 ? 'text-red-500' : yoyJ < -15 ? 'text-emerald-500' : 'text-gray-500')}>
+                          {jun25 > 0 ? (yoyJ > 0 ? '+' : '') + yoyJ.toFixed(1) + '%' : 'N/A'}
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex gap-0.5 items-end h-5">
+                            <div className="flex flex-col justify-end h-full">
+                              <div className="w-4 bg-gray-300 rounded-t-sm" style={{ height: `${(jun25/maxJ)*100}%`, minHeight: jun25>0?2:0 }}/>
+                            </div>
+                            <div className="flex flex-col justify-end h-full">
+                              <div className={cn("w-4 rounded-t-sm", delta > 0 ? 'bg-red-400' : 'bg-emerald-400')}
+                                style={{ height: `${(jun26/maxJ)*100}%`, minHeight: jun26>0?2:0 }}/>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
+                    <td className="px-4 py-2.5"/>
+                    <td className="px-2 py-2.5 text-gray-900">합계</td>
+                    <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-400">{fmtKshort(juneTotal25)}</td>
+                    <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-900">{fmtKshort(juneTotal26)}</td>
+                    <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums font-bold",
+                      juneDelta > 0 ? 'text-red-600' : 'text-emerald-600')}>{fmtKsigned(juneDelta)}</td>
+                    <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums",
+                      juneYoy > 0 ? 'text-red-500' : 'text-emerald-500')}>
+                      {juneYoy > 0 ? '+' : ''}{juneYoy.toFixed(1)}%
                     </td>
                     <td/>
                   </tr>
