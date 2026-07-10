@@ -354,6 +354,7 @@ function DetailedMetricCard({
     const [isItemExpanded, setIsItemExpanded] = React.useState(false);
     const [isDirectProfitYtdExpanded, setIsDirectProfitYtdExpanded] = React.useState(false);
     const [isTopStoresExpanded, setIsTopStoresExpanded] = React.useState(false);
+    const [expandedExpenseItems, setExpandedExpenseItems] = React.useState<Set<number>>(new Set());
     
     // YoY 값에서 괄호 제거하는 헬퍼 함수 (전년을 YoY로 변환)
     const removeYoYParentheses = (yoyValue: string): string => {
@@ -627,24 +628,34 @@ function DetailedMetricCard({
                                                     return "text-emerald-700"; // 기본값
                                                 };
                                                 
+                                                const isSubExpanded = expandedExpenseItems.has(idx);
+                                                const toggleSub = () => setExpandedExpenseItems(prev => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(idx)) next.delete(idx); else next.add(idx);
+                                                    return next;
+                                                });
                                                 return (
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
                                                             <span className="text-xs min-w-[80px]">{item.name}</span>
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                                {item.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{item.value}</span>}
+                                                                {item.value && (
+                                                                    item.subItems
+                                                                        ? <span
+                                                                            onClick={toggleSub}
+                                                                            className="font-medium text-xs w-[100px] text-right tabular-nums cursor-pointer px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 select-none"
+                                                                          >{item.value} {isSubExpanded ? '▲' : '▼'}</span>
+                                                                        : <span className="font-medium text-xs w-[100px] text-right tabular-nums">{item.value}</span>
+                                                                )}
                                                                 {item.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
                                                             </div>
                                                         </div>
-                                                        {item.subItems && (
-                                                            <div className="space-y-1 pl-4">
+                                                        {item.subItems && isSubExpanded && (
+                                                            <div className="space-y-0.5 pl-2 mt-0.5 border-l-2 border-sky-100">
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
-                                                                    <div key={subIdx} className="flex justify-between items-center py-1">
-                                                                        <span className="text-xs min-w-[80px]">ㄴ {subItem.name}</span>
-                                                                        <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
-                                                                            {subItem.value && <span className="font-medium text-xs w-[100px] text-right tabular-nums">{subItem.value}</span>}
-                                                                            {subItem.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(subItem.yoy))}>{removeYoYParentheses(subItem.yoy)}</span>}
-                                                                        </div>
+                                                                    <div key={subIdx} className={cn("flex justify-between items-center py-0.5 px-1 text-xs", subItem.isTotal && "border-t border-gray-200 mt-0.5 pt-1 font-semibold")}>
+                                                                        <span className="text-gray-600 min-w-[120px]">{subItem.name}</span>
+                                                                        <span className={cn("tabular-nums text-right", subItem.isTotal ? "text-gray-800" : "text-gray-500", parseFloat((subItem.value||'').replace(/,/g,'')) < 0 && "text-red-500")}>{subItem.value}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -10220,7 +10231,15 @@ export default function DashboardPage() {
           {
             name: "기타비용",
             value: formatNumber(getDataValue('카드_영업비_기타비용_값', month, '134')),
-            yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%')
+            yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%'),
+            subItems: [
+              { name: "Inventory Write Down", value: "163,707" },
+              { name: "Taxes and Licenses",   value: "4,169" },
+              { name: "Utilities",            value: "175" },
+              { name: "Miscellaneous Expense",value: "79" },
+              { name: "Bad Debt Expenses",    value: "-32,965" },
+              { name: "합계",                 value: "135,164", isTotal: true },
+            ]
           }
         ]
       },
