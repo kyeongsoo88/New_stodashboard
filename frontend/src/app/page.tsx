@@ -2412,7 +2412,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           }
                                
           // 비율 행인지 확인 (%) - 할인율은 실판 매출의 하위 항목
-          const isRatioRow = (label.startsWith('(%)') || label === 'Discount Rate') || 
+          const isRatioRow = (label.startsWith('(%)') || label === 'Discount Rate') ||
                             (label === '할인율' && currentMainCategory !== '실판 매출');
           
           // E-com의 하위 항목인지 확인 (TAG 판매가 아래에만 해당)
@@ -2433,14 +2433,17 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
             parentCategory = currentMainCategory;
           }
 
+          const isMonthRow = label === '전년당월 영업이익' || label === '전년당월비 영업이익 차이';
+
           parsed.push({
             id: `row-${i}`,
             label: label,
             values: values.slice(1), // 첫 번째 컬럼(Category) 제외한 데이터
             isMainCategory,
             isRatioRow,
-            isSubItem,
+            isSubItem: isSubItem && !isMonthRow,
             isEcomSubItem,
+            isMonthRow,
             categoryKey,
             parentCategory
           });
@@ -2679,8 +2682,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 // 3. TAG 판매가의 E-com 하위 항목만 E-com이 펼쳐져 있거나 allExpanded가 true일 때만 표시
                 // 4. 비율 행은 항상 표시
                 
+                // 월 펼치기 전용 행 (showAllMonths일 때만 표시)
+                if (row.isMonthRow && !showAllMonths) return null;
+
                 // 비율 행은 항상 표시 (토글 영향 없음)
-                if (!row.isRatioRow) {
+                if (!row.isRatioRow && !row.isMonthRow) {
                   if (row.isSubItem && row.label !== 'E-com') {
                     const isExpanded = expandedCategories.has(currentCategory) || allExpanded;
                     if (!isExpanded) return null;
