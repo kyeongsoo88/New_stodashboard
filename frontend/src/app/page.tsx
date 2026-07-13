@@ -11631,15 +11631,6 @@ export default function DashboardPage() {
             <Button
               variant="outline"
               onClick={() => {
-                window.open('https://invenpl.vercel.app/', '_blank');
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
-            >
-              📦 5월 상세 분석
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
                 window.open('https://storeport-snowy.vercel.app/', '_blank');
               }}
               className="flex items-center gap-2 px-4 py-2 rounded-md border-2 border-green-500 bg-green-50 text-green-700 hover:bg-green-100 hover:border-green-600 font-semibold"
