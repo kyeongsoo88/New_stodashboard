@@ -638,15 +638,15 @@ function DetailedMetricCard({
                                                 return (
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
-                                                            <span className="text-xs min-w-[80px]">{item.name}</span>
+                                                            <span
+                                                                className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
+                                                                onClick={item.subItems ? toggleSub : undefined}
+                                                            >
+                                                                {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
+                                                            </span>
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                 {item.value && (
-                                                                    item.subItems
-                                                                        ? <span
-                                                                            onClick={toggleSub}
-                                                                            className="font-medium text-xs w-[100px] text-right tabular-nums cursor-pointer px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 select-none"
-                                                                          >{item.value} {isSubExpanded ? '▲' : '▼'}</span>
-                                                                        : <span className="font-medium text-xs w-[100px] text-right tabular-nums">{item.value}</span>
+                                                                    <span className={cn("font-medium text-xs w-[100px] text-right tabular-nums", item.subItems && "px-1.5 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
                                                                 )}
                                                                 {item.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
                                                             </div>
