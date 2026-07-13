@@ -10558,18 +10558,6 @@ export default function DashboardPage() {
             name: "인건비",
             value: formatNumber(getDataValue('카드_영업비_인건비_값', month, '1843')),
             yoy: getDataValue('카드_영업비_인건비_YOY', month, '103%'),
-            subItems: [
-              {
-                name: "급여(정규/계약)",
-                value: formatNumber(getDataValue('카드_영업비_인건비_급여_값', month, '1450')),
-                yoy: getDataValue('카드_영업비_인건비_급여_YOY', month, '105%')
-              },
-              {
-                name: "보험,복지비등",
-                value: formatNumber(getDataValue('카드_영업비_인건비_보험복지_값', month, '280')),
-                yoy: getDataValue('카드_영업비_인건비_보험복지_YOY', month, '98%')
-              }
-            ]
           },
           {
             name: "광고선전비",
