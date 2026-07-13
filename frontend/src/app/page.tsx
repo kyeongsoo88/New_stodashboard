@@ -673,12 +673,18 @@ function DetailedMetricCard({
                                                                 return n.toLocaleString();
                                                             };
                                                             const wdRows = [
-                                                                { season: '기타과시즌', basis: 'Zero Value', recalc: '0',         indirect: '0',       subtotal: '0',         ldp: '',            writedown: '193,167' },
+                                                                { season: '기타과시즌', basis: 'Zero Value', recalc: '0',         indirect: '0',       subtotal: '0',         ldp: '193,167',     writedown: '193,167' },
                                                                 { season: 'CORE',      basis: 'MSRP 80%',  recalc: '570,658',   indirect: '15,321',  subtotal: '585,979',   ldp: '128,513',     writedown: '0' },
                                                                 { season: 'F25',       basis: 'MSRP 30%',  recalc: '3,318,507', indirect: '219,668', subtotal: '3,538,175', ldp: '2,351,465',   writedown: '0' },
                                                                 { season: 'S25',       basis: 'MSRP 15%',  recalc: '486,144',   indirect: '3,667',   subtotal: '489,811',   ldp: '646,824',     writedown: '157,014' },
                                                                 { season: 's26',       basis: 'Net Sales', recalc: '4,245,370', indirect: '0',       subtotal: '4,245,370', ldp: '2,022,884',   writedown: '0' },
                                                             ];
+                                                            const calcWdPct = (wd: string, ldp: string) => {
+                                                                const ldpN = parseFloat((ldp || '0').replace(/,/g, ''));
+                                                                if (!ldpN) return '-';
+                                                                const wdN = parseFloat((wd || '0').replace(/,/g, ''));
+                                                                return Math.round(wdN / ldpN * 100) + '%';
+                                                            };
                                                             const basisColor: Record<string,string> = {
                                                                 'Zero Value': 'bg-gray-100 text-gray-600',
                                                                 'MSRP 80%':  'bg-amber-50 text-amber-700',
@@ -708,6 +714,7 @@ function DetailedMetricCard({
                                                                                     <col style={{width:'60px'}}/>
                                                                                     <col style={{width:'60px'}}/>
                                                                                     <col style={{width:'80px'}}/>
+                                                                                    <col style={{width:'46px'}}/>
                                                                                 </colgroup>
                                                                                 <thead>
                                                                                     <tr className="bg-slate-700 text-white text-[10px]">
@@ -717,7 +724,8 @@ function DetailedMetricCard({
                                                                                         <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">부대비용</th>
                                                                                         <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">소계</th>
                                                                                         <th className="px-2 py-1.5 text-center font-semibold border-r border-slate-600">LDP</th>
-                                                                                        <th className="px-1 py-1.5 text-center font-semibold leading-tight text-[9px]">소계&gt;LDP→0<br/>소계&lt;LDP→차이</th>
+                                                                                        <th className="px-1 py-1.5 text-center font-semibold leading-tight text-[9px] border-r border-slate-600">소계&gt;LDP→0<br/>소계&lt;LDP→차이</th>
+                                                                                        <th className="px-1 py-1.5 text-center font-semibold text-[9px]">%</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -731,14 +739,36 @@ function DetailedMetricCard({
                                                                                             <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.indirect)}</td>
                                                                                             <td className="px-2 py-1.5 text-right tabular-nums text-gray-700 font-medium border-r border-gray-100">{toK(row.subtotal)}</td>
                                                                                             <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 border-r border-gray-100">{toK(row.ldp)}</td>
-                                                                                            <td className={cn("px-2 py-1.5 text-right tabular-nums font-semibold", parseFloat(row.writedown.replace(/,/g,'')) > 0 ? 'text-red-600' : 'text-gray-400')}>{toK(row.writedown)}</td>
+                                                                                            <td className={cn("px-2 py-1.5 text-right tabular-nums font-semibold border-r border-gray-100", parseFloat(row.writedown.replace(/,/g,'')) > 0 ? 'text-red-600' : 'text-gray-400')}>{toK(row.writedown)}</td>
+                                                                                            <td className="px-2 py-1.5 text-right tabular-nums text-[10px] text-gray-500">{calcWdPct(row.writedown, row.ldp)}</td>
                                                                                         </tr>
                                                                                     ))}
                                                                                 </tbody>
                                                                                 <tfoot>
                                                                                     <tr className="bg-slate-100 border-t-2 border-slate-300">
-                                                                                        <td colSpan={6} className="px-2 py-1.5 font-bold text-gray-800 border-r border-gray-200">합계</td>
-                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-red-600">350</td>
+                                                                                        <td className="px-2 py-1.5 font-bold text-gray-800 border-r border-gray-200">합계</td>
+                                                                                        <td className="px-2 py-1.5 border-r border-gray-200"></td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-gray-800 border-r border-gray-200">
+                                                                                            {toK(String(wdRows.reduce((s, r) => s + parseFloat(r.recalc.replace(/,/g,'') || '0'), 0)))}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-gray-800 border-r border-gray-200">
+                                                                                            {toK(String(wdRows.reduce((s, r) => s + parseFloat(r.indirect.replace(/,/g,'') || '0'), 0)))}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-gray-800 border-r border-gray-200">
+                                                                                            {toK(String(wdRows.reduce((s, r) => s + parseFloat(r.subtotal.replace(/,/g,'') || '0'), 0)))}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-gray-800 border-r border-gray-200">
+                                                                                            {toK(String(wdRows.reduce((s, r) => s + parseFloat((r.ldp || '0').replace(/,/g,'')), 0)))}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-red-600 border-r border-gray-200">
+                                                                                            {toK(String(wdRows.reduce((s, r) => s + parseFloat(r.writedown.replace(/,/g,'') || '0'), 0)))}
+                                                                                        </td>
+                                                                                        <td className="px-2 py-1.5 text-right tabular-nums font-bold text-gray-700">
+                                                                                            {calcWdPct(
+                                                                                                String(wdRows.reduce((s, r) => s + parseFloat(r.writedown.replace(/,/g,'') || '0'), 0)),
+                                                                                                String(wdRows.reduce((s, r) => s + parseFloat((r.ldp || '0').replace(/,/g,'')), 0))
+                                                                                            )}
+                                                                                        </td>
                                                                                     </tr>
                                                                                     <tr className="bg-white border-t border-gray-200">
                                                                                         <td colSpan={6} className="px-2 py-1.5 text-gray-500 text-[10px] border-r border-gray-100 pl-4">└ 기존평가감</td>
