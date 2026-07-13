@@ -9938,14 +9938,14 @@ const SIMUL_BS_HEADERS = ['구분', '전년', 'RF_04', 'RF_05', 'RF_05 - 전년'
 const SIMUL_BS_SECTION_ROWS = new Set(['자산', '부채', '자본']);
 
 const SIMUL_TABLE = {
-  table: 'w-full border-collapse table-fixed text-xs leading-tight',
-  th: 'p-2 text-xs font-semibold border-2 border-gray-400 text-center whitespace-nowrap',
-  thLabel: 'p-2 text-xs font-semibold border-2 border-gray-400 text-left whitespace-nowrap',
-  tdLabel: 'p-2 text-xs border-2 border-gray-300 leading-tight',
-  tdLabelBold: 'p-2 text-xs font-semibold border-2 border-gray-300 leading-tight',
-  tdNum: 'text-right p-2 text-xs border-2 border-gray-300 font-mono tabular-nums font-normal leading-tight',
-  tdNumBold: 'text-right p-2 text-xs border-2 border-gray-300 font-mono tabular-nums font-semibold leading-tight',
-  tdNumLoose: 'text-right p-2 text-xs font-mono tabular-nums font-normal leading-tight',
+  table: 'w-full border-collapse table-fixed text-[11px] leading-tight',
+  th: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-[#1e4a7a] text-center whitespace-nowrap tracking-wide',
+  thLabel: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-[#1e4a7a] text-left whitespace-nowrap tracking-wide',
+  tdLabel: 'px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 leading-tight',
+  tdLabelBold: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 leading-tight',
+  tdNum: 'text-right px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 font-mono tabular-nums font-normal leading-tight',
+  tdNumBold: 'text-right px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 font-mono tabular-nums font-semibold leading-tight',
+  tdNumLoose: 'text-right px-2.5 py-1.5 text-[11px] font-mono tabular-nums font-normal leading-tight',
 } as const;
 
 const parseSimulBalanceNum = (raw: string) => parseFloat((raw || '0').replace(/[,$]/g, '')) || 0;
@@ -11669,9 +11669,9 @@ export default function DashboardPage() {
             {/* PL (손익계산서) + 재무상태표 + 재고표 */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 [&_.text-lg]:text-sm">
               {/* 손익계산서 */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between py-3">
-                  <CardTitle className="text-lg font-bold">26년 손익계산서</CardTitle>
+              <Card className="shadow-sm border border-gray-200">
+                <CardHeader className="flex flex-row items-center justify-between py-2.5 px-4 bg-gradient-to-r from-slate-50 to-white border-b border-gray-100">
+                  <CardTitle className="text-[13px] font-bold text-slate-700 tracking-wide">26년 손익계산서</CardTitle>
                   <Button
                     variant="outline"
                     size="sm"
@@ -11693,7 +11693,7 @@ export default function DashboardPage() {
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto border-b-2 border-b-gray-200">
                     <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
@@ -11747,12 +11747,12 @@ export default function DashboardPage() {
                           
                           let rowClass = '';
                           if (isMainCategory) {
-                            rowClass = isProfitHighlight ? 'font-bold bg-blue-100' : 'font-bold bg-gray-50';
-                            if (isCollapsibleParent) rowClass += ' cursor-pointer hover:bg-gray-200';
+                            rowClass = isProfitHighlight ? 'font-bold bg-blue-50' : 'font-bold bg-slate-100/70';
+                            if (isCollapsibleParent) rowClass += ' cursor-pointer hover:bg-slate-200/50';
                           } else if (isEcom) {
-                            rowClass = 'hover:bg-gray-50 font-medium';
+                            rowClass = 'hover:bg-slate-50 font-medium';
                           } else {
-                            rowClass = 'hover:bg-gray-50';
+                            rowClass = 'hover:bg-slate-50/60';
                           }
                           
                           let indentClass = '';
@@ -11910,13 +11910,12 @@ export default function DashboardPage() {
                               <td className={`${SIMUL_TABLE.tdNumLoose} ${
                                 // TAG매출 섹션의 시즌 항목과 온라인만 붉은 테두리
                                 (isSeasonItem || isEcom) && !isNetSalesSeasonItem && !isNetSalesOnline
-                                  ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' + 
-                                    (label === '온라인' ? ' border-t-[7px] !border-t-red-400 border-b-2 border-b-gray-300' : '') + 
-                                    (label === 'CORE' ? ' border-b-[7px] !border-b-red-400 border-t-2 border-t-gray-300' : 
-                                     !isEcom ? ' border-t-2 border-t-gray-300 border-b-2 border-b-gray-300' : '')
-                                  : isTagSales 
-                                    ? 'bg-green-50/20 border-2 border-gray-300 border-b-[7px] !border-b-red-400'
-                                    : 'bg-green-50/20 border-2 border-gray-300'
+                                  ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' +
+                                    (label === '온라인' ? ' border-t-[7px] !border-t-red-400' : '') +
+                                    (label === 'CORE' ? ' border-b-[7px] !border-b-red-400' : '')
+                                  : isTagSales
+                                    ? 'bg-green-50/20 border-l-2 border-l-gray-200 border-r-2 border-r-gray-200 border-b-[7px] !border-b-red-400'
+                                    : 'bg-green-50/20 border-l-2 border-l-gray-200 border-r-2 border-r-gray-200'
                               }`}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(RF_05) 값만 표시
@@ -13989,12 +13988,12 @@ export default function DashboardPage() {
               </Card>
 
               {/* 재무상태표 */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-lg font-bold">26년 재무상태표</CardTitle>
+              <Card className="shadow-sm border border-gray-200">
+                <CardHeader className="py-2.5 px-4 bg-gradient-to-r from-slate-50 to-white border-b border-gray-100">
+                  <CardTitle className="text-[13px] font-bold text-slate-700 tracking-wide">26년 재무상태표</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto border-b-2 border-b-gray-200">
                     <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
@@ -14013,11 +14012,11 @@ export default function DashboardPage() {
                         {simulBSData.map((row, index) => {
                           const isSection = SIMUL_BS_SECTION_ROWS.has(row.label);
                           const rowBg = row.label === '자산'
-                            ? 'bg-blue-100'
+                            ? 'bg-blue-50 font-semibold'
                             : row.label === '부채'
-                            ? 'bg-rose-100'
+                            ? 'bg-rose-50 font-semibold'
                             : row.label === '자본'
-                            ? 'bg-emerald-100'
+                            ? 'bg-emerald-50 font-semibold'
                             : 'bg-white';
 
                           const renderValue = (value: string, isChangeCol: boolean) => {
@@ -14075,12 +14074,12 @@ export default function DashboardPage() {
               </Card>
 
               {/* 재고표 */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-lg font-bold">재고자산 현황</CardTitle>
+              <Card className="shadow-sm border border-gray-200">
+                <CardHeader className="py-2.5 px-4 bg-gradient-to-r from-slate-50 to-white border-b border-gray-100">
+                  <CardTitle className="text-[13px] font-bold text-slate-700 tracking-wide">재고자산 현황</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto border-b-2 border-b-gray-200">
                     <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
@@ -14345,18 +14344,17 @@ export default function DashboardPage() {
                                 }
                                 
                                 // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
-                                let borderClass = 'border-2 border-gray-300';
+                                let borderClass = '';
                                 if (isECCol) {
-                                  // 좌우 빨간 테두리는 모든 행에 적용 (굵게)
-                                  borderClass = 'border-2 border-gray-300 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400';
-                                  // 상단 빨간 테두리는 첫 행(재고자산 합계)에만
+                                  borderClass = 'border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400';
                                   if (isFirstRowInTable) borderClass += ' border-t-[7px] !border-t-red-400';
-                                  // 하단 빨간 테두리는 CORE 행에만
                                   if (isLastRowInTable) borderClass += ' border-b-[7px] !border-b-red-400';
+                                } else if (isWholesaleCol) {
+                                  borderClass = '!border-r-[7px] !border-r-red-400';
                                 }
-                                // 홀세일 판매 컬럼의 오른쪽 테두리도 붉은색
-                                if (isWholesaleCol) {
-                                  borderClass = 'border-2 border-gray-300 border-r-[7px] !border-r-red-400';
+                                // 마지막 행(CORE) 하단에 구분선 추가
+                                if (isLastRowInTable && !isECCol) {
+                                  borderClass += ' border-b-2 !border-b-gray-300';
                                 }
                                 
                                 return (
