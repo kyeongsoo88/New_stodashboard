@@ -1208,199 +1208,192 @@ function DirectProfitPopupDialog({ data }: { data: DirectProfitPopupData | null 
 // US/EU 건당 운반비 단가 팝업 컴포넌트
 // 보관료 분석 팝업 컴포넌트
 function StorageCostDialog({ data }: { data: any }) {
-    const [chartData, setChartData] = React.useState<any[]>([]);
+    const [rows, setRows] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
-        const fetchData = async () => {
+        (async () => {
             try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(`/data/storage-cost-analysis.csv?t=${timestamp}`);
-                const buffer = await response.arrayBuffer();
-                const bytes = new Uint8Array(buffer);
-                
-                // BOM 기반 인코딩 감지
-                let text = '';
-                if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-                    text = new TextDecoder('utf-16le').decode(bytes);
-                } else if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-                    text = new TextDecoder('utf-8').decode(bytes);
-                } else {
-                    try {
-                        text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-                    } catch (e) {
-                        text = new TextDecoder('euc-kr').decode(bytes);
-                    }
-                }
-                
-                const lines = text.split('\n').filter(line => line.trim());
-                if (lines.length < 2) {
-                    setLoading(false);
-                    return;
-                }
+                const res = await fetch(`/data/storage_cost.csv?t=${performance.now()}`);
+                const buf = await res.arrayBuffer();
+                const bytes = new Uint8Array(buf);
+                const text = (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf)
+                    ? new TextDecoder('utf-8').decode(bytes.slice(3))
+                    : new TextDecoder('utf-8').decode(bytes);
 
-                // 따옴표로 감싸진 필드(엑셀 저장 시 "9,617" 형태)를 올바르게 파싱
-                const parseCSVLine = (line: string): string[] => {
-                    const result: string[] = [];
-                    let cur = '', inQuote = false;
-                    for (const ch of line) {
-                        if (ch === '"') { inQuote = !inQuote; }
-                        else if (ch === ',' && !inQuote) { result.push(cur.trim()); cur = ''; }
-                        else { cur += ch; }
+                const parseCSV = (line: string): string[] => {
+                    const out: string[] = [];
+                    let cur = '', inQ = false;
+                    for (const c of line) {
+                        if (c === '"') inQ = !inQ;
+                        else if (c === ',' && !inQ) { out.push(cur.trim()); cur = ''; }
+                        else cur += c;
                     }
-                    result.push(cur.trim());
-                    return result;
+                    out.push(cur.trim());
+                    return out;
                 };
 
-                const headers = parseCSVLine(lines[0]);
-                const inventoryRow = parseCSVLine(lines[1]);
-                const storageCostRow = parseCSVLine(lines[2]);
-                const percentageRow = parseCSVLine(lines[3]);
-                
-                const parsed = [];
-                for (let i = 2; i < headers.length; i++) {
-                    // 공백과 특수문자 제거 후 파싱
-                    const inventoryStr = inventoryRow[i].replace(/[$,\s]/g, '').trim();
-                    const storageCostStr = storageCostRow[i].replace(/[$,\s]/g, '').trim();
-                    const percentageStr = percentageRow[i].replace(/[%\s]/g, '').trim();
-                    
-                    const inventory = parseFloat(inventoryStr);
-                    const storageCost = parseFloat(storageCostStr);
-                    const percentage = parseFloat(percentageStr);
-                    
-                    parsed.push({
-                        month: headers[i],
-                        inventory: isNaN(inventory) ? 0 : inventory,
-                        storageCost: isNaN(storageCost) ? 0 : storageCost,
-                        percentage: isNaN(percentage) ? 0 : percentage
-                    });
+                const toNum = (s: string): number => {
+                    const c = s.replace(/[$,\s]/g, '').replace(/^\((.+)\)$/, '-$1');
+                    const v = parseFloat(c);
+                    return isNaN(v) ? 0 : v;
+                };
+
+                const lines = text.split('\n').filter(l => l.trim());
+                const matrix = lines.map(parseCSV);
+                const months = matrix[0].slice(1).map(m => m.replace(/A$/, ''));
+
+                const byLabel: Record<string, string[]> = {};
+                for (const r of matrix.slice(1)) {
+                    if (r[0]) byLabel[r[0]] = r.slice(1);
                 }
-                
-                setChartData(parsed);
-                setLoading(false);
-            } catch (error) {
-                console.error('보관료 분석 데이터 로드 실패:', error);
-                setLoading(false);
+
+                const get = (label: string) => (byLabel[label] ?? months.map(() => '0')).map(toNum);
+
+                const parsed = months.map((m, i) => ({
+                    month: m,
+                    endingUnits: get('Ending # of Units')[i],
+                    ecomUS: get('Ecom US')[i] / 1000,
+                    ecomEU: get('Ecom EU')[i] / 1000,
+                    wholesale: get('Wholesale')[i] / 1000,
+                    storage: get('Storage')[i] / 1000,
+                    outbound: get('Outbound Shipping')[i] / 1000,
+                    vas: get('Value Added Service')[i] / 1000,
+                    other: get('Other')[i] / 1000,
+                    total: get('TOTAL')[i] / 1000,
+                    avgSqFt: get('Avg. SQ FT')[i],
+                    sqFtPerUnit: get('SQ FT per Unit')[i],
+                    perSqFt: get('$ per SQ FT')[i],
+                    totalShipped: get('Total Shipped')[i],
+                    perShipped: get('$ per Shipped')[i],
+                }));
+
+                setRows(parsed);
+            } catch (e) {
+                console.error('storage_cost.csv 로드 실패:', e);
             }
-        };
-        
-        fetchData();
+            setLoading(false);
+        })();
     }, []);
 
-    if (loading) {
-        return <div>데이터를 불러오는 중...</div>;
-    }
+    if (loading) return <div className="p-8 text-center text-gray-500">데이터를 불러오는 중...</div>;
+    if (!rows.length) return <div className="p-8 text-center text-gray-500">데이터 없음</div>;
+
+    const STORAGE_CLR = '#2563eb';
+    const OUTBOUND_CLR = '#f59e0b';
+    const VAS_CLR = '#10b981';
+    const OTHER_CLR = '#94a3b8';
+    const ECOMUS_CLR = '#6366f1';
+    const ECOMEU_CLR = '#ec4899';
+    const WHOLESALE_CLR = '#14b8a6';
+
+    const tableRows = [
+        { label: 'Total ($K)',      key: 'total',        fmt: (v: number) => `$${v.toFixed(1)}K` },
+        { label: 'Storage ($K)',    key: 'storage',      fmt: (v: number) => `$${v.toFixed(1)}K` },
+        { label: 'Outbound ($K)',   key: 'outbound',     fmt: (v: number) => `$${v.toFixed(1)}K` },
+        { label: 'VAS ($K)',        key: 'vas',          fmt: (v: number) => `$${v.toFixed(1)}K` },
+        { label: 'Other ($K)',      key: 'other',        fmt: (v: number) => `$${v.toFixed(1)}K` },
+        { label: 'Ending Units',    key: 'endingUnits',  fmt: (v: number) => v.toLocaleString() },
+        { label: '$ per SQ FT',    key: 'perSqFt',      fmt: (v: number) => `$${v.toFixed(2)}` },
+        { label: '$ per Shipped',   key: 'perShipped',   fmt: (v: number) => `$${v.toFixed(2)}` },
+    ];
 
     return (
-        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">재고원가 대비 보관료 단가분석</h3>
-            </div>
-            
-            <div className="h-[450px] bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart 
-                        data={chartData}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                    >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                        <XAxis 
-                            dataKey="month" 
-                            stroke="#9ca3af"
-                            style={{ fontSize: '12px' }}
-                        />
-                        <YAxis 
-                            yAxisId="left" 
-                            stroke="#9ca3af"
-                            style={{ fontSize: '12px' }}
-                            tickFormatter={(value) => value.toLocaleString()}
-                            label={{ 
-                                value: '재고원가 ($K)', 
-                                angle: -90, 
-                                position: 'insideLeft'
-                            }}
-                        />
-                        <YAxis 
-                            yAxisId="right" 
-                            orientation="right" 
-                            domain={[0, 3]} 
-                            stroke="#9ca3af"
-                            style={{ fontSize: '12px' }}
-                            label={{ 
-                                value: '보관료 비율 (%)', 
-                                angle: 90, 
-                                position: 'insideRight'
-                            }}
-                        />
-                        <Tooltip 
-                            contentStyle={{ 
-                                backgroundColor: 'white', 
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                                padding: '8px'
-                            }}
-                            formatter={(value: number, name: string) => {
-                                if (name === '재고연동(보관료)%') {
-                                    return [`${value.toFixed(1)}%`, name];
-                                }
-                                return [`$${value.toLocaleString()}K`, name];
-                            }}
-                        />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                        <Bar 
-                            yAxisId="left" 
-                            dataKey="inventory" 
-                            fill="#2563eb"
-                            name="재고원가"
-                            radius={[4, 4, 0, 0]}
-                            barSize={35}
-                        />
-                        <Line 
-                            yAxisId="right" 
-                            type="monotone" 
-                            dataKey="percentage" 
-                            stroke="#ef4444" 
-                            strokeWidth={2.5} 
-                            dot={{ r: 4, fill: "#ef4444", stroke: "#fff", strokeWidth: 2 }}
-                            name="재고연동(보관료)%" 
-                        />
-                    </ComposedChart>
-                </ResponsiveContainer>
+        <div className="space-y-5 p-1">
+            {/* Chart 1: Storage cost bar + $ per SQ FT line */}
+            <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">📦 월별 보관료 & SQ FT 단가 추이</h4>
+                <div className="h-[260px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={rows} margin={{ top: 10, right: 55, left: 5, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                            <XAxis dataKey="month" style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                            <YAxis yAxisId="left" tickFormatter={(v: number) => `$${v.toFixed(0)}K`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                            <YAxis yAxisId="right" orientation="right" domain={[0.3, 0.8]} tickFormatter={(v: number) => `$${v.toFixed(2)}`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                            <Tooltip
+                                contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                                formatter={(v: any, name: string) => {
+                                    if (name === '$ per SQ FT') return [`$${Number(v).toFixed(2)}/sqft`, name];
+                                    return [`$${Number(v).toFixed(1)}K`, name];
+                                }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
+                            <Bar yAxisId="left" dataKey="storage" fill={STORAGE_CLR} name="보관료 (Storage)" radius={[3, 3, 0, 0]} />
+                            <Line yAxisId="right" type="monotone" dataKey="perSqFt" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} name="$ per SQ FT" />
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="text-sm font-bold mb-3 text-slate-800">상세 데이터</h4>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[200px]">항목</TableHead>
-                            {chartData.map((d: any) => (
-                                <TableHead key={d.month} className="text-center">{d.month}</TableHead>
+            {/* Chart 2 & 3 side by side */}
+            <div className="grid grid-cols-2 gap-4">
+                {/* Channel breakdown */}
+                <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">🏭 채널별 Bergen 물류비 ($K)</h4>
+                    <div className="h-[220px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={rows} margin={{ top: 5, right: 10, left: 5, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <XAxis dataKey="month" style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                                <YAxis tickFormatter={(v: number) => `$${v.toFixed(0)}K`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                                <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px' }} formatter={(v: any, name: string) => [`$${Number(v).toFixed(1)}K`, name]} />
+                                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                <Bar dataKey="ecomUS" stackId="ch" fill={ECOMUS_CLR} name="Ecom US" />
+                                <Bar dataKey="ecomEU" stackId="ch" fill={ECOMEU_CLR} name="Ecom EU" />
+                                <Bar dataKey="wholesale" stackId="ch" fill={WHOLESALE_CLR} name="Wholesale" radius={[3, 3, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Cost structure */}
+                <div>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">💰 비용 구조 분해 ($K)</h4>
+                    <div className="h-[220px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={rows} margin={{ top: 5, right: 10, left: 5, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <XAxis dataKey="month" style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                                <YAxis tickFormatter={(v: number) => `$${v.toFixed(0)}K`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                                <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px' }} formatter={(v: any, name: string) => [`$${Number(v).toFixed(1)}K`, name]} />
+                                <Legend wrapperStyle={{ fontSize: '11px' }} />
+                                <Bar dataKey="storage" stackId="cs" fill={STORAGE_CLR} name="Storage" />
+                                <Bar dataKey="outbound" stackId="cs" fill={OUTBOUND_CLR} name="Outbound" />
+                                <Bar dataKey="vas" stackId="cs" fill={VAS_CLR} name="VAS" />
+                                <Bar dataKey="other" stackId="cs" fill={OTHER_CLR} name="Other" radius={[3, 3, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+
+            {/* Detail table */}
+            <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">📊 상세 지표</h4>
+                <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="w-full text-xs border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50">
+                                <th className="text-left px-3 py-2 font-semibold text-gray-600 border-b border-gray-200 w-28 sticky left-0 bg-gray-50">항목</th>
+                                {rows.map(r => (
+                                    <th key={r.month} className="text-center px-2 py-2 font-medium text-gray-600 border-b border-gray-200 whitespace-nowrap">{r.month}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tableRows.map((tr, ri) => (
+                                <tr key={tr.key} className={ri % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'}>
+                                    <td className="px-3 py-1.5 font-medium text-gray-700 border-b border-gray-100 sticky left-0 bg-inherit whitespace-nowrap">{tr.label}</td>
+                                    {rows.map(r => (
+                                        <td key={r.month} className="text-center px-2 py-1.5 text-gray-600 border-b border-gray-100 tabular-nums whitespace-nowrap">
+                                            {tr.fmt(r[tr.key])}
+                                        </td>
+                                    ))}
+                                </tr>
                             ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell className="font-medium">재고원가</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.inventory.toLocaleString()}K</TableCell>
-                            ))}
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="font-medium">보관료 / 물류속박비</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">${d.storageCost.toLocaleString()}</TableCell>
-                            ))}
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="font-medium">재고연동(보관료)%</TableCell>
-                            {chartData.map((d: any) => (
-                                <TableCell key={d.month} className="text-center">{d.percentage.toFixed(1)}%</TableCell>
-                            ))}
-                        </TableRow>
-                    </TableBody>
-                </Table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
