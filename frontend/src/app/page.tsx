@@ -5336,6 +5336,78 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
             </CardContent>
           </Card>
+
+          {/* ── 전년동기 비교 ── */}
+          {(() => {
+            const prevMoKey = `${prevYr}-${String(curMonthNum).padStart(2,'0')}`;
+            const yoyItems = PL_ITEMS.map(pl => ({
+              pl,
+              prev: getYTDVal(prevMoKey, pl),
+              cur: getYTDVal(selectedMonthLocal, pl),
+            })).filter(d => d.prev > 0 || d.cur > 0).sort((a,b) => b.cur - a.cur);
+            const maxVal = Math.max(...yoyItems.flatMap(d => [d.prev, d.cur]), 1);
+            const totalPrev = yoyItems.reduce((s,d) => s+d.prev, 0);
+            const totalCur = yoyItems.reduce((s,d) => s+d.cur, 0);
+            const totalYoy = totalPrev > 0 ? ((totalCur/totalPrev - 1) * 100) : 0;
+            return (
+              <Card className="border-gray-100">
+                <CardHeader className="pb-2 pt-4">
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-sm font-semibold text-gray-700">
+                      카테고리별 전년동기 비교 ({prevYr}년 1~{curMonthNum}월 vs {curYr}년 1~{curMonthNum}월)
+                    </CardTitle>
+                    <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2",
+                      totalYoy > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700')}>
+                      합계 YoY {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}%
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="space-y-2.5">
+                    {yoyItems.map(d => {
+                      const yoy = d.prev > 0 ? ((d.cur/d.prev - 1) * 100) : 0;
+                      const bar25 = Math.min(d.prev / maxVal * 100, 100);
+                      const bar26 = Math.min(d.cur / maxVal * 100, 100);
+                      return (
+                        <div key={d.pl}>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="font-medium text-gray-700 w-28 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
+                            <div className="flex-1 space-y-0.5">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-400 w-7">{prevYr.slice(2)}년</span>
+                                <div className="flex-1 bg-gray-100 rounded-sm h-3">
+                                  <div className="h-3 bg-gray-300 rounded-sm" style={{ width: `${bar25}%` }}/>
+                                </div>
+                                <span className="text-[10px] text-gray-500 w-14 text-right tabular-nums">{fmtKshort(d.prev)}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-600 w-7 font-medium">{curYr.slice(2)}년</span>
+                                <div className="flex-1 bg-gray-100 rounded-sm h-3">
+                                  <div className={cn("h-3 rounded-sm", yoy > 10 ? 'bg-red-400' : yoy > 0 ? 'bg-amber-400' : 'bg-emerald-400')} style={{ width: `${bar26}%` }}/>
+                                </div>
+                                <span className="text-[10px] text-gray-800 font-medium w-14 text-right tabular-nums">{fmtKshort(d.cur)}</span>
+                              </div>
+                            </div>
+                            <span className={cn("text-xs font-bold w-12 text-right tabular-nums",
+                              yoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
+                              {yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                    <span>{prevYr}년 1~{curMonthNum}월: <strong className="text-gray-700">{fmtKshort(totalPrev)}</strong></span>
+                    <span>{curYr}년 1~{curMonthNum}월: <strong className="text-gray-700">{fmtKshort(totalCur)}</strong></span>
+                    <span className={cn("font-bold", totalYoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
+                      YoY {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}% ({totalYoy > 0 ? '+' : ''}{fmtKshort(totalCur - totalPrev)})
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
           </div>{/* end 왼쪽 col */}
 
           {/* ┌── 오른쪽: 부서별 + June 비교 ──┐ */}
