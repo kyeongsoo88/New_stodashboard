@@ -11825,27 +11825,8 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 [&_.text-lg]:text-sm">
               {/* 손익계산서 */}
               <Card className="shadow-sm border border-gray-200">
-                <CardHeader className="flex flex-row items-center justify-between py-2.5 px-4 bg-gradient-to-r from-slate-50 to-white border-b border-gray-100">
+                <CardHeader className="py-2.5 px-4 bg-gradient-to-r from-slate-50 to-white border-b border-gray-100">
                   <CardTitle className="text-[13px] font-bold text-slate-700 tracking-wide">26년 손익계산서</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const allExpanded = !document.querySelector('[data-pl-section-collapsed="true"]');
-                      document.querySelectorAll('[data-pl-section]').forEach(row => {
-                        const htmlRow = row as HTMLElement;
-                        htmlRow.setAttribute('data-pl-section-collapsed', allExpanded ? 'true' : 'false');
-                        if (allExpanded) {
-                          htmlRow.style.display = 'none';
-                        } else {
-                          htmlRow.style.display = '';
-                        }
-                      });
-                    }}
-                    className="text-xs"
-                  >
-                    펼치기/접기
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto border-b-2 border-b-gray-200">
