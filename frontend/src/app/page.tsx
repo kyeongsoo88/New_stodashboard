@@ -1299,11 +1299,11 @@ function StorageCostDialog({ data }: { data: any }) {
     ];
 
     return (
-        <div className="space-y-5 p-1">
+        <div className="space-y-3 p-1">
             {/* Chart 1: Storage cost bar + $ per SQ FT line */}
             <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">📦 월별 보관료 & SQ FT 단가 추이</h4>
-                <div className="h-[260px]">
+                <div className="h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={rows} margin={{ top: 10, right: 55, left: 5, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1330,7 +1330,7 @@ function StorageCostDialog({ data }: { data: any }) {
                 {/* Channel breakdown */}
                 <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">🏭 채널별 Bergen 물류비 ($K)</h4>
-                    <div className="h-[220px]">
+                    <div className="h-[190px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={rows} margin={{ top: 5, right: 10, left: 5, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1349,7 +1349,7 @@ function StorageCostDialog({ data }: { data: any }) {
                 {/* Cost structure */}
                 <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">💰 비용 구조 분해 ($K)</h4>
-                    <div className="h-[220px]">
+                    <div className="h-[190px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={rows} margin={{ top: 5, right: 10, left: 5, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1589,11 +1589,13 @@ function DetailedExpenseCard({
                                     재고원가 대비 보관료 단가분석
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-                                <DialogHeader>
+                            <DialogContent className="max-w-6xl h-[92vh] flex flex-col">
+                                <DialogHeader className="flex-none pb-2">
                                     <DialogTitle>재고원가 대비 보관료 단가분석</DialogTitle>
                                 </DialogHeader>
+                                <div className="flex-1 min-h-0 overflow-y-auto pr-1">
                                 <StorageCostDialog data={storageCostData} />
+                                </div>
                             </DialogContent>
                         </Dialog>
                     </div>
