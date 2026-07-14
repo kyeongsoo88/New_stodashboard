@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MetricCard } from "@/components/dashboard/metric-card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie, ReferenceLine } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie, ReferenceLine, ReferenceArea } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
@@ -1210,6 +1210,7 @@ function DirectProfitPopupDialog({ data }: { data: DirectProfitPopupData | null 
 function StorageCostDialog({ data }: { data: any }) {
     const [rows, setRows] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [showAnnotation, setShowAnnotation] = React.useState(false);
 
     React.useEffect(() => {
         (async () => {
@@ -1303,7 +1304,7 @@ function StorageCostDialog({ data }: { data: any }) {
             {/* Chart 1: Storage cost bar + $ per SQ FT line */}
             <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">📦 월별 보관료 & SQ FT 단가 추이</h4>
-                <div className="h-[220px]">
+                <div className="relative h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={rows} margin={{ top: 10, right: 55, left: 5, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1320,8 +1321,38 @@ function StorageCostDialog({ data }: { data: any }) {
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
                             <Bar yAxisId="left" dataKey="storage" fill={STORAGE_CLR} name="보관료 (Storage)" radius={[3, 3, 0, 0]} />
                             <Line yAxisId="right" type="monotone" dataKey="perSqFt" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} name="$ per SQ FT" />
+                            <ReferenceArea
+                                x1="Apr-26" x2="Jun-26"
+                                yAxisId="left"
+                                fill="rgba(239,68,68,0.08)"
+                                stroke="#ef4444"
+                                strokeWidth={1.5}
+                                strokeDasharray="5 3"
+                                onMouseEnter={() => setShowAnnotation(true)}
+                                onMouseLeave={() => setShowAnnotation(false)}
+                            />
                         </ComposedChart>
                     </ResponsiveContainer>
+                    {showAnnotation && (
+                        <div
+                            className="pointer-events-none absolute z-20 rounded-lg border border-red-300 bg-white shadow-xl p-3 text-xs"
+                            style={{ top: '8px', right: '64px', maxWidth: '320px' }}
+                        >
+                            <p className="font-semibold text-red-600 mb-2 flex items-center gap-1">
+                                <span>⚠️</span> Apr-26 ~ Jun-26 주의 구간
+                            </p>
+                            <ul className="space-y-2 text-gray-700 leading-relaxed">
+                                <li className="flex gap-1.5">
+                                    <span className="text-red-500 font-bold flex-none">①</span>
+                                    과시즌 재고 핸들링 차지 $15K로 보관료 증가, 과시즌 재고 소진 후 비용율 정상화
+                                </li>
+                                <li className="flex gap-1.5">
+                                    <span className="text-red-500 font-bold flex-none">②</span>
+                                    그럼에도, SQ FT 당 보관료 증가 추세 이상현상. 현재 3PL 창고사와 Recon 진행중이며, 이상있을시 인보이스 지급 홀딩할 예정
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
 
