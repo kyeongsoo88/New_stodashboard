@@ -1306,11 +1306,27 @@ function StorageCostDialog({ data }: { data: any }) {
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">📦 월별 보관료 & SQ FT 단가 추이</h4>
                 <div className="relative h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={rows} margin={{ top: 10, right: 55, left: 5, bottom: 0 }}>
+                        <ComposedChart
+                            data={rows}
+                            margin={{ top: 10, right: 55, left: 5, bottom: 0 }}
+                            onMouseMove={(state: any) => {
+                                const label = state?.activeLabel;
+                                setShowAnnotation(!!label && ['Apr-26', 'May-26', 'Jun-26'].includes(label));
+                            }}
+                            onMouseLeave={() => setShowAnnotation(false)}
+                        >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                             <XAxis dataKey="month" style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
                             <YAxis yAxisId="left" tickFormatter={(v: number) => `$${v.toFixed(0)}K`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
                             <YAxis yAxisId="right" orientation="right" domain={[0.3, 0.8]} tickFormatter={(v: number) => `$${v.toFixed(2)}`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                            <ReferenceArea
+                                x1="Apr-26" x2="Jun-26"
+                                yAxisId="left"
+                                fill="rgba(239,68,68,0.12)"
+                                stroke="#ef4444"
+                                strokeWidth={1.5}
+                                strokeDasharray="5 3"
+                            />
                             <Tooltip
                                 contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                                 formatter={(v: any, name: string) => {
@@ -1321,16 +1337,6 @@ function StorageCostDialog({ data }: { data: any }) {
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
                             <Bar yAxisId="left" dataKey="storage" fill={STORAGE_CLR} name="보관료 (Storage)" radius={[3, 3, 0, 0]} />
                             <Line yAxisId="right" type="monotone" dataKey="perSqFt" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} name="$ per SQ FT" />
-                            <ReferenceArea
-                                x1="Apr-26" x2="Jun-26"
-                                yAxisId="left"
-                                fill="rgba(239,68,68,0.08)"
-                                stroke="#ef4444"
-                                strokeWidth={1.5}
-                                strokeDasharray="5 3"
-                                onMouseEnter={() => setShowAnnotation(true)}
-                                onMouseLeave={() => setShowAnnotation(false)}
-                            />
                         </ComposedChart>
                     </ResponsiveContainer>
                     {showAnnotation && (
