@@ -4458,40 +4458,43 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* 기간매출 */}
         <Card className="border-t-4 border-t-blue-500">
-          <CardContent className="pt-6">
-            <div className="text-sm text-gray-600 mb-2">기간매출</div>
-            <div className="text-3xl font-bold mb-1">${metrics.periodRevenue.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
+          <CardContent className="pt-5 pb-4">
+            <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">기간매출</div>
+            <div className="text-3xl font-bold text-gray-900 mb-2">${metrics.periodRevenue.toLocaleString()}</div>
+            <div className="text-xs text-gray-400">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
           </CardContent>
         </Card>
 
         {/* 기간 YoY */}
         <Card className="border-t-4 border-t-green-500">
-          <CardContent className="pt-6">
-            <div className="text-sm text-gray-600 mb-2">기간 YoY</div>
-            <div className="text-3xl font-bold mb-1">{metrics.periodYoY.toFixed(1)}%</div>
-            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
+          <CardContent className="pt-5 pb-4">
+            <div className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">기간 YoY</div>
+            <div className={`text-3xl font-bold mb-2 ${metrics.periodYoY >= 100 ? 'text-emerald-600' : 'text-red-500'}`}>
+              {metrics.periodYoY.toFixed(1)}%
+            </div>
+            <div className="text-xs text-gray-400">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
           </CardContent>
         </Card>
 
         {/* 기간 할인율 */}
         <Card className="border-t-4 border-t-purple-500">
-          <CardContent className="pt-6">
-            <div className="text-sm text-gray-600 mb-2">기간 할인율</div>
-            <div className="text-3xl font-bold mb-1">
-              {metrics.periodDiscount.toFixed(1)}% 
-              <span className="text-sm text-gray-600 ml-2">(전년대비: {metrics.discountCompare >= 0 ? '+' : ''}{metrics.discountCompare.toFixed(1)}%)</span>
+          <CardContent className="pt-5 pb-4">
+            <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">기간 할인율</div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">{metrics.periodDiscount.toFixed(1)}%</div>
+            <div className={`inline-flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full ${metrics.discountCompare > 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+              {metrics.discountCompare >= 0 ? '▲' : '▼'} 전년대비 {Math.abs(metrics.discountCompare).toFixed(1)}%p
             </div>
-            <div className="text-xs text-gray-500">{formatDateStr(startDate)} ~ {formatDateStr(endDate)}</div>
           </CardContent>
         </Card>
 
         {/* 이번달 예상 매출 */}
         <Card className="border-t-4 border-t-orange-500">
-          <CardContent className="pt-6">
-            <div className="text-sm text-gray-600 mb-2">이번달 예상 매출</div>
-            <div className="text-3xl font-bold mb-1">${metrics.monthlyEstimate.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">YoY: {metrics.estimateGrowth.toFixed(1)}%</div>
+          <CardContent className="pt-5 pb-4">
+            <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">이번달 예상 매출</div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">${metrics.monthlyEstimate.toLocaleString()}</div>
+            <div className={`inline-flex items-center gap-1 text-xs font-medium px-1.5 py-0.5 rounded-full ${metrics.estimateGrowth >= 100 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+              YoY {metrics.estimateGrowth.toFixed(1)}%
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -4500,43 +4503,38 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Season별 매출 구성 */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Season별 매출 구성 (YOY)</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold text-gray-800">Season별 매출 구성 (YOY)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[500px] overflow-y-auto pr-2">
-              {seasonData.length > 0 ? (
-                <div className="space-y-2">
-                  {seasonData.map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-medium text-sm">{item.name}</span>
-                          <span className="text-sm font-bold">${item.value.toLocaleString()} (비중 {item.percent.toFixed(1)}%)</span>
-                        </div>
-                        <div className="text-xs text-gray-600 mb-1">
-                          할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
-                        </div>
-                        <div className="relative w-full bg-gray-200 rounded-full h-4">
-                          {/* 중앙 기준선 (100% YOY) */}
-                          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10"></div>
-                          <div 
-                            className="bg-blue-500 h-4 rounded-full flex items-center justify-end pr-2"
-                            style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
-                          >
-                            {item.yoy >= 10 && (
-                              <span className="text-xs text-white font-medium">{item.yoy.toFixed(0)}%</span>
-                            )}
-                          </div>
-                        </div>
+            <div className="h-[500px] overflow-y-auto pr-1 space-y-3">
+              {seasonData.length > 0 ? seasonData.map((item) => {
+                const barColor = item.yoy >= 100 ? 'bg-emerald-500' : item.yoy >= 80 ? 'bg-amber-400' : 'bg-red-400';
+                const yoyBadge = item.yoy >= 100 ? 'bg-emerald-50 text-emerald-700' : item.yoy >= 80 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600';
+                return (
+                  <div key={item.name} className="group">
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+                      <span className="text-sm font-bold text-gray-900">${item.value.toLocaleString()} <span className="font-normal text-gray-500 text-xs">({item.percent.toFixed(1)}%)</span></span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${yoyBadge}`}>YoY {item.yoy.toFixed(0)}%</span>
+                      <span className="text-xs text-gray-400">할인 {item.discount.toFixed(1)}%</span>
+                      <span className="text-xs text-gray-400">마진 {item.margin.toFixed(1)}%</span>
+                    </div>
+                    <div className="relative w-full bg-gray-100 rounded-full h-3.5">
+                      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 z-10" title="100% 기준" />
+                      <div
+                        className={`${barColor} h-3.5 rounded-full flex items-center justify-end pr-1.5 transition-all`}
+                        style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
+                      >
+                        {item.yoy >= 20 && <span className="text-[10px] text-white font-bold">{item.yoy.toFixed(0)}%</span>}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  데이터가 없습니다
-                </div>
+                  </div>
+                );
+              }) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">데이터가 없습니다</div>
               )}
             </div>
           </CardContent>
@@ -4544,43 +4542,38 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
 
         {/* Item별 매출 구성 */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Item별 매출 구성 (YOY)</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold text-gray-800">Item별 매출 구성 (YOY)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[500px] overflow-y-auto pr-2">
-              {itemData.length > 0 ? (
-                <div className="space-y-2">
-                  {itemData.map((item, idx) => (
-                    <div key={item.name} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-medium text-sm">{item.name}</span>
-                          <span className="text-sm font-bold">${item.value.toLocaleString()} (비중 {item.percent.toFixed(1)}%)</span>
-                        </div>
-                        <div className="text-xs text-gray-600 mb-1">
-                          할인율: {item.discount.toFixed(1)}% | YOY: {item.yoy.toFixed(0)}%
-                        </div>
-                        <div className="relative w-full bg-gray-200 rounded-full h-4">
-                          {/* 중앙 기준선 (100% YOY) */}
-                          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-400 z-10"></div>
-                          <div 
-                            className="bg-green-500 h-4 rounded-full flex items-center justify-end pr-2"
-                            style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
-                          >
-                            {item.yoy >= 10 && (
-                              <span className="text-xs text-white font-medium">{item.yoy.toFixed(0)}%</span>
-                            )}
-                          </div>
-                        </div>
+            <div className="h-[500px] overflow-y-auto pr-1 space-y-3">
+              {itemData.length > 0 ? itemData.map((item) => {
+                const barColor = item.yoy >= 100 ? 'bg-emerald-500' : item.yoy >= 80 ? 'bg-amber-400' : 'bg-red-400';
+                const yoyBadge = item.yoy >= 100 ? 'bg-emerald-50 text-emerald-700' : item.yoy >= 80 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600';
+                return (
+                  <div key={item.name} className="group">
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <span className="font-semibold text-sm text-gray-800">{item.name}</span>
+                      <span className="text-sm font-bold text-gray-900">${item.value.toLocaleString()} <span className="font-normal text-gray-500 text-xs">({item.percent.toFixed(1)}%)</span></span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${yoyBadge}`}>YoY {item.yoy.toFixed(0)}%</span>
+                      <span className="text-xs text-gray-400">할인 {item.discount.toFixed(1)}%</span>
+                      <span className="text-xs text-gray-400">마진 {item.margin.toFixed(1)}%</span>
+                    </div>
+                    <div className="relative w-full bg-gray-100 rounded-full h-3.5">
+                      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 z-10" title="100% 기준" />
+                      <div
+                        className={`${barColor} h-3.5 rounded-full flex items-center justify-end pr-1.5 transition-all`}
+                        style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
+                      >
+                        {item.yoy >= 20 && <span className="text-[10px] text-white font-bold">{item.yoy.toFixed(0)}%</span>}
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  데이터가 없습니다
-                </div>
+                  </div>
+                );
+              }) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">데이터가 없습니다</div>
               )}
             </div>
           </CardContent>
