@@ -4083,6 +4083,11 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   // Season별, Item별 집계 데이터
   const [seasonData, setSeasonData] = React.useState<any[]>([]);
   const [itemData, setItemData] = React.useState<any[]>([]);
+  // 추가 분석
+  const [dailyTrend, setDailyTrend] = React.useState<any[]>([]);
+  const [discountDist, setDiscountDist] = React.useState<any[]>([]);
+  const [paretoItems, setParetoItems] = React.useState<any[]>([]);
+  const [heatmap, setHeatmap] = React.useState<{ items: string[]; seasons: string[]; cells: any[]; maxVal: number }>({ items: [], seasons: [], cells: [], maxVal: 1 });
 
   // CSV 데이터 로드
   React.useEffect(() => {
@@ -4349,6 +4354,55 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
 
     setItemData(itemAggregated);
 
+    // === 일별 매출 추이 ===
+    const dMap26 = new Map<string, number>();
+    filtered2026.forEach(d => { dMap26.set(d.date, (dMap26.get(d.date) || 0) + d.netsale); });
+    const dMap25 = new Map<string, number>();
+    filtered2025.forEach(d => {
+      const k = d.date.replace('2025-', '2026-');
+      dMap25.set(k, (dMap25.get(k) || 0) + d.netsale);
+    });
+    const trendDates = [...new Set([...dMap26.keys(), ...dMap25.keys()])].sort();
+    setDailyTrend(trendDates.map(dt => ({ date: dt.slice(5), rev26: dMap26.get(dt) || 0, rev25: dMap25.get(dt) || 0 })));
+
+    // === 할인율 분포 ===
+    const DBUCKETS = [
+      { label: '~20%', min: 0, max: 20 }, { label: '20-30%', min: 20, max: 30 },
+      { label: '30-40%', min: 30, max: 40 }, { label: '40-50%', min: 40, max: 50 },
+      { label: '50-60%', min: 50, max: 60 }, { label: '60-70%', min: 60, max: 70 },
+      { label: '70-80%', min: 70, max: 80 }, { label: '80%+', min: 80, max: 999 },
+    ];
+    const toBucket = (d: number) => DBUCKETS.find(b => d >= b.min && d < b.max)?.label ?? '80%+';
+    const bc26 = new Map<string, number>(); filtered2026.forEach(d => { const b = toBucket(d.discount); bc26.set(b, (bc26.get(b) || 0) + 1); });
+    const bc25 = new Map<string, number>(); filtered2025.forEach(d => { const b = toBucket(d.discount); bc25.set(b, (bc25.get(b) || 0) + 1); });
+    setDiscountDist(DBUCKETS.map(b => ({ range: b.label, count26: bc26.get(b.label) || 0, count25: bc25.get(b.label) || 0 })));
+
+    // === Pareto ===
+    const sorted = [...itemAggregated].sort((a, b) => b.value - a.value);
+    const totalPar = sorted.reduce((s, d) => s + d.value, 0);
+    let cum = 0;
+    setParetoItems(sorted.map(d => { cum += totalPar > 0 ? (d.value / totalPar) * 100 : 0; return { name: d.name, revenue: d.value, cumPct: Math.round(cum * 10) / 10 }; }));
+
+    // === Item × Season 히트맵 ===
+    const HEAT_SEASONS = ['S26', 'F25', 'S25', 'F24', 'S24', 'CORE'];
+    const topItemNames = sorted.slice(0, 12).map(d => d.name);
+    const cellMap = new Map<string, number>();
+    filtered2026.forEach(d => {
+      if (topItemNames.includes(d.item)) {
+        const k = `${d.item}||${d.season}`;
+        cellMap.set(k, (cellMap.get(k) || 0) + d.netsale);
+      }
+    });
+    const maxCell = Math.max(1, ...Array.from(cellMap.values()));
+    const allHeatSeasons = [...new Set(filtered2026.map(d => d.season))].filter(s => HEAT_SEASONS.includes(s));
+    const orderedSeasons = HEAT_SEASONS.filter(s => allHeatSeasons.includes(s));
+    setHeatmap({
+      items: topItemNames,
+      seasons: orderedSeasons,
+      cells: topItemNames.map(item => ({ item, values: orderedSeasons.map(season => ({ season, revenue: Math.round(cellMap.get(`${item}||${season}`) || 0) })) })),
+      maxVal: maxCell,
+    });
+
   }, [data2025, data2026, startDate, endDate]);
 
   if (loading) {
@@ -4579,6 +4633,129 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* 📈 일별 매출 추이 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-bold text-gray-800">📈 일별 매출 추이 (2026 vs 2025 전년동기)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dailyTrend} margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="date" style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                <YAxis tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                <Tooltip
+                  contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(v: any, name: string) => [`$${Number(v).toLocaleString()}`, name]}
+                />
+                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '6px' }} />
+                <Line type="monotone" dataKey="rev26" stroke="#2563eb" strokeWidth={2.5} dot={false} name="2026" />
+                <Line type="monotone" dataKey="rev25" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="5 3" name="2025 (전년)" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 🎯 할인율 분포 + ⚡ Pareto */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold text-gray-800">🎯 할인율 분포 (거래건수 기준)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={discountDist} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="range" style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                  <YAxis style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                  <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px' }} formatter={(v: any, name: string) => [`${Number(v).toLocaleString()}건`, name]} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  <Bar dataKey="count26" fill="#2563eb" name="2026" radius={[3, 3, 0, 0]} barSize={22} />
+                  <Bar dataKey="count25" fill="#94a3b8" name="2025" radius={[3, 3, 0, 0]} barSize={22} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-bold text-gray-800">⚡ Pareto 분석 — 아이템별 누적 매출</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={paretoItems.slice(0, 15)} margin={{ top: 5, right: 45, left: 5, bottom: 45 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="name" style={{ fontSize: '9px' }} tick={{ fill: '#6b7280', angle: -40, textAnchor: 'end' }} interval={0} />
+                  <YAxis yAxisId="left" tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
+                  <Tooltip
+                    contentStyle={{ fontSize: '12px', borderRadius: '8px' }}
+                    formatter={(v: any, name: string) => name === '누적%' ? [`${Number(v).toFixed(1)}%`, name] : [`$${Number(v).toLocaleString()}`, name]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
+                  <Bar yAxisId="left" dataKey="revenue" fill="#6366f1" name="매출" radius={[3, 3, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="cumPct" stroke="#f59e0b" strokeWidth={2.5} dot={false} name="누적%" />
+                  <ReferenceLine yAxisId="right" y={80} stroke="#ef4444" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: '80%', position: 'insideTopRight', fontSize: 10, fill: '#ef4444' }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 🏆 Item × Season 히트맵 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-bold text-gray-800">🏆 Item × Season 매출 히트맵 (상위 12개 아이템)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {heatmap.items.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600 bg-gray-50 border border-gray-200 w-32">Item \ Season</th>
+                    {heatmap.seasons.map(s => (
+                      <th key={s} className="text-center px-3 py-2 font-semibold text-gray-600 bg-gray-50 border border-gray-200">{s}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {heatmap.cells.map(row => (
+                    <tr key={row.item}>
+                      <td className="px-3 py-2 font-semibold text-gray-700 bg-gray-50 border border-gray-200 whitespace-nowrap">{row.item}</td>
+                      {row.values.map((cell: any) => {
+                        const intensity = heatmap.maxVal > 0 ? cell.revenue / heatmap.maxVal : 0;
+                        const bg = intensity < 0.005 ? '#f8fafc' : `rgba(37,99,235,${(0.1 + intensity * 0.78).toFixed(2)})`;
+                        const textColor = intensity > 0.45 ? '#ffffff' : '#1e40af';
+                        return (
+                          <td
+                            key={cell.season}
+                            className="text-center px-2 py-2 border border-gray-200 tabular-nums font-medium"
+                            style={{ backgroundColor: bg, color: cell.revenue > 0 ? textColor : '#cbd5e1' }}
+                            title={`${row.item} × ${cell.season}: $${cell.revenue.toLocaleString()}`}
+                          >
+                            {cell.revenue > 0 ? `$${(cell.revenue / 1000).toFixed(1)}K` : '—'}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center text-gray-400 text-sm py-8">데이터가 없습니다</div>
+          )}
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
