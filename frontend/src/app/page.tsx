@@ -1210,6 +1210,8 @@ function DirectProfitPopupDialog({ data }: { data: DirectProfitPopupData | null 
 function StorageCostDialog({ data }: { data: any }) {
     const [rows, setRows] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const chartRef = React.useRef<HTMLDivElement>(null);
+    const [boxRect, setBoxRect] = React.useState<{ left: number; width: number } | null>(null);
 
     React.useEffect(() => {
         (async () => {
@@ -1276,6 +1278,28 @@ function StorageCostDialog({ data }: { data: any }) {
         })();
     }, []);
 
+    // Measure chart container width to position the red highlight box
+    React.useEffect(() => {
+        const el = chartRef.current;
+        if (!el || rows.length === 0) return;
+        const calc = () => {
+            const totalW = el.clientWidth;
+            if (!totalW) return;
+            // margin left=5 + left YAxis ≈55px = 60; margin right=55 + right YAxis ≈55px = 110
+            const plotLeft = 60;
+            const plotRight = 110;
+            const plotW = totalW - plotLeft - plotRight;
+            const band = plotW / rows.length;
+            const apr26Idx = rows.findIndex(r => r.month === 'Apr-26');
+            if (apr26Idx < 0) return;
+            setBoxRect({ left: plotLeft + apr26Idx * band, width: 3 * band });
+        };
+        calc();
+        const ro = new ResizeObserver(calc);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [rows]);
+
     if (loading) return <div className="p-8 text-center text-gray-500">데이터를 불러오는 중...</div>;
     if (!rows.length) return <div className="p-8 text-center text-gray-500">데이터 없음</div>;
 
@@ -1303,7 +1327,20 @@ function StorageCostDialog({ data }: { data: any }) {
             {/* Chart 1: Storage cost bar + $ per SQ FT line */}
             <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-2">📦 월별 보관료 & SQ FT 단가 추이</h4>
-                <div className="h-[220px]">
+                <div ref={chartRef} className="relative h-[220px]">
+                    {/* Red highlight box for Apr-26 ~ Jun-26 */}
+                    {boxRect && (
+                        <div
+                            className="pointer-events-none absolute z-10 rounded-sm border-2 border-dashed border-red-500"
+                            style={{
+                                left: boxRect.left,
+                                width: boxRect.width,
+                                top: 10,
+                                bottom: 50,
+                                backgroundColor: 'rgba(239,68,68,0.10)',
+                            }}
+                        />
+                    )}
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={rows} margin={{ top: 10, right: 55, left: 5, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -1320,29 +1357,6 @@ function StorageCostDialog({ data }: { data: any }) {
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }} />
                             <Bar yAxisId="left" dataKey="storage" fill={STORAGE_CLR} name="보관료 (Storage)" radius={[3, 3, 0, 0]} />
                             <Line yAxisId="right" type="monotone" dataKey="perSqFt" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 3, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} name="$ per SQ FT" />
-                            <Customized component={(props: any) => {
-                                const { xAxisMap, offset } = props;
-                                const xAxis = xAxisMap && (Object.values(xAxisMap)[0] as any);
-                                if (!xAxis?.scale) return null;
-                                const scale = xAxis.scale;
-                                const bw = scale.bandwidth ? scale.bandwidth() : 0;
-                                const x1 = scale('Apr-26');
-                                const x2 = scale('Jun-26');
-                                if (x1 == null || x2 == null) return null;
-                                return (
-                                    <rect
-                                        x={x1}
-                                        y={(offset?.top ?? 10)}
-                                        width={x2 - x1 + bw}
-                                        height={(offset?.height ?? 180)}
-                                        fill="rgba(239,68,68,0.13)"
-                                        stroke="#ef4444"
-                                        strokeWidth={2}
-                                        strokeDasharray="6 3"
-                                        style={{ pointerEvents: 'none' }}
-                                    />
-                                );
-                            }} />
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
