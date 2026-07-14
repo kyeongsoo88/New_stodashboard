@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MetricCard } from "@/components/dashboard/metric-card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie, ReferenceLine, ReferenceArea, Customized } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, ComposedChart, Cell, Legend, PieChart, Pie, ReferenceLine, ReferenceArea, Customized, ScatterChart, Scatter, ZAxis } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
@@ -4085,8 +4085,8 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
   const [itemData, setItemData] = React.useState<any[]>([]);
   // 추가 분석
   const [dailyTrend, setDailyTrend] = React.useState<any[]>([]);
-  const [discountDist, setDiscountDist] = React.useState<any[]>([]);
-  const [paretoItems, setParetoItems] = React.useState<any[]>([]);
+  const [revenueByDiscount, setRevenueByDiscount] = React.useState<any[]>([]);
+  const [itemScatter, setItemScatter] = React.useState<any[]>([]);
   const [heatmap, setHeatmap] = React.useState<{ items: string[]; seasons: string[]; cells: any[]; maxVal: number }>({ items: [], seasons: [], cells: [], maxVal: 1 });
 
   // CSV 데이터 로드
@@ -4365,7 +4365,7 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
     const trendDates = [...new Set([...dMap26.keys(), ...dMap25.keys()])].sort();
     setDailyTrend(trendDates.map(dt => ({ date: dt.slice(5), rev26: dMap26.get(dt) || 0, rev25: dMap25.get(dt) || 0 })));
 
-    // === 할인율 분포 ===
+    // === 할인율별 매출 비중 (금액 기준) ===
     const DBUCKETS = [
       { label: '~20%', min: 0, max: 20 }, { label: '20-30%', min: 20, max: 30 },
       { label: '30-40%', min: 30, max: 40 }, { label: '40-50%', min: 40, max: 50 },
@@ -4373,18 +4373,36 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
       { label: '70-80%', min: 70, max: 80 }, { label: '80%+', min: 80, max: 999 },
     ];
     const toBucket = (d: number) => DBUCKETS.find(b => d >= b.min && d < b.max)?.label ?? '80%+';
-    const bc26 = new Map<string, number>(); filtered2026.forEach(d => { const b = toBucket(d.discount); bc26.set(b, (bc26.get(b) || 0) + 1); });
-    const bc25 = new Map<string, number>(); filtered2025.forEach(d => { const b = toBucket(d.discount); bc25.set(b, (bc25.get(b) || 0) + 1); });
-    setDiscountDist(DBUCKETS.map(b => ({ range: b.label, count26: bc26.get(b.label) || 0, count25: bc25.get(b.label) || 0 })));
+    const rv26m = new Map<string, number>(); filtered2026.forEach(d => { const b = toBucket(d.discount); rv26m.set(b, (rv26m.get(b) || 0) + d.netsale); });
+    const rv25m = new Map<string, number>(); filtered2025.forEach(d => { const b = toBucket(d.discount); rv25m.set(b, (rv25m.get(b) || 0) + d.netsale); });
+    const tot26r = filtered2026.reduce((s, d) => s + d.netsale, 0) || 1;
+    const tot25r = filtered2025.reduce((s, d) => s + d.netsale, 0) || 1;
+    setRevenueByDiscount(DBUCKETS.map(b => ({
+      range: b.label,
+      pct26: Math.round((rv26m.get(b.label) || 0) / tot26r * 1000) / 10,
+      pct25: Math.round((rv25m.get(b.label) || 0) / tot25r * 1000) / 10,
+    })));
 
-    // === Pareto ===
-    const sorted = [...itemAggregated].sort((a, b) => b.value - a.value);
-    const totalPar = sorted.reduce((s, d) => s + d.value, 0);
-    let cum = 0;
-    setParetoItems(sorted.map(d => { cum += totalPar > 0 ? (d.value / totalPar) * 100 : 0; return { name: d.name, revenue: d.value, cumPct: Math.round(cum * 10) / 10 }; }));
+    // === 아이템별 할인-마진 산점도 ===
+    const scMap = new Map<string, {rev: number; cogs: number; discSum: number; cnt: number}>();
+    filtered2026.forEach(d => {
+      const cur = scMap.get(d.item) || {rev: 0, cogs: 0, discSum: 0, cnt: 0};
+      scMap.set(d.item, {rev: cur.rev + d.netsale, cogs: cur.cogs + d.cogs, discSum: cur.discSum + d.discount, cnt: cur.cnt + 1});
+    });
+    setItemScatter([...scMap.entries()]
+      .map(([name, v]) => ({
+        name,
+        x: v.cnt > 0 ? Math.round(v.discSum / v.cnt * 10) / 10 : 0,
+        y: v.rev > 0 ? Math.round((v.rev - v.cogs) / v.rev * 1000) / 10 : 0,
+        revenue: v.rev,
+      }))
+      .filter(d => d.revenue > 500)
+      .sort((a, b) => b.revenue - a.revenue)
+    );
 
     // === Item × Season 히트맵 ===
     const HEAT_SEASONS = ['S26', 'F25', 'S25', 'F24', 'S24', 'CORE'];
+    const sorted = [...itemAggregated].sort((a, b) => b.value - a.value);
     const topItemNames = sorted.slice(0, 12).map(d => d.name);
     const cellMap = new Map<string, number>();
     filtered2026.forEach(d => {
@@ -4553,158 +4571,138 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
         </Card>
       </div>
 
-      {/* 2개의 트리맵 차트 */}
+      {/* Season별 + Item별 매출 구성 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Season별 매출 구성 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold text-gray-800">Season별 매출 구성 (YOY)</CardTitle>
+        {/* Season별 */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-1 pt-4 px-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-gray-800">Season별 매출 구성</CardTitle>
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />성장</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-400" />보합</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400" />감소</span>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="h-[500px] overflow-y-auto pr-1 space-y-3">
-              {seasonData.length > 0 ? seasonData.map((item) => {
-                const barColor = item.yoy >= 100 ? 'bg-emerald-500' : item.yoy >= 80 ? 'bg-amber-400' : 'bg-red-400';
-                const yoyBadge = item.yoy >= 100 ? 'bg-emerald-50 text-emerald-700' : item.yoy >= 80 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600';
-                return (
-                  <div key={item.name} className="group">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-                      <span className="text-sm font-bold text-gray-900">${item.value.toLocaleString()} <span className="font-normal text-gray-500 text-xs">({item.percent.toFixed(1)}%)</span></span>
-                    </div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${yoyBadge}`}>YoY {item.yoy.toFixed(0)}%</span>
-                      <span className="text-xs text-gray-400">할인 {item.discount.toFixed(1)}%</span>
-                      <span className="text-xs text-gray-400">마진 {item.margin.toFixed(1)}%</span>
-                    </div>
-                    <div className="relative w-full bg-gray-100 rounded-full h-3.5">
-                      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 z-10" title="100% 기준" />
-                      <div
-                        className={`${barColor} h-3.5 rounded-full flex items-center justify-end pr-1.5 transition-all`}
-                        style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
-                      >
-                        {item.yoy >= 20 && <span className="text-[10px] text-white font-bold">{item.yoy.toFixed(0)}%</span>}
+          <CardContent className="px-4 pb-4">
+            <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '480px' }}>
+              {seasonData.length > 0 ? (() => {
+                const maxP = Math.max(...seasonData.map((d: any) => d.percent), 1);
+                return seasonData.map((item: any) => {
+                  const good = item.yoy >= 100, warn = item.yoy >= 80;
+                  const accent = good ? '#10b981' : warn ? '#f59e0b' : '#ef4444';
+                  const bgTint = good ? 'rgba(16,185,129,0.04)' : warn ? 'rgba(245,158,11,0.04)' : 'rgba(239,68,68,0.04)';
+                  const yoyCls = good ? 'text-emerald-600' : warn ? 'text-amber-500' : 'text-red-500';
+                  const barW = Math.round((item.percent / maxP) * 88);
+                  return (
+                    <div key={item.name} className="rounded-lg border border-gray-100 overflow-hidden"
+                      style={{ borderLeft: `3px solid ${accent}`, backgroundColor: bgTint }}>
+                      <div className="px-3 py-2.5">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span className="font-bold text-sm text-gray-900">{item.name}</span>
+                          <div className="text-right leading-tight">
+                            <span className="font-bold text-sm text-gray-900">${item.value.toLocaleString()}</span>
+                            <span className="text-[10px] text-gray-400 ml-1">{item.percent.toFixed(1)}% 비중</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-white rounded-full h-1.5 mb-2">
+                          <div className="h-1.5 rounded-full" style={{ width: `${barW}%`, backgroundColor: accent }} />
+                        </div>
+                        <div className="flex items-center gap-2.5 text-[11px]">
+                          <span className={`font-bold ${yoyCls}`}>{item.yoy >= 100 ? '▲' : '▼'} YoY {item.yoy.toFixed(0)}%</span>
+                          <span className="text-gray-200">|</span>
+                          <span className="text-gray-400">할인 <b className="text-gray-600">{item.discount.toFixed(1)}%</b></span>
+                          <span className="text-gray-200">|</span>
+                          <span className="text-gray-400">마진 <b className="text-gray-600">{item.margin.toFixed(1)}%</b></span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              }) : (
-                <div className="h-full flex items-center justify-center text-gray-400 text-sm">데이터가 없습니다</div>
-              )}
+                  );
+                });
+              })() : <div className="py-12 text-center text-gray-300 text-sm">데이터가 없습니다</div>}
             </div>
+            {seasonData.length > 0 && (() => {
+              const growing = seasonData.filter((d: any) => d.yoy >= 100);
+              const declining = seasonData.filter((d: any) => d.yoy < 100);
+              const top = [...seasonData].sort((a: any, b: any) => b.value - a.value)[0];
+              const best = [...seasonData].sort((a: any, b: any) => b.yoy - a.yoy)[0];
+              const worst = [...seasonData].sort((a: any, b: any) => a.yoy - b.yoy)[0];
+              return (
+                <div className="mt-3 rounded-lg bg-slate-50 border-l-2 border-emerald-300 px-3 py-2.5 space-y-1.5">
+                  <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-emerald-400">▸</span>최대 비중 <b className="text-gray-800">{top.name}</b> — 전체의 {top.percent.toFixed(1)}% 차지, YoY <b className={top.yoy >= 100 ? 'text-emerald-600' : 'text-red-500'}>{top.yoy.toFixed(0)}%</b></div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-emerald-400">▸</span>성장 시즌 <b className="text-emerald-600">{growing.length}개</b> vs 역성장 <b className="text-red-500">{declining.length}개</b>{best && growing.length > 0 && <span className="text-gray-400 ml-1">— 최고 성장 {best.name} YoY {best.yoy.toFixed(0)}%</span>}</div>
+                  {worst && worst.yoy < 80 && <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-emerald-400">▸</span>주의 <b className="text-red-500">{worst.name}</b> — YoY {worst.yoy.toFixed(0)}%, 할인 {worst.discount.toFixed(1)}%, 마진 {worst.margin.toFixed(1)}%</div>}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
-        {/* Item별 매출 구성 */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold text-gray-800">Item별 매출 구성 (YOY)</CardTitle>
+        {/* Item별 */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-1 pt-4 px-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-gray-800">Item별 매출 구성</CardTitle>
+              <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />성장</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-amber-400" />보합</span>
+                <span className="flex items-center gap-1"><span className="inline-block w-2 h-2 rounded-full bg-red-400" />감소</span>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="h-[500px] overflow-y-auto pr-1 space-y-3">
-              {itemData.length > 0 ? itemData.map((item) => {
-                const barColor = item.yoy >= 100 ? 'bg-emerald-500' : item.yoy >= 80 ? 'bg-amber-400' : 'bg-red-400';
-                const yoyBadge = item.yoy >= 100 ? 'bg-emerald-50 text-emerald-700' : item.yoy >= 80 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600';
-                return (
-                  <div key={item.name} className="group">
-                    <div className="flex justify-between items-baseline mb-0.5">
-                      <span className="font-semibold text-sm text-gray-800">{item.name}</span>
-                      <span className="text-sm font-bold text-gray-900">${item.value.toLocaleString()} <span className="font-normal text-gray-500 text-xs">({item.percent.toFixed(1)}%)</span></span>
-                    </div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${yoyBadge}`}>YoY {item.yoy.toFixed(0)}%</span>
-                      <span className="text-xs text-gray-400">할인 {item.discount.toFixed(1)}%</span>
-                      <span className="text-xs text-gray-400">마진 {item.margin.toFixed(1)}%</span>
-                    </div>
-                    <div className="relative w-full bg-gray-100 rounded-full h-3.5">
-                      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-400 z-10" title="100% 기준" />
-                      <div
-                        className={`${barColor} h-3.5 rounded-full flex items-center justify-end pr-1.5 transition-all`}
-                        style={{ width: `${Math.min(item.yoy / 2, 100)}%` }}
-                      >
-                        {item.yoy >= 20 && <span className="text-[10px] text-white font-bold">{item.yoy.toFixed(0)}%</span>}
+          <CardContent className="px-4 pb-4">
+            <div className="space-y-1.5 overflow-y-auto" style={{ maxHeight: '480px' }}>
+              {itemData.length > 0 ? (() => {
+                const maxP = Math.max(...itemData.map((d: any) => d.percent), 1);
+                return itemData.map((item: any) => {
+                  const good = item.yoy >= 100, warn = item.yoy >= 80;
+                  const accent = good ? '#10b981' : warn ? '#f59e0b' : '#ef4444';
+                  const bgTint = good ? 'rgba(16,185,129,0.04)' : warn ? 'rgba(245,158,11,0.04)' : 'rgba(239,68,68,0.04)';
+                  const yoyCls = good ? 'text-emerald-600' : warn ? 'text-amber-500' : 'text-red-500';
+                  const barW = Math.round((item.percent / maxP) * 88);
+                  return (
+                    <div key={item.name} className="rounded-lg border border-gray-100 overflow-hidden"
+                      style={{ borderLeft: `3px solid ${accent}`, backgroundColor: bgTint }}>
+                      <div className="px-3 py-2">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <span className="font-bold text-xs text-gray-900 tracking-wide">{item.name}</span>
+                          <div className="text-right leading-tight">
+                            <span className="font-bold text-xs text-gray-900">${item.value.toLocaleString()}</span>
+                            <span className="text-[10px] text-gray-400 ml-1">{item.percent.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-white rounded-full h-1 mb-1.5">
+                          <div className="h-1 rounded-full" style={{ width: `${barW}%`, backgroundColor: accent }} />
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px]">
+                          <span className={`font-bold ${yoyCls}`}>{item.yoy >= 100 ? '▲' : '▼'} {item.yoy.toFixed(0)}%</span>
+                          <span className="text-gray-200">|</span>
+                          <span className="text-gray-400">할인 <b className="text-gray-600">{item.discount.toFixed(1)}%</b></span>
+                          <span className="text-gray-200">|</span>
+                          <span className="text-gray-400">마진 <b className="text-gray-600">{item.margin.toFixed(1)}%</b></span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              }) : (
-                <div className="h-full flex items-center justify-center text-gray-400 text-sm">데이터가 없습니다</div>
-              )}
+                  );
+                });
+              })() : <div className="py-12 text-center text-gray-300 text-sm">데이터가 없습니다</div>}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 📈 일별 매출 추이 */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-bold text-gray-800">📈 일별 매출 추이 (2026 vs 2025 전년동기)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailyTrend} margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
-                <YAxis tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
-                <Tooltip
-                  contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                  formatter={(v: any, name: string) => [`$${Number(v).toLocaleString()}`, name]}
-                />
-                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '6px' }} />
-                <Line type="monotone" dataKey="rev26" stroke="#2563eb" strokeWidth={2.5} dot={false} name="2026" />
-                <Line type="monotone" dataKey="rev25" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="5 3" name="2025 (전년)" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 🎯 할인율 분포 + ⚡ Pareto */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold text-gray-800">🎯 할인율 분포 (거래건수 기준)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={discountDist} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="range" style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
-                  <YAxis style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
-                  <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px' }} formatter={(v: any, name: string) => [`${Number(v).toLocaleString()}건`, name]} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  <Bar dataKey="count26" fill="#2563eb" name="2026" radius={[3, 3, 0, 0]} barSize={22} />
-                  <Bar dataKey="count25" fill="#94a3b8" name="2025" radius={[3, 3, 0, 0]} barSize={22} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-bold text-gray-800">⚡ Pareto 분석 — 아이템별 누적 매출</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={paretoItems.slice(0, 15)} margin={{ top: 5, right: 45, left: 5, bottom: 45 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="name" style={{ fontSize: '9px' }} tick={{ fill: '#6b7280', angle: -40, textAnchor: 'end' }} interval={0} />
-                  <YAxis yAxisId="left" tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
-                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} style={{ fontSize: '10px' }} tick={{ fill: '#6b7280' }} />
-                  <Tooltip
-                    contentStyle={{ fontSize: '12px', borderRadius: '8px' }}
-                    formatter={(v: any, name: string) => name === '누적%' ? [`${Number(v).toFixed(1)}%`, name] : [`$${Number(v).toLocaleString()}`, name]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                  <Bar yAxisId="left" dataKey="revenue" fill="#6366f1" name="매출" radius={[3, 3, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="cumPct" stroke="#f59e0b" strokeWidth={2.5} dot={false} name="누적%" />
-                  <ReferenceLine yAxisId="right" y={80} stroke="#ef4444" strokeDasharray="4 2" strokeWidth={1.5} label={{ value: '80%', position: 'insideTopRight', fontSize: 10, fill: '#ef4444' }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
+            {itemData.length > 0 && (() => {
+              const top3pct = itemData.slice(0, 3).reduce((s: number, d: any) => s + d.percent, 0);
+              const growing = itemData.filter((d: any) => d.yoy >= 100);
+              const best = [...itemData].sort((a: any, b: any) => b.yoy - a.yoy)[0];
+              const worst = [...itemData].sort((a: any, b: any) => a.yoy - b.yoy)[0];
+              return (
+                <div className="mt-2 rounded-lg bg-slate-50 border-l-2 border-violet-300 px-3 py-2.5 space-y-1.5">
+                  <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-violet-400">▸</span>상위 3개 아이템 집중도 <b className="text-gray-800">{top3pct.toFixed(1)}%</b>{top3pct > 60 ? <span className="ml-1 text-amber-500 text-[10px]">— 특정 품목 편중</span> : <span className="ml-1 text-gray-400 text-[10px]">— 분산 양호</span>}</div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-violet-400">▸</span>YoY 성장 <b className="text-emerald-600">{growing.length}/{itemData.length}개</b>{best && growing.length > 0 && <span className="text-gray-400 ml-1">— 최고 {best.name} {best.yoy.toFixed(0)}%</span>}</div>
+                  {worst && worst.yoy < 80 && <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-violet-400">▸</span>최대 역성장 <b className="text-red-500">{worst.name}</b> — YoY {worst.yoy.toFixed(0)}%, 마진 {worst.margin.toFixed(1)}%</div>}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
@@ -4753,8 +4751,215 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
           ) : (
             <div className="text-center text-gray-400 text-sm py-8">데이터가 없습니다</div>
           )}
+          {heatmap.items.length > 0 && (() => {
+            let bestItem = '', bestSeason = '', bestRev = 0;
+            heatmap.cells.forEach((row: any) => {
+              row.values.forEach((cell: any) => {
+                if (cell.revenue > bestRev) { bestRev = cell.revenue; bestItem = row.item; bestSeason = cell.season; }
+              });
+            });
+            const s26Top = heatmap.cells
+              .map((row: any) => ({ item: row.item, rev: row.values.find((c: any) => c.season === 'S26')?.revenue || 0 }))
+              .sort((a: any, b: any) => b.rev - a.rev)[0];
+            const multiSeason = heatmap.cells.filter((row: any) => row.values.filter((c: any) => c.revenue > 0).length >= 3);
+            const coreOnly = heatmap.cells.filter((row: any) => {
+              const active = row.values.filter((c: any) => c.revenue > 0).map((c: any) => c.season);
+              return active.length === 1 && active[0] === 'CORE';
+            });
+            return (
+              <div className="mt-3 rounded-lg bg-slate-50 border-l-2 border-blue-300 px-3 py-2.5 space-y-1.5">
+                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>최고 조합 <b className="text-gray-800">{bestItem} × {bestSeason}</b> — <b className="text-blue-600">${bestRev.toLocaleString()}</b></div>
+                {s26Top?.rev > 0 && <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>현 시즌(S26) 선두 <b className="text-gray-800">{s26Top.item}</b> — ${s26Top.rev.toLocaleString()}</div>}
+                <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>3개↑ 시즌 동시 활동 아이템 <b className="text-gray-800">{multiSeason.length}개</b>{multiSeason.length > 0 && <span className="text-gray-400 ml-1">— {multiSeason.slice(0, 3).map((r: any) => r.item).join(', ')}</span>}</div>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
+
+      {/* 📈 일별 매출 추이 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-bold text-gray-800">📈 일별 매출 추이 (2026 vs 2025 전년동기)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={dailyTrend} margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="date" style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                <YAxis tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}K`} style={{ fontSize: '11px' }} tick={{ fill: '#6b7280' }} />
+                <Tooltip
+                  contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                  formatter={(v: any, name: string) => [`$${Number(v).toLocaleString()}`, name]}
+                />
+                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '6px' }} />
+                <Line type="monotone" dataKey="rev26" stroke="#2563eb" strokeWidth={2.5} dot={false} name="2026" />
+                <Line type="monotone" dataKey="rev25" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="5 3" name="2025 (전년)" />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          {dailyTrend.length > 0 && (() => {
+            const total26 = dailyTrend.reduce((s: number, d: any) => s + d.rev26, 0);
+            const total25 = dailyTrend.reduce((s: number, d: any) => s + d.rev25, 0);
+            const yoy = total25 > 0 ? (total26 - total25) / total25 * 100 : 0;
+            const peak = dailyTrend.reduce((m: any, d: any) => d.rev26 > m.rev26 ? d : m, dailyTrend[0]);
+            const comparable = dailyTrend.filter((d: any) => d.rev25 > 0);
+            const aboveDays = comparable.filter((d: any) => d.rev26 > d.rev25).length;
+            const isGood = yoy >= 0;
+            return (
+              <div className="mt-3 rounded-lg bg-slate-50 border-l-2 border-blue-300 px-3 py-2.5 space-y-1.5">
+                <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>기간 누계 YoY <b className={isGood ? 'text-emerald-600' : 'text-red-500'}>{isGood ? '+' : ''}{yoy.toFixed(1)}%</b><span className="text-gray-400 ml-1.5">(26년 ${total26.toLocaleString()} vs 25년 ${total25.toLocaleString()})</span></div>
+                <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>전년 상회 일수 <b className="text-gray-800">{aboveDays}/{comparable.length}일</b>{aboveDays / (comparable.length || 1) >= 0.6 ? <span className="ml-1 text-emerald-500 text-[10px]">— 과반 달성</span> : <span className="ml-1 text-amber-500 text-[10px]">— 전년 하회 일수 많음</span>}</div>
+                <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-blue-400">▸</span>최고 매출일 <b className="text-gray-800">{peak.date}</b> — <b className="text-blue-600">${peak.rev26.toLocaleString()}</b></div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
+      {/* 산점도 + 할인율별 매출 비중 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* 아이템별 할인율-마진율 산점도 */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-sm font-bold text-gray-800">아이템별 할인율 × 마진율 포지셔닝</CardTitle>
+            <p className="text-[11px] text-gray-400 mt-0.5">버블 크기 = 매출 규모 | 색상 = 마진율 수준 | <b className="text-gray-500">마진율 = (순매출 − COGS) ÷ 순매출</b></p>
+          </CardHeader>
+          <CardContent className="px-3 pb-3">
+            <div className="h-[260px]">
+              {itemScatter.length > 0 ? (() => {
+                const maxRev = Math.max(...itemScatter.map((d: any) => d.revenue), 1);
+                const wAvgX = Math.round(itemScatter.reduce((s: number, d: any) => s + d.x * d.revenue, 0) / itemScatter.reduce((s: number, d: any) => s + d.revenue, 0));
+                const wAvgY = Math.round(itemScatter.reduce((s: number, d: any) => s + d.y * d.revenue, 0) / itemScatter.reduce((s: number, d: any) => s + d.revenue, 0) * 10) / 10;
+                return (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ScatterChart margin={{ top: 16, right: 20, left: 0, bottom: 24 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis type="number" dataKey="x" name="할인율" unit="%" domain={['auto', 'auto']}
+                        label={{ value: '평균 할인율 →', position: 'insideBottom', offset: -12, fontSize: 10, fill: '#9ca3af' }}
+                        tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                      <YAxis type="number" dataKey="y" name="마진율" unit="%"
+                        label={{ value: '마진율', angle: -90, position: 'insideLeft', offset: 10, fontSize: 10, fill: '#9ca3af' }}
+                        tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                      <ZAxis type="number" dataKey="revenue" range={[60, 900]} />
+                      <Tooltip
+                        cursor={{ strokeDasharray: '3 3' }}
+                        content={({ active, payload }: any) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0].payload;
+                          const fill = d.y >= 40 ? '#10b981' : d.y >= 25 ? '#f59e0b' : '#ef4444';
+                          return (
+                            <div style={{ background: 'white', border: `1.5px solid ${fill}`, borderRadius: 8, padding: '7px 11px', fontSize: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}>
+                              <div className="font-bold text-gray-800 mb-1">{d.name}</div>
+                              <div className="text-gray-500">할인율 <b className="text-gray-800">{d.x}%</b></div>
+                              <div className="text-gray-500">마진율 <b style={{ color: fill }}>{d.y}%</b></div>
+                              <div className="text-gray-500">매출 <b className="text-gray-800">${d.revenue.toLocaleString()}</b></div>
+                            </div>
+                          );
+                        }}
+                      />
+                      <ReferenceLine x={wAvgX} stroke="#d1d5db" strokeDasharray="4 2" strokeWidth={1.5} />
+                      <ReferenceLine y={wAvgY} stroke="#d1d5db" strokeDasharray="4 2" strokeWidth={1.5} />
+                      <Scatter
+                        data={itemScatter}
+                        shape={(props: any) => {
+                          const { cx, cy, payload } = props;
+                          const r = 4 + Math.sqrt(payload.revenue / maxRev) * 22;
+                          const fill = payload.y >= 40 ? '#10b981' : payload.y >= 25 ? '#f59e0b' : '#ef4444';
+                          return <circle key={payload.name} cx={cx} cy={cy} r={r} fill={fill} fillOpacity={0.65} stroke="white" strokeWidth={1.5} />;
+                        }}
+                      />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                );
+              })() : <div className="h-full flex items-center justify-center text-gray-300 text-sm">데이터가 없습니다</div>}
+            </div>
+            <div className="flex items-center justify-center gap-5 mt-1 text-[10px] text-gray-400">
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400" />마진 40%↑</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400" />마진 25-40%</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400" />마진 25%↓</span>
+            </div>
+            {itemScatter.length > 0 && (() => {
+              const totalRev = itemScatter.reduce((s: number, d: any) => s + d.revenue, 0) || 1;
+              const avgX = itemScatter.reduce((s: number, d: any) => s + d.x * d.revenue, 0) / totalRev;
+              const avgY = itemScatter.reduce((s: number, d: any) => s + d.y * d.revenue, 0) / totalRev;
+              const problems = itemScatter.filter((d: any) => d.x > avgX && d.y < avgY).sort((a: any, b: any) => b.revenue - a.revenue);
+              const stars = itemScatter.filter((d: any) => d.x <= avgX && d.y >= avgY).sort((a: any, b: any) => b.revenue - a.revenue);
+              const worstMargin = [...itemScatter].sort((a: any, b: any) => a.y - b.y)[0];
+              return (
+                <div className="mt-3 rounded-lg bg-slate-50 border-l-2 border-amber-300 px-3 py-2.5 space-y-1.5">
+                  <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-amber-400">▸</span>수익위험 아이템 (고할인·저마진) <b className="text-red-500">{problems.length}개</b>{problems.length > 0 && <span className="text-gray-400 ml-1">— {problems.slice(0, 3).map((d: any) => d.name).join(', ')}</span>}</div>
+                  <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-amber-400">▸</span>우량 아이템 (저할인·고마진) <b className="text-emerald-600">{stars.length}개</b>{stars.length > 0 && <span className="text-gray-400 ml-1">— {stars.slice(0, 3).map((d: any) => d.name).join(', ')}</span>}</div>
+                  {worstMargin && <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-amber-400">▸</span>최저 마진 <b className="text-red-500">{worstMargin.name}</b>: 할인 {worstMargin.x}% / 마진 <b className="text-red-500">{worstMargin.y}%</b></div>}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* 할인율별 매출 비중 */}
+        <Card className="shadow-sm">
+          <CardHeader className="pb-1 pt-4 px-4">
+            <CardTitle className="text-sm font-bold text-gray-800">할인율 구간별 매출 비중 (2025 vs 2026)</CardTitle>
+            <p className="text-[11px] text-gray-400 mt-0.5">전체 매출에서 각 할인 구간이 차지하는 비중 (%)</p>
+          </CardHeader>
+          <CardContent className="px-3 pb-3">
+            <div className="h-[260px]">
+              {revenueByDiscount.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueByDiscount} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} barCategoryGap="25%">
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis dataKey="range" tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                    <YAxis tickFormatter={(v: number) => `${v}%`} tick={{ fontSize: 10, fill: '#9ca3af' }} domain={[0, 'auto']} />
+                    <Tooltip
+                      contentStyle={{ fontSize: 12, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1px solid #e5e7eb' }}
+                      formatter={(v: any, name: string) => [`${Number(v).toFixed(1)}%`, name === 'pct26' ? '2026' : '2025']}
+                      labelFormatter={(l: string) => `할인율 구간: ${l}`}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11 }}
+                      formatter={(value: string) => value === 'pct26' ? '2026' : '2025'}
+                    />
+                    <ReferenceLine x="50-60%" stroke="#ef4444" strokeOpacity={0.3} strokeWidth={28} strokeDasharray="" label={{ value: '고할인 구간', position: 'top', fontSize: 9, fill: '#ef4444' }} />
+                    <Bar dataKey="pct25" fill="#cbd5e1" name="pct25" radius={[3, 3, 0, 0]} barSize={16} />
+                    <Bar dataKey="pct26" fill="#2563eb" name="pct26" radius={[3, 3, 0, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : <div className="h-full flex items-center justify-center text-gray-300 text-sm">데이터가 없습니다</div>}
+            </div>
+            {revenueByDiscount.length > 0 && (() => {
+              const highDisc26 = revenueByDiscount.filter(d => ['50-60%','60-70%','70-80%','80%+'].includes(d.range)).reduce((s: number, d: any) => s + d.pct26, 0);
+              const highDisc25 = revenueByDiscount.filter(d => ['50-60%','60-70%','70-80%','80%+'].includes(d.range)).reduce((s: number, d: any) => s + d.pct25, 0);
+              const diff = highDisc26 - highDisc25;
+              const peak26 = revenueByDiscount.reduce((m: any, d: any) => d.pct26 > m.pct26 ? d : m, revenueByDiscount[0]);
+              const biggestShift = [...revenueByDiscount].sort((a: any, b: any) => Math.abs(b.pct26 - b.pct25) - Math.abs(a.pct26 - a.pct25))[0];
+              const lowDisc26 = revenueByDiscount.filter(d => ['~20%','20-30%','30-40%'].includes(d.range)).reduce((s: number, d: any) => s + d.pct26, 0);
+              return (
+                <>
+                  <div className={`mt-2 px-3 py-1.5 rounded-lg text-[11px] flex items-center gap-2 ${diff > 5 ? 'bg-red-50 text-red-600' : diff < -5 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                    <span className="font-bold">{diff > 0 ? '▲' : '▼'} 50%↑ 구간 비중:</span>
+                    <span>2025년 {highDisc25.toFixed(1)}% → 2026년 {highDisc26.toFixed(1)}%</span>
+                    <span className="font-bold">({diff > 0 ? '+' : ''}{diff.toFixed(1)}%p)</span>
+                  </div>
+                  <div className="mt-2 rounded-lg bg-slate-50 border-l-2 border-indigo-300 px-3 py-2.5 space-y-1.5">
+                    <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">AI 인사이트</div>
+                    <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-indigo-400">▸</span>최대 비중 구간 <b className="text-blue-600">{peak26.range}</b> — 전체 매출의 <b>{peak26.pct26.toFixed(1)}%</b> 집중 <span className="text-gray-400">(전년 {peak26.pct25.toFixed(1)}%)</span></div>
+                    <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-indigo-400">▸</span>YoY 변화 최대 구간 <b className="text-gray-800">{biggestShift.range}</b>: <b className={biggestShift.pct26 > biggestShift.pct25 ? 'text-red-500' : 'text-emerald-600'}>{biggestShift.pct26 > biggestShift.pct25 ? '+' : ''}{(biggestShift.pct26 - biggestShift.pct25).toFixed(1)}%p</b> 이동</div>
+                    <div className="text-[11px] text-gray-600"><span className="mr-1.5 text-indigo-400">▸</span>저할인(40% 미만) 매출 비중 <b className={lowDisc26 < 10 ? 'text-red-500' : 'text-gray-800'}>{lowDisc26.toFixed(1)}%</b>{lowDisc26 < 10 && <span className="ml-1 text-red-400 text-[10px]">— 정가 판매 비중 매우 낮음</span>}</div>
+                  </div>
+                </>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+      </div>
+
 
     </div>
   );
@@ -5259,6 +5464,66 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
         </div>
       </div>
 
+      {/* AI 인사이트 */}
+      {!loading && currentTotal > 0 && (
+        <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 mb-1">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">AI 인사이트</span>
+            <span className="text-xs text-gray-400">{selectedMonthLocal} · {viewMode} 기준</span>
+          </div>
+          <div className="space-y-2.5">
+            <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+              <span className={`mt-1 flex-shrink-0 ${yoyPct > 10 ? 'text-red-400' : yoyPct < -10 ? 'text-emerald-400' : 'text-blue-400'}`}>▸</span>
+              <span>
+                {viewMode} 총 영업비는 <b className="text-gray-800">{fmtK(currentTotal)}</b>으로, 전년 동기({fmtK(prevTotal)}) 대비 <b className={yoyPct > 0 ? 'text-red-500' : 'text-emerald-600'}>{yoyPct > 0 ? '+' : ''}{yoyPct.toFixed(1)}% ({fmtKsigned(yoyAmt)})</b> {yoyPct > 0 ? '증가하였습니다.' : '감소하였습니다.'}{' '}
+                {yoyPct > 15 ? '증가 폭이 크므로 주요 비용 항목별 원인을 면밀히 점검할 필요가 있습니다.' : yoyPct > 5 ? '비용 상승 추세가 이어지고 있어 세부 항목별 모니터링이 권고됩니다.' : yoyPct < -15 ? '전반적인 비용 절감 효과가 양호한 것으로 판단됩니다.' : yoyPct < -5 ? '비용 관리 기조가 유지되고 있습니다.' : '전년 수준과 큰 차이 없이 안정적으로 유지되고 있습니다.'}
+              </span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+              <span className={`mt-1 flex-shrink-0 ${personnelRatio > 62 ? 'text-orange-400' : 'text-blue-400'}`}>▸</span>
+              <span>
+                인건비(HQ·복리후생·계약직·상여) 합계는 <b className="text-gray-800">{fmtK(personnelTotal)}</b>으로 총 영업비의 <b className={personnelRatio > 62 ? 'text-orange-600' : 'text-gray-800'}>{personnelRatio.toFixed(1)}%</b>를 차지합니다.{' '}
+                {personnelRatio > 68 ? '인건비 비중이 상당히 높은 수준으로, 조직 효율화 또는 계약직 구조 재검토가 필요할 수 있습니다.' : personnelRatio > 60 ? '인건비 집중도가 높은 편이며, 인력 구조 변화나 계약 갱신 시점을 함께 확인하는 것이 좋습니다.' : '인건비 비중이 정상 범위 내에 있어 구조적으로 안정적입니다.'}
+              </span>
+            </div>
+            {Math.abs(marketingYoy) >= 10 && (
+              <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+                <span className={`mt-1 flex-shrink-0 ${marketingYoy > 25 ? 'text-red-400' : marketingYoy < -15 ? 'text-emerald-400' : 'text-blue-400'}`}>▸</span>
+                <span>
+                  마케팅 비용은 <b className="text-gray-800">{fmtK(marketingTotal)}</b>으로 전년 동기 대비 <b className={marketingYoy > 0 ? 'text-red-500' : 'text-emerald-600'}>{marketingYoy > 0 ? '+' : ''}{marketingYoy.toFixed(1)}%</b> {marketingYoy > 0 ? '증가하였습니다.' : '감소하였습니다.'}{' '}
+                  {marketingYoy > 30 ? '증가 폭이 크므로 집행된 광고 채널별 ROI를 점검하고, 효율이 낮은 항목에 대한 예산 재배분을 검토할 필요가 있습니다.' : marketingYoy > 10 ? '마케팅 투자가 확대되는 추세로, 매출 성장과의 상관관계를 함께 살펴보는 것이 좋습니다.' : marketingYoy < -20 ? '마케팅 비용이 크게 줄어든 만큼, 브랜드 노출 및 채널 트래픽 지표에 미치는 영향을 확인하십시오.' : '마케팅 비용이 소폭 감소하였으며, 채널 효율 개선 또는 집행 시기 이연 여부를 확인하십시오.'}
+                </span>
+              </div>
+            )}
+            {top5Conc > 65 && (
+              <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+                <span className="mt-1 flex-shrink-0 text-amber-400">▸</span>
+                <span>
+                  상위 5개 벤더에 전체 영업비의 <b className="text-amber-600">{top5Conc.toFixed(1)}%</b>가 집중되어 있습니다{vendorRank[0]?.name ? `(1위: ${vendorRank[0].name.slice(0, 20)})` : ''}.{' '}
+                  특정 벤더 의존도가 높을수록 계약 조건 변동이나 서비스 이슈 발생 시 비용 구조 전반에 영향을 줄 수 있으므로, 주요 벤더와의 계약 현황을 주기적으로 점검하는 것이 권고됩니다.
+                </span>
+              </div>
+            )}
+            {anomalyCount > 0 && (
+              <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+                <span className="mt-1 flex-shrink-0 text-orange-400">▸</span>
+                <span>
+                  이번 기간 중 건당 $50K 이상의 대형 거래가 <b className="text-orange-600">{anomalyCount}건</b> 감지되었습니다.{' '}
+                  대형 거래는 일시적 집행 또는 비정기 계약에 해당할 수 있으므로, 분석보드 거래내역에서 해당 건의 내용과 승인 여부를 개별적으로 확인하십시오.
+                </span>
+              </div>
+            )}
+            <div className="flex items-start gap-2 text-sm text-gray-600 leading-relaxed">
+              <span className="mt-1 flex-shrink-0 text-teal-400">▸</span>
+              <span>
+                이번 기간 단일 최대 비용 항목은 <b className="text-gray-800">{PL_KR[topPL] || topPL}</b>으로 <b className="text-gray-800">{fmtK(getCurVal(topPL))}</b>, 총 영업비의 <b className="text-gray-800">{currentTotal > 0 ? (getCurVal(topPL) / currentTotal * 100).toFixed(0) : 0}%</b>를 차지합니다.{' '}
+                비중이 가장 큰 항목인 만큼 변동 추이를 지속적으로 추적하고, 예산 대비 실적 차이가 발생할 경우 선제적으로 원인을 파악하는 것이 중요합니다.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards — 2 rows × 4 */}
       <div className="grid grid-cols-4 gap-3">
         {/* Row 1 */}
@@ -5474,7 +5739,11 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 {topCatPlan && (
                   <p className="mt-3 text-xs text-gray-400">계획 최대 소진: <strong className="text-indigo-600">{PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%</strong></p>
                 )}
-                <p className="mt-2 text-xs text-indigo-500 font-medium">클릭해서 전체 보기 →</p>
+                <div className="mt-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                    전체 보기 <span className="text-base">→</span>
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
@@ -5509,7 +5778,11 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                   <span>→</span>
                   <span>{curYr}: <strong className="text-gray-700">{fmtKshort(currentTotal)}</strong></span>
                 </div>
-                <p className="mt-2 text-xs text-blue-500 font-medium">클릭해서 전체 보기 →</p>
+                <div className="mt-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                    전체 보기 <span className="text-base">→</span>
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
