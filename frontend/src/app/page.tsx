@@ -1683,8 +1683,28 @@ function DetailedExpenseCard({
                                             <p className="text-xs text-gray-400 mt-0.5">+$4.56 per 1,000 impressions</p>
                                         </div>
                                     </div>
+                                    <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 space-y-3">
+                                        <p className="text-sm font-bold text-amber-800">CPM 증가 사유</p>
+                                        <p className="text-sm text-amber-700 leading-relaxed">광고 경쟁 증가 및 자연 유입 감소로 인해 시장 전반의 광고 집행 비용이 상승하였습니다.</p>
+                                        <div className="space-y-2.5">
+                                            <div className="flex items-start gap-2">
+                                                <span className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold flex items-center justify-center">1</span>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-gray-700">광고 경매 Market 악화</p>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">노출 지면을 여러 광고주가 실시간 경매 방식으로 경쟁하며, 광고 예산과 참여 광고주가 증가할수록 CPM도 함께 상승합니다.</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-2">
+                                                <span className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold flex items-center justify-center">2</span>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-gray-700">자연 유입 감소</p>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-0.5">AI 검색 확대로 자연 검색을 통한 웹사이트 유입이 감소하였습니다. 이에 따라 유료 광고 의존도가 높아지며 광고 단가가 상승하고 있습니다.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <p className="text-xs text-gray-400 leading-relaxed">
-                                        CPM(Cost Per Mille)은 광고 1,000회 노출당 비용입니다. 전년 동월 대비 CPM이 크게 상승하여 동일 예산 대비 노출 효율이 낮아졌을 수 있으므로, 채널별 입찰 전략 및 타겟팅 최적화를 검토하십시오.
+                                        CPM(Cost Per Mille)은 광고 1,000회 노출당 비용입니다. 채널별 입찰 전략 및 타겟팅 최적화를 검토하십시오.
                                     </p>
                                 </div>
                             </DialogContent>
