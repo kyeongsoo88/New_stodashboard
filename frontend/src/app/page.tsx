@@ -1535,12 +1535,12 @@ function ShippingCostDialog({ data }: { data: any }) {
 }
 
 // Detailed Expense Card Component
-function DetailedExpenseCard({ 
-    title, 
-    value, 
-    yoy, 
-    yoyDiff, 
-    details, 
+function DetailedExpenseCard({
+    title,
+    value,
+    yoy,
+    yoyDiff,
+    details,
     showToggle,
     period,
     onPeriodChange,
@@ -1548,12 +1548,14 @@ function DetailedExpenseCard({
     showShippingButton,
     shippingPopupData,
     showStorageButton,
-    storageCostData
-}: { 
-    title: string, 
-    value: string, 
-    yoy: string, 
-    yoyDiff: string, 
+    storageCostData,
+    showSemButton,
+    semCpmLabel
+}: {
+    title: string,
+    value: string,
+    yoy: string,
+    yoyDiff: string,
     details: React.ReactNode,
     showToggle?: boolean,
     period?: "누적" | "당월",
@@ -1562,7 +1564,9 @@ function DetailedExpenseCard({
     showShippingButton?: boolean,
     shippingPopupData?: any,
     showStorageButton?: boolean,
-    storageCostData?: any
+    storageCostData?: any,
+    showSemButton?: boolean,
+    semCpmLabel?: string
 }) {
     const yoyNum = parseFloat(yoy.replace(/[^0-9.-]/g, ''));
     // 비용 카드이므로 100% 초과하면 붉은색(나쁨), 100% 이하면 초록색(좋음)
@@ -1649,6 +1653,44 @@ function DetailedExpenseCard({
                         </Dialog>
                     </div>
                 )}
+                {showSemButton && semCpmLabel && (
+                    <div className="pt-2 border-t">
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-auto text-xs px-2 py-1.5 w-full bg-violet-50 hover:bg-violet-100 text-violet-700 border-violet-300 whitespace-normal leading-snug text-left">
+                                    {semCpmLabel}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-lg">
+                                <DialogHeader>
+                                    <DialogTitle>SEM 광고 CPM 분석</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-2">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-center">
+                                            <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">26년 6월 CPM</p>
+                                            <p className="text-3xl font-bold text-blue-700">$15.10</p>
+                                        </div>
+                                        <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
+                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">25년 6월 CPM</p>
+                                            <p className="text-3xl font-bold text-gray-600">$10.54</p>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-xl bg-red-50 border border-red-100 p-4 flex items-center justify-between">
+                                        <span className="text-sm font-semibold text-gray-700">YoY 증감</span>
+                                        <div className="text-right">
+                                            <span className="text-2xl font-bold text-red-600">+143%</span>
+                                            <p className="text-xs text-gray-400 mt-0.5">+$4.56 per 1,000 impressions</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-400 leading-relaxed">
+                                        CPM(Cost Per Mille)은 광고 1,000회 노출당 비용입니다. 전년 동월 대비 CPM이 크게 상승하여 동일 예산 대비 노출 효율이 낮아졌을 수 있으므로, 채널별 입찰 전략 및 타겟팅 최적화를 검토하십시오.
+                                    </p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )
@@ -1700,6 +1742,8 @@ function ExpenseSummarySection({
                         shippingPopupData={card.title === "운반비" ? shippingPopupData : undefined}
                         showStorageButton={card.title === "보관료"}
                         storageCostData={card.title === "보관료" ? storageCostData : undefined}
+                        showSemButton={card.title === "SEM광고비"}
+                        semCpmLabel={card.title === "SEM광고비" ? "CPM 26년 6월 $15.10 vs 25년 6월 $10.54 (YoY 143%)" : undefined}
                         className={
                             index === 0 && title === "직접비 요약" ? "bg-purple-100" :
                             index === 0 && title === "영업비 요약" ? "bg-orange-100" :
