@@ -15126,11 +15126,18 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
            {loadingDashboard ? (
-             <div className="col-span-4 text-center text-gray-500 py-8">데이터 로딩 중...</div>
+             <div className="col-span-5 text-center text-gray-500 py-8">데이터 로딩 중...</div>
            ) : cardData ? (
              <>
+               <DetailedMetricCard
+                   title="💰 MSRP"
+                   value="-"
+                   yoy="-"
+                   trend="up"
+                   expandAll={expandAllDetails}
+               />
                <DetailedMetricCard
                    title="📊 실판매출"
                    value={cardData.salesCard.value}
@@ -15151,6 +15158,13 @@ export default function DashboardPage() {
                    itemDetails={cardData.discountCard.itemDetails}
                />
                <DetailedMetricCard
+                   title="📋 직접비"
+                   value="-"
+                   yoy="-"
+                   trend="down"
+                   expandAll={expandAllDetails}
+               />
+               <DetailedMetricCard
                    title="💰 직접이익"
                    value={cardData.profitCard.value}
                    yoy={cardData.profitCard.yoy}
@@ -15161,6 +15175,21 @@ export default function DashboardPage() {
                    directProfitYtdDetails={cardData.profitCard.directProfitYtdDetails}
                   directProfitPopupData={directProfitPopupData}
                />
+             </>
+           ) : null}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+           {loadingDashboard || !cardData ? (
+             <>
+              <MetricCard title="📈 영업비" value="-" subValue="-" description="데이터 로딩 중..." />
+              <MetricCard title="📈 US EC 26SS 판매율 (MSRP기준)" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
+              <MetricCard title="🎯 US EC 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+              <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
+              <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
+             </>
+           ) : (
+             <>
                <DetailedMetricCard
                    title="📈 영업비"
                    value={cardData.expenseCard.value}
@@ -15170,23 +15199,9 @@ export default function DashboardPage() {
                    expandAll={expandAllDetails}
                    expenseBreakdown={cardData.expenseCard.expenseBreakdown}
                />
-             </>
-           ) : null}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-           {loadingDashboard || !cardData ? (
-             <>
-              <MetricCard title="📈 US EC 26SS 판매율 (MSRP기준)" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
-              <MetricCard title="🎯 US EC 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
-              <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
-              <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
-             </>
-           ) : (
-             <>
-              <MetricCard 
+              <MetricCard
                 title="📈 US EC 26SS 판매율 (MSRP기준)"
-                 value={cardData.metricCards.salesRate.value} 
+                 value={cardData.metricCards.salesRate.value}
                  subValue={cardData.metricCards.salesRate.subValue} 
                  subValueColor={cardData.metricCards.salesRate.subValueColor} 
                  description={cardData.metricCards.salesRate.description} 
