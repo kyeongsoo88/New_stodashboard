@@ -11054,7 +11054,79 @@ export default function DashboardPage() {
       return val;
     };
     
+    const msrpValRaw = getDataValue('카드_MSRP_값', month, '-');
+
     return {
+      // MSRP 카드
+      msrpCard: {
+        value: msrpValRaw !== '-' ? `$${formatNumber(msrpValRaw)}K` : '-',
+        yoy: getDataValue('카드_MSRP_YOY', month, '-'),
+        salesShare: (() => { const v = getDataValue('카드_MSRP_매출비중', month, '-'); return v !== '-' ? `매출비중 ${formatPercent(v)}` : undefined; })(),
+        channelDetails: [
+          {
+            name: "US홀세일",
+            value: formatNumber(getDataValue('카드_MSRP_채널_US홀세일_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_채널_US홀세일_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_채널_US홀세일_비중', month, '-'))
+          },
+          {
+            name: "US EC",
+            value: formatNumber(getDataValue('카드_MSRP_채널_USEC_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_채널_USEC_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_채널_USEC_비중', month, '-'))
+          },
+          {
+            name: "EU EC",
+            value: formatNumber(getDataValue('카드_MSRP_채널_EUEC_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_채널_EUEC_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_채널_EUEC_비중', month, '-'))
+          },
+          {
+            name: "라이선스/기타",
+            value: formatNumber(getDataValue('카드_MSRP_채널_라이선스_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_채널_라이선스_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_채널_라이선스_비중', month, '-'))
+          }
+        ],
+        itemDetails: [
+          {
+            name: "26SS",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_26SS_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_26SS_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_26SS_비중', month, '-'))
+          },
+          {
+            name: "25FW",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_25FW_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_25FW_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_25FW_비중', month, '-'))
+          },
+          {
+            name: "25SS",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_25SS_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_25SS_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_25SS_비중', month, '-'))
+          },
+          {
+            name: "FW과시즌",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_FW과시즌_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_FW과시즌_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_FW과시즌_비중', month, '-'))
+          },
+          {
+            name: "SS과시즌",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_SS과시즌_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_SS과시즌_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_SS과시즌_비중', month, '-'))
+          },
+          {
+            name: "CORE",
+            value: formatNumber(getDataValue('카드_MSRP_아이템_CORE_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_아이템_CORE_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_아이템_CORE_비중', month, '-'))
+          }
+        ]
+      },
       // 실판매출 카드
       salesCard: {
         value: `$${formatNumber(getDataValue('카드_실판매출_값', month, '31755'))}K`,
@@ -11197,6 +11269,49 @@ export default function DashboardPage() {
               const val = getDataValue('카드_직접이익_직접이익YTD_라이선스_변동', month, '134').replace(/△/g, '');
               return val.startsWith('-') ? `-${val.substring(1)}` : `+${val}`;
             })()
+          }
+        ]
+      },
+      // 직접비 카드
+      directCostCard: {
+        value: (() => { const v = getDataValue('카드_직접비_값', month, '-'); return v !== '-' ? `$${formatNumber(v)}K` : '-'; })(),
+        yoy: getDataValue('카드_직접비_YOY', month, '-'),
+        operatingExpenseRatio: (() => { const v = getDataValue('카드_직접비_직접비율', month, '-'); return v !== '-' ? `직접비율 ${formatPercent(v)}` : undefined; })(),
+        expenseBreakdown: [
+          {
+            name: "운반비",
+            value: formatNumber(getDataValue('카드_직접비_운반비_값', month, '-')),
+            yoy: getDataValue('카드_직접비_운반비_YOY', month, '-')
+          },
+          {
+            name: "보관료",
+            value: formatNumber(getDataValue('카드_직접비_보관료_값', month, '-')),
+            yoy: getDataValue('카드_직접비_보관료_YOY', month, '-')
+          },
+          {
+            name: "물류용역비",
+            value: formatNumber(getDataValue('카드_직접비_물류용역비_값', month, '-')),
+            yoy: getDataValue('카드_직접비_물류용역비_YOY', month, '-')
+          },
+          {
+            name: "지급수수료",
+            value: formatNumber(getDataValue('카드_직접비_지급수수료_값', month, '-')),
+            yoy: getDataValue('카드_직접비_지급수수료_YOY', month, '-')
+          },
+          {
+            name: "결제수수료",
+            value: formatNumber(getDataValue('카드_직접비_결제수수료_값', month, '-')),
+            yoy: getDataValue('카드_직접비_결제수수료_YOY', month, '-')
+          },
+          {
+            name: "SEM광고비",
+            value: formatNumber(getDataValue('카드_직접비_SEM광고비_값', month, '-')),
+            yoy: getDataValue('카드_직접비_SEM광고비_YOY', month, '-')
+          },
+          {
+            name: "기타비용",
+            value: formatNumber(getDataValue('카드_직접비_기타비용_값', month, '-')),
+            yoy: getDataValue('카드_직접비_기타비용_YOY', month, '-')
           }
         ]
       },
@@ -15133,10 +15248,13 @@ export default function DashboardPage() {
              <>
                <DetailedMetricCard
                    title="💰 MSRP"
-                   value="-"
-                   yoy="-"
+                   value={cardData.msrpCard.value}
+                   yoy={cardData.msrpCard.yoy}
+                   salesShare={cardData.msrpCard.salesShare}
                    trend="up"
                    expandAll={expandAllDetails}
+                   channelDetails={cardData.msrpCard.channelDetails}
+                   itemDetails={cardData.msrpCard.itemDetails}
                />
                <DetailedMetricCard
                    title="📊 실판매출"
@@ -15159,10 +15277,12 @@ export default function DashboardPage() {
                />
                <DetailedMetricCard
                    title="📋 직접비"
-                   value="-"
-                   yoy="-"
+                   value={cardData.directCostCard.value}
+                   yoy={cardData.directCostCard.yoy}
+                   operatingExpenseRatio={cardData.directCostCard.operatingExpenseRatio}
                    trend="down"
                    expandAll={expandAllDetails}
+                   expenseBreakdown={cardData.directCostCard.expenseBreakdown}
                />
                <DetailedMetricCard
                    title="💰 직접이익"
