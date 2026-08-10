@@ -1972,18 +1972,18 @@ function InteractiveChartSection({
                   dataKey = `차트_아이템별재고추세_${csvKey}`;
               }
               
-              const values = csvChartData[dataKey] || Array(18).fill(0);
+              const values = csvChartData[dataKey] || Array(19).fill(0);
               const yoyKey = `${dataKey}_YOY`;
               // 재고 차트도 YOY 데이터 로딩 (없으면 기본값 100)
-              const yoyValues = csvChartData[yoyKey] || Array(18).fill(100);
+              const yoyValues = csvChartData[yoyKey] || Array(19).fill(100);
               
               return { name: opt, values, yoyValues };
           });
       } else {
           // Fallback to generated data
           return filterOptions.map(opt => {
-              const values = generateConsistentData(opt + "sales", 18, 2000, 8000);
-              const yoyValues = generateConsistentData(opt + "yoy", 18, 80, 180);
+              const values = generateConsistentData(opt + "sales", 19, 2000, 8000);
+              const yoyValues = generateConsistentData(opt + "yoy", 19, 80, 180);
               return { name: opt, values, yoyValues };
           });
       }
@@ -2000,7 +2000,7 @@ function InteractiveChartSection({
           return csvChartData[key];
       }
       // Fallback: average of available series YOY values
-      return Array(18).fill(0).map((_, i) => {
+      return Array(19).fill(0).map((_, i) => {
           const seriesYoys = allSeriesData.map(series => series.yoyValues[i] || 0);
           if (seriesYoys.length === 0) return 0;
           return seriesYoys.reduce((sum, val) => sum + val, 0) / seriesYoys.length;
@@ -2009,8 +2009,8 @@ function InteractiveChartSection({
 
   // Main Chart Data (Monthly x-axis)
   const mainChartData = React.useMemo(() => {
-      return Array(18).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, ..., 26.6월)
+      return Array(19).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 25.12월, 26.1월, ..., 26.7월)
         let monthLabel;
         if (i < 12) {
           monthLabel = `25.${i+1}월`;
@@ -2024,8 +2024,10 @@ function InteractiveChartSection({
           monthLabel = `26.4월`;
         } else if (i === 16) {
           monthLabel = `26.5월`;
-        } else {
+        } else if (i === 17) {
           monthLabel = `26.6월`;
+        } else {
+          monthLabel = `26.7월`;
         }
         const monthItem: any = { name: monthLabel };
           let totalTarget = 0;
@@ -2061,8 +2063,8 @@ function InteractiveChartSection({
 
   // YOY Line Chart Data
   const yoyChartData = React.useMemo(() => {
-      return Array(18).fill(0).map((_, i) => {
-        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.6월)
+      return Array(19).fill(0).map((_, i) => {
+        // X축 라벨 유니크 키 생성 (25.1월, ..., 26.7월)
         const item: any = { name: i < 12 ? `25.${i+1}월` : `26.${i-11}월` };
           allSeriesData.forEach(series => {
               item[series.name] = series.yoyValues[i];
