@@ -5034,7 +5034,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [rawRows, setRawRows] = React.useState<Record<string, string>[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [viewTab, setViewTab] = React.useState<'트렌드' | '분석'>('분석');
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-06');
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-07');
   const [viewMode, setViewMode] = React.useState<'당월' | 'YTD'>('당월');
   const [activePL, setActivePL] = React.useState<Set<string>>(new Set(['HQ', 'Benefits', 'Contractors', 'Advertising', 'Professional Service']));
   const [drillPL, setDrillPL] = React.useState<string | null>(null);
@@ -10694,13 +10694,13 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-06",
-    "손익계산서": "2026-06",
-    "재무상태표": "2026-06",
-    "현금흐름표": "2026-06",
-    "영업비 분석": "2026-06",
-    "당월 추세": "2026-06",
-    "시뮬레이션": "2026-06",
+    "대시보드": "2026-07",
+    "손익계산서": "2026-07",
+    "재무상태표": "2026-07",
+    "현금흐름표": "2026-07",
+    "영업비 분석": "2026-07",
+    "당월 추세": "2026-07",
+    "시뮬레이션": "2026-07",
   });
   
   // CSV 데이터 로딩 상태
@@ -10952,7 +10952,7 @@ export default function DashboardPage() {
   }, []);
 
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
-  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-04";
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-07";
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
@@ -10975,7 +10975,8 @@ export default function DashboardPage() {
       '2026-03': '26-Mar',
       '2026-04': '26-Apr',
       '2026-05': '26-May',
-      '2026-06': '26-Jun'
+      '2026-06': '26-Jun',
+      '2026-07': '26-Jul'
     };
 
     const csvMonthKey = monthMapping[month] || month;
@@ -11009,7 +11010,8 @@ export default function DashboardPage() {
       '2026-03': '26-Mar',
       '2026-04': '26-Apr',
       '2026-05': '26-May',
-      '2026-06': '26-Jun'
+      '2026-06': '26-Jun',
+      '2026-07': '26-Jul'
     };
 
     const csvMonthKey = monthMapping[month] || month;
@@ -12097,7 +12099,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
 
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -12200,9 +12202,9 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월', '6월'];
-      
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월', '6월', '7월'];
+
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
         '2025-02': '25-Feb',
@@ -12221,7 +12223,8 @@ export default function DashboardPage() {
         '2026-03': '26-Mar',
         '2026-04': '26-Apr',
         '2026-05': '26-May',
-        '2026-06': '26-Jun'
+        '2026-06': '26-Jun',
+        '2026-07': '26-Jul'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
@@ -12238,9 +12241,9 @@ export default function DashboardPage() {
     
     // 3월부터 5월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Mar -> 3월, 26-Apr -> 4월, 26-May -> 5월)
     // 차트에서 구분하기 위해 3월은 공백 추가, 4월은 공백 2개 추가, 5월은 공백 3개 추가
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    '];  // 마지막 구분용 공백
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     '];  // 마지막 구분용 공백
     // CSV 헤더와 매핑
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May', '26-Jun'];
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May', '26-Jun', '26-Jul'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -12308,8 +12311,8 @@ export default function DashboardPage() {
       return summaryData[key][csvMonthKey];
     };
 
-    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    '];  // 마지막 구분용 공백 추가
+    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     '];  // 마지막 구분용 공백 추가
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
@@ -12385,6 +12388,7 @@ export default function DashboardPage() {
               <SelectItem value="2026-04">2026년 04월</SelectItem>
               <SelectItem value="2026-05">2026년 05월</SelectItem>
               <SelectItem value="2026-06">2026년 06월</SelectItem>
+              <SelectItem value="2026-07">2026년 07월</SelectItem>
             </SelectContent>
           </Select>
         </div>
