@@ -1785,10 +1785,10 @@ function InventoryPlanDialog({ data }: { data: any }) {
     const { chartData, tableData } = data;
     const lineColors: Record<string, string> = {
         ss26: "#8b5cf6",   // 26SS
+        fw26: "#f97316",   // 26FW
         fw25: "#ef4444",   // 25FW
         ss25: "#10b981",   // 25SS
-        fw24: "#fbbf24",   // FW과시즌
-        core: "#3b82f6",   // SS과시즌
+        pastsz: "#fbbf24", // 과시즌
         past: "#9ca3af"    // CORE
     };
 
@@ -1849,10 +1849,10 @@ function InventoryPlanDialog({ data }: { data: any }) {
                             <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 1000 }} />
                             <Legend wrapperStyle={{ paddingTop: '20px' }} />
                             <Line type="monotone" dataKey="ss26" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4, fill: "#8b5cf6" }} name="26SS" />
+                            <Line type="monotone" dataKey="fw26" stroke="#f97316" strokeWidth={2} dot={{ r: 4, fill: "#f97316" }} name="26FW" />
                             <Line type="monotone" dataKey="fw25" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="25FW" />
                             <Line type="monotone" dataKey="ss25" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="25SS" />
-                            <Line type="monotone" dataKey="fw24" stroke="#fbbf24" strokeWidth={2} dot={{ r: 4, fill: "#fbbf24" }} name="FW과시즌" />
-                            <Line type="monotone" dataKey="core" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} name="SS과시즌" />
+                            <Line type="monotone" dataKey="pastsz" stroke="#fbbf24" strokeWidth={2} dot={{ r: 4, fill: "#fbbf24" }} name="과시즌" />
                             <Line type="monotone" dataKey="past" stroke="#9ca3af" strokeWidth={2} dot={{ r: 4, fill: "#9ca3af" }} name="CORE" />
                         </LineChart>
                     </ResponsiveContainer>
@@ -12164,21 +12164,21 @@ export default function DashboardPage() {
       };
       // 데이터 키값은 그대로 유지 (기존 코드 참조)
       const ss26 = parseFloat(getValue('팝업_재고소진계획_26SS_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const fw26 = parseFloat(getValue('팝업_재고소진계획_26FW_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const fw25 = parseFloat(getValue('팝업_재고소진계획_fw25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const ss25 = parseFloat(getValue('팝업_재고소진계획_ss25_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
-      const fw24 = parseFloat(getValue('팝업_재고소진계획_FW과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
-      const core = parseFloat(getValue('팝업_재고소진계획_SS과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
+      const pastsz = parseFloat(getValue('팝업_재고소진계획_과시즌_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const past = parseFloat(getValue('팝업_재고소진계획_CORE_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
       const total = parseFloat(getValue('팝업_재고소진계획_테이블_3월', csvMonthKey, '0').replace(/,/g, '')) || 0;
-      
-      
+
+
       inventoryChartData.push({
         month: monthLabel,
         ss26,
+        fw26,
         fw25,
         ss25,
-        fw24,
-        core,
+        pastsz,
         past
       });
       
