@@ -6464,10 +6464,10 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   };
 
   const bsHeaderLabel = (h: string) => {
-    if (h === 'RF_05 - RF_04') return 'RF_06 - RF_05';
-    if (h === 'RF_05 - 전년') return 'RF_06 - 전년';
-    if (h === 'RF_05') return 'RF_06';
-    if (h === 'RF_04') return 'RF_05';
+    if (h === 'RF_05 - RF_04') return 'RF_07 - RF_06';
+    if (h === 'RF_05 - 전년') return 'RF_07 - 전년';
+    if (h === 'RF_05') return 'RF_07';
+    if (h === 'RF_04') return 'RF_06';
     return h;
   };
 
