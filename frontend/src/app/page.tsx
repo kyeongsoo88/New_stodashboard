@@ -1961,6 +1961,7 @@ function InteractiveChartSection({
               } else if (chartType === "inventory") {
                   // 재고 차트: display name을 CSV 키로 매핑
                   const inventoryMapping: Record<string, string> = {
+                      '26FW': '26FW',
                       '26SS': '26SS',
                       '25FW': '25FW',
                       '25SS': '25SS',
@@ -12040,7 +12041,7 @@ export default function DashboardPage() {
     
     // 아이템별 매출 추세 데이터
     const itemSalesData: Record<string, number[]> = {};
-    const itemNames = ['26SS', '25FW', '25SS', 'FW과시즌', 'SS과시즌', 'CORE'];
+    const itemNames = ['26FW', '26SS', '25FW', '25SS', 'FW과시즌', 'SS과시즌', 'CORE'];
     itemNames.forEach(item => {
       const dataKey = `차트_아이템별매출추세_${item}`;
       itemSalesData[dataKey] = months.map(month => {
@@ -12062,6 +12063,7 @@ export default function DashboardPage() {
     // 아이템별 재고 추세 데이터
     const inventoryData: Record<string, number[]> = {};
     const inventoryMapping: Record<string, string> = {
+      '26FW': '26FW',
       '26SS': '26SS',
       '25FW': '25FW',
       '25SS': '25SS',
@@ -15471,7 +15473,7 @@ export default function DashboardPage() {
                 title="2025-26년 월별 아이템별 매출 추세"
                 unit="K $"
                 iconColor="bg-orange-500"
-                filterOptions={["26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                filterOptions={["26FW", "26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
                     {color: "purple", title: "시즌 트렌드", content: "• 26SS: 2월 $290K, 신상품 출시로 빠른 성장\n• 25FW: 1월 $704K (YOY 89%, 비중 58%), 연초 안정적 매출 유지\n• 25SS: $350K (YOY 192%, 비중 29%), 시즌 아웃 소진 가속"},
                     {color: "blue", title: "카테고리", content: "• 26SS 신상품 본격 판매 시작 (비중 27%)\n• 25FW 주력 시즌 소진 단계 (비중 61%)\n• 25SS 조기 청산 진행 (비중 11%, YOY 112%)\n• CORE 정상 운영 전환 (비중 4%)"},
@@ -15486,7 +15488,7 @@ export default function DashboardPage() {
                 title="2025-26년 월별 아이템별 재고 추세"
                 unit="K $"
                 iconColor="bg-purple-500"
-                filterOptions={["26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
+                filterOptions={["26FW", "26SS", "25FW", "25SS", "FW과시즌", "SS과시즌", "CORE"]}
                 insights={[
                     {color: "purple", title: "조기경보", content: "• 총재고 $21.1M (YOY 117%), 12월 대비 $2.0M 감소\n• 25FW: $12.9M (비중 61%), Q1 소진 목표 미달 우려\n• 25SS: $6.6M (비중 31%, YOY 75%), 할인 소진 지속 필요"},
                     {color: "blue", title: "긍정신호", content: "• 12월 → 1월 재고 감소: $23.1M → $21.1M (9% 감소)\n• 25FW 소진 가속: $13.8M → $12.9M (7% 감소)\n• CORE 대폭 감소: $1.0M → $0.6M (43% 감소)\n• FW과시즌 정상화: $1.2M → $0.8M (30% 감소)"},
