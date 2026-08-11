@@ -11440,37 +11440,20 @@ export default function DashboardPage() {
           subValue: `전년 $${getDataValue('카드_기말재고_전년비교', month, '18,099')}K`,
           subValueColor: "text-green-500" as const,
           description: `YoY ${getDataValue('카드_기말재고_YOY', month, '97.0%')}`,
-          topStoresDetails: [
-            { 
-              name: "26SS", 
-              value: `${getDataValue('카드_기말재고_아이템_SS차기당시즌_값', month, '1,096')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS차기시즌_전년', month, '14%')})` 
-            },
-            { 
-              name: "25FW", 
-              value: `${getDataValue('카드_기말재고_아이템_FW당시즌_값', month, '74,484')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_FW당시즌_전년', month, '111%')})` 
-            },
-            { 
-              name: "25SS", 
-              value: `${getDataValue('카드_기말재고_아이템_SS당시즌_값', month, '34,423')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS당시즌_전년', month, '91%')})` 
-            },
-            { 
-              name: "FW과시즌", 
-              value: `${getDataValue('카드_기말재고_아이템_FW과시즌_값', month, '20,548')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_FW과시즌_전년', month, '43%')})` 
-            },
-            { 
-              name: "SS과시즌", 
-              value: `${getDataValue('카드_기말재고_아이템_SS과시즌_값', month, '109,632')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_SS과시즌_전년', month, '106%')})` 
-            },
-            { 
-              name: "CORE", 
-              value: `${getDataValue('카드_기말재고_아이템_CORE_값', month, '62,460')}`, 
-              yoy: `(전년${getDataValue('카드_기말재고_아이템_CORE_전년', month, '120%')})` 
-            }
+          topStoresDetails: isJul2026OrLater ? [
+            { name: "26FW", value: `${getDataValue('카드_기말재고_아이템_26FW_값', month, '-')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_26FW_전년', month, '-')})` },
+            { name: "26SS", value: `${getDataValue('카드_기말재고_아이템_SS차기당시즌_값', month, '1,096')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_SS차기시즌_전년', month, '14%')})` },
+            { name: "25FW", value: `${getDataValue('카드_기말재고_아이템_FW당시즌_값', month, '74,484')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_FW당시즌_전년', month, '111%')})` },
+            { name: "25SS", value: `${getDataValue('카드_기말재고_아이템_SS당시즌_값', month, '34,423')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_SS당시즌_전년', month, '91%')})` },
+            { name: "과시즌", value: `${getDataValue('카드_기말재고_아이템_과시즌_값', month, '-')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_과시즌_전년', month, '-')})` },
+            { name: "CORE", value: `${getDataValue('카드_기말재고_아이템_CORE_값', month, '62,460')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_CORE_전년', month, '120%')})` },
+          ] : [
+            { name: "26SS", value: `${getDataValue('카드_기말재고_아이템_SS차기당시즌_값', month, '1,096')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_SS차기시즌_전년', month, '14%')})` },
+            { name: "25FW", value: `${getDataValue('카드_기말재고_아이템_FW당시즌_값', month, '74,484')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_FW당시즌_전년', month, '111%')})` },
+            { name: "25SS", value: `${getDataValue('카드_기말재고_아이템_SS당시즌_값', month, '34,423')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_SS당시즌_전년', month, '91%')})` },
+            { name: "FW과시즌", value: `${getDataValue('카드_기말재고_아이템_FW과시즌_값', month, '20,548')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_FW과시즌_전년', month, '43%')})` },
+            { name: "SS과시즌", value: `${getDataValue('카드_기말재고_아이템_SS과시즌_값', month, '109,632')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_SS과시즌_전년', month, '106%')})` },
+            { name: "CORE", value: `${getDataValue('카드_기말재고_아이템_CORE_값', month, '62,460')}`, yoy: `(전년${getDataValue('카드_기말재고_아이템_CORE_전년', month, '120%')})` },
           ]
         },
         headcount: {
