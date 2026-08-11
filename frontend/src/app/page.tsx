@@ -11419,7 +11419,7 @@ export default function DashboardPage() {
               yoy: `(전년${getDataValue('카드_당시즌MU_아이템_TrackPant_전년', month, '6.03')})` 
             },
             { 
-              name: "Hoodie", 
+              name: "Polo",
               value: getDataValue('카드_당시즌MU_아이템_Knitwear_값', month, '4.80'), 
               yoy: `(전년${getDataValue('카드_당시즌MU_아이템_Knitwear_전년', month, '5.19')})` 
             },
