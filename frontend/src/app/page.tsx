@@ -11318,15 +11318,7 @@ export default function DashboardPage() {
           {
             name: "기타비용",
             value: formatNumber(getDataValue('카드_영업비_기타비용_값', month, '134')),
-            yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%'),
-            subItems: [
-              { name: "Inventory Write Down", value: "158,707", popupId: "inventoryWD" },
-              { name: "Taxes and Licenses",   value: "4,169" },
-              { name: "Utilities",            value: "6,175" },
-              { name: "Miscellaneous Expense",value: "79" },
-              { name: "Bad Debt Expenses",    value: "-32,965" },
-              { name: "합계",                 value: "136,165", isTotal: true },
-            ]
+            yoy: getDataValue('카드_영업비_기타비용_YOY', month, '85%')
           }
         ]
       },
@@ -15241,8 +15233,8 @@ export default function DashboardPage() {
            {loadingDashboard || !cardData ? (
              <>
               <MetricCard title="📈 영업비" value="-" subValue="-" description="데이터 로딩 중..." />
-              <MetricCard title="📈 US EC 26SS 판매율 (MSRP기준)" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
-              <MetricCard title="🎯 US EC 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
+              <MetricCard title="📈 26SS 판매율 (MSRP기준)" value="16.6%" subValue="전년 21.1%" subValueColor="text-red-500" description="YoY -4.5%p" />
+              <MetricCard title="🎯 26SS M/U" value="5.22" subValue="전년대비 5.48" subValueColor="text-red-500" description="YoY -0.26" />
               <MetricCard title="🏭 기말재고" value="3,309.8억" subValue="전년 3,412.2억" subValueColor="text-green-500" description="YoY 97.0%" />
               <MetricCard title="👥 인원수" value="136명" subValue="전년 140명" subValueColor="text-green-500" description="YoY -4명" />
              </>
@@ -15258,7 +15250,7 @@ export default function DashboardPage() {
                    expenseBreakdown={cardData.expenseCard.expenseBreakdown}
                />
               <MetricCard
-                title="📈 US EC 26SS 판매율 (MSRP기준)"
+                title="📈 26SS 판매율 (MSRP기준)"
                  value={cardData.metricCards.salesRate.value}
                  subValue={cardData.metricCards.salesRate.subValue} 
                  subValueColor={cardData.metricCards.salesRate.subValueColor} 
@@ -15271,7 +15263,7 @@ export default function DashboardPage() {
                  expandAll={expandAllDetails}
                />
               <MetricCard 
-                title="🎯 US EC 26SS M/U" 
+                title="🎯 26SS M/U" 
                 value={cardData.metricCards.mu.value} 
                 subValue={cardData.metricCards.mu.subValue} 
                 subValueColor={cardData.metricCards.mu.subValueColor} 
