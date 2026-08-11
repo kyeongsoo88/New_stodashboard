@@ -11059,6 +11059,7 @@ export default function DashboardPage() {
     };
     
     const msrpValRaw = getDataValue('카드_MSRP_값', month, '-');
+    const isJul2026OrLater = month >= '2026-07';
 
     return {
       // MSRP 카드
@@ -11092,43 +11093,20 @@ export default function DashboardPage() {
             percent: formatPercent(getDataValue('카드_MSRP_채널_라이선스_비중', month, '-'))
           }
         ],
-        itemDetails: [
-          {
-            name: "26SS",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_26SS_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_26SS_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_26SS_비중', month, '-'))
-          },
-          {
-            name: "25FW",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_25FW_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_25FW_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_25FW_비중', month, '-'))
-          },
-          {
-            name: "25SS",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_25SS_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_25SS_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_25SS_비중', month, '-'))
-          },
-          {
-            name: "FW과시즌",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_FW과시즌_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_FW과시즌_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_FW과시즌_비중', month, '-'))
-          },
-          {
-            name: "SS과시즌",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_SS과시즌_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_SS과시즌_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_SS과시즌_비중', month, '-'))
-          },
-          {
-            name: "CORE",
-            value: formatNumber(getDataValue('카드_MSRP_아이템_CORE_값', month, '-')),
-            yoy: getDataValue('카드_MSRP_아이템_CORE_YOY', month, '-'),
-            percent: formatPercent(getDataValue('카드_MSRP_아이템_CORE_비중', month, '-'))
-          }
+        itemDetails: isJul2026OrLater ? [
+          { name: "26FW", value: formatNumber(getDataValue('카드_MSRP_아이템_26FW_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_26FW_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_26FW_비중', month, '-')) },
+          { name: "26SS", value: formatNumber(getDataValue('카드_MSRP_아이템_26SS_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_26SS_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_26SS_비중', month, '-')) },
+          { name: "25FW", value: formatNumber(getDataValue('카드_MSRP_아이템_25FW_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_25FW_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_25FW_비중', month, '-')) },
+          { name: "25SS", value: formatNumber(getDataValue('카드_MSRP_아이템_25SS_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_25SS_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_25SS_비중', month, '-')) },
+          { name: "과시즌", value: formatNumber(getDataValue('카드_MSRP_아이템_과시즌_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_과시즌_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_과시즌_비중', month, '-')) },
+          { name: "CORE", value: formatNumber(getDataValue('카드_MSRP_아이템_CORE_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_CORE_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_CORE_비중', month, '-')) },
+        ] : [
+          { name: "26SS", value: formatNumber(getDataValue('카드_MSRP_아이템_26SS_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_26SS_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_26SS_비중', month, '-')) },
+          { name: "25FW", value: formatNumber(getDataValue('카드_MSRP_아이템_25FW_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_25FW_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_25FW_비중', month, '-')) },
+          { name: "25SS", value: formatNumber(getDataValue('카드_MSRP_아이템_25SS_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_25SS_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_25SS_비중', month, '-')) },
+          { name: "FW과시즌", value: formatNumber(getDataValue('카드_MSRP_아이템_FW과시즌_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_FW과시즌_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_FW과시즌_비중', month, '-')) },
+          { name: "SS과시즌", value: formatNumber(getDataValue('카드_MSRP_아이템_SS과시즌_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_SS과시즌_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_SS과시즌_비중', month, '-')) },
+          { name: "CORE", value: formatNumber(getDataValue('카드_MSRP_아이템_CORE_값', month, '-')), yoy: getDataValue('카드_MSRP_아이템_CORE_YOY', month, '-'), percent: formatPercent(getDataValue('카드_MSRP_아이템_CORE_비중', month, '-')) },
         ]
       },
       // 실판매출 카드
@@ -11162,43 +11140,20 @@ export default function DashboardPage() {
             percent: formatPercent(getDataValue('카드_실판매출_채널_라이선스_비중', month, '7.1%'))
           }
         ],
-        itemDetails: [
-          {
-            name: "26SS",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_26SS_값', month, '0')),
-            yoy: getDataValue('카드_실판매출_아이템_26SS_YOY', month, '0%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_26SS_비중', month, '0%'))
-          },
-          {
-            name: "25FW",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_25FW_값', month, '12500')),
-            yoy: getDataValue('카드_실판매출_아이템_25FW_YOY', month, '108%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_25FW_비중', month, '39.4%'))
-          },
-          {
-            name: "25SS",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_25SS_값', month, '3500')),
-            yoy: getDataValue('카드_실판매출_아이템_25SS_YOY', month, '112%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_25SS_비중', month, '11.0%'))
-          },
-          {
-            name: "FW과시즌",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_FW과시즌_값', month, '2800')),
-            yoy: getDataValue('카드_실판매출_아이템_FW과시즌_YOY', month, '85%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_FW과시즌_비중', month, '8.8%'))
-          },
-          {
-            name: "SS과시즌",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_SS과시즌_값', month, '1200')),
-            yoy: getDataValue('카드_실판매출_아이템_SS과시즌_YOY', month, '78%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_SS과시즌_비중', month, '3.8%'))
-          },
-          {
-            name: "CORE",
-            value: formatNumber(getDataValue('카드_실판매출_아이템_CORE_값', month, '11755')),
-            yoy: getDataValue('카드_실판매출_아이템_CORE_YOY', month, '118%'),
-            percent: formatPercent(getDataValue('카드_실판매출_아이템_CORE_비중', month, '37.0%'))
-          }
+        itemDetails: isJul2026OrLater ? [
+          { name: "26FW", value: formatNumber(getDataValue('카드_실판매출_아이템_26FW_값', month, '-')), yoy: getDataValue('카드_실판매출_아이템_26FW_YOY', month, '-'), percent: formatPercent(getDataValue('카드_실판매출_아이템_26FW_비중', month, '-')) },
+          { name: "26SS", value: formatNumber(getDataValue('카드_실판매출_아이템_26SS_값', month, '0')), yoy: getDataValue('카드_실판매출_아이템_26SS_YOY', month, '0%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_26SS_비중', month, '0%')) },
+          { name: "25FW", value: formatNumber(getDataValue('카드_실판매출_아이템_25FW_값', month, '12500')), yoy: getDataValue('카드_실판매출_아이템_25FW_YOY', month, '108%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_25FW_비중', month, '39.4%')) },
+          { name: "25SS", value: formatNumber(getDataValue('카드_실판매출_아이템_25SS_값', month, '3500')), yoy: getDataValue('카드_실판매출_아이템_25SS_YOY', month, '112%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_25SS_비중', month, '11.0%')) },
+          { name: "과시즌", value: formatNumber(getDataValue('카드_실판매출_아이템_과시즌_값', month, '-')), yoy: getDataValue('카드_실판매출_아이템_과시즌_YOY', month, '-'), percent: formatPercent(getDataValue('카드_실판매출_아이템_과시즌_비중', month, '-')) },
+          { name: "CORE", value: formatNumber(getDataValue('카드_실판매출_아이템_CORE_값', month, '11755')), yoy: getDataValue('카드_실판매출_아이템_CORE_YOY', month, '118%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_CORE_비중', month, '37.0%')) },
+        ] : [
+          { name: "26SS", value: formatNumber(getDataValue('카드_실판매출_아이템_26SS_값', month, '0')), yoy: getDataValue('카드_실판매출_아이템_26SS_YOY', month, '0%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_26SS_비중', month, '0%')) },
+          { name: "25FW", value: formatNumber(getDataValue('카드_실판매출_아이템_25FW_값', month, '12500')), yoy: getDataValue('카드_실판매출_아이템_25FW_YOY', month, '108%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_25FW_비중', month, '39.4%')) },
+          { name: "25SS", value: formatNumber(getDataValue('카드_실판매출_아이템_25SS_값', month, '3500')), yoy: getDataValue('카드_실판매출_아이템_25SS_YOY', month, '112%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_25SS_비중', month, '11.0%')) },
+          { name: "FW과시즌", value: formatNumber(getDataValue('카드_실판매출_아이템_FW과시즌_값', month, '2800')), yoy: getDataValue('카드_실판매출_아이템_FW과시즌_YOY', month, '85%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_FW과시즌_비중', month, '8.8%')) },
+          { name: "SS과시즌", value: formatNumber(getDataValue('카드_실판매출_아이템_SS과시즌_값', month, '1200')), yoy: getDataValue('카드_실판매출_아이템_SS과시즌_YOY', month, '78%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_SS과시즌_비중', month, '3.8%')) },
+          { name: "CORE", value: formatNumber(getDataValue('카드_실판매출_아이템_CORE_값', month, '11755')), yoy: getDataValue('카드_실판매출_아이템_CORE_YOY', month, '118%'), percent: formatPercent(getDataValue('카드_실판매출_아이템_CORE_비중', month, '37.0%')) },
         ]
       },
       // 직접이익 카드 (추가 구현 필요)
@@ -11399,43 +11354,20 @@ export default function DashboardPage() {
             percent: ""
           }
         ],
-        itemDetails: [
-          {
-            name: "26SS",
-            value: getDataValue('카드_할인율_아이템_26SS_값', month, '0.0%'),
-            yoy: getDataValue('카드_할인율_아이템_26SS_YOY', month, '0.0%p'),
-            percent: ""
-          },
-          {
-            name: "25FW",
-            value: getDataValue('카드_할인율_아이템_25FW_값', month, '4.8%'),
-            yoy: getDataValue('카드_할인율_아이템_25FW_YOY', month, '(4.5%)'),
-            percent: ""
-          },
-          {
-            name: "25SS",
-            value: getDataValue('카드_할인율_아이템_25SS_값', month, '5.2%'),
-            yoy: getDataValue('카드_할인율_아이템_25SS_YOY', month, '(3.1%)'),
-            percent: ""
-          },
-          {
-            name: "FW과시즌",
-            value: getDataValue('카드_할인율_아이템_FW과시즌_값', month, '8.5%'),
-            yoy: getDataValue('카드_할인율_아이템_FW과시즌_YOY', month, '(12.2%)'),
-            percent: ""
-          },
-          {
-            name: "SS과시즌",
-            value: getDataValue('카드_할인율_아이템_SS과시즌_값', month, '7.3%'),
-            yoy: getDataValue('카드_할인율_아이템_SS과시즌_YOY', month, '(9.8%)'),
-            percent: ""
-          },
-          {
-            name: "CORE",
-            value: getDataValue('카드_할인율_아이템_CORE_값', month, '3.2%'),
-            yoy: getDataValue('카드_할인율_아이템_CORE_YOY', month, '(1.5%)'),
-            percent: ""
-          }
+        itemDetails: isJul2026OrLater ? [
+          { name: "26FW", value: getDataValue('카드_할인율_아이템_26FW_값', month, '-'), yoy: getDataValue('카드_할인율_아이템_26FW_YOY', month, '-'), percent: "" },
+          { name: "26SS", value: getDataValue('카드_할인율_아이템_26SS_값', month, '0.0%'), yoy: getDataValue('카드_할인율_아이템_26SS_YOY', month, '0.0%p'), percent: "" },
+          { name: "25FW", value: getDataValue('카드_할인율_아이템_25FW_값', month, '4.8%'), yoy: getDataValue('카드_할인율_아이템_25FW_YOY', month, '(4.5%)'), percent: "" },
+          { name: "25SS", value: getDataValue('카드_할인율_아이템_25SS_값', month, '5.2%'), yoy: getDataValue('카드_할인율_아이템_25SS_YOY', month, '(3.1%)'), percent: "" },
+          { name: "과시즌", value: getDataValue('카드_할인율_아이템_과시즌_값', month, '-'), yoy: getDataValue('카드_할인율_아이템_과시즌_YOY', month, '-'), percent: "" },
+          { name: "CORE", value: getDataValue('카드_할인율_아이템_CORE_값', month, '3.2%'), yoy: getDataValue('카드_할인율_아이템_CORE_YOY', month, '(1.5%)'), percent: "" },
+        ] : [
+          { name: "26SS", value: getDataValue('카드_할인율_아이템_26SS_값', month, '0.0%'), yoy: getDataValue('카드_할인율_아이템_26SS_YOY', month, '0.0%p'), percent: "" },
+          { name: "25FW", value: getDataValue('카드_할인율_아이템_25FW_값', month, '4.8%'), yoy: getDataValue('카드_할인율_아이템_25FW_YOY', month, '(4.5%)'), percent: "" },
+          { name: "25SS", value: getDataValue('카드_할인율_아이템_25SS_값', month, '5.2%'), yoy: getDataValue('카드_할인율_아이템_25SS_YOY', month, '(3.1%)'), percent: "" },
+          { name: "FW과시즌", value: getDataValue('카드_할인율_아이템_FW과시즌_값', month, '8.5%'), yoy: getDataValue('카드_할인율_아이템_FW과시즌_YOY', month, '(12.2%)'), percent: "" },
+          { name: "SS과시즌", value: getDataValue('카드_할인율_아이템_SS과시즌_값', month, '7.3%'), yoy: getDataValue('카드_할인율_아이템_SS과시즌_YOY', month, '(9.8%)'), percent: "" },
+          { name: "CORE", value: getDataValue('카드_할인율_아이템_CORE_값', month, '3.2%'), yoy: getDataValue('카드_할인율_아이템_CORE_YOY', month, '(1.5%)'), percent: "" },
         ]
       },
       // 기타 메트릭 카드
