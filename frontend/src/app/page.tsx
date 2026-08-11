@@ -2467,16 +2467,15 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
   // 컬럼 표시 여부 확인
   const isColumnVisible = (idx: number) => {
-    // CSV 구조: 0: 계정과목, 1: 25년 YTD, 2: 26년 1월(실적), 3: 26년 2월(실적), 4: Mar-26F, ..., 13: Dec-26F
-    // 14: 26년 YTD, 15: 연간대비, 16: good, 17: bad
-    
+    // CSV 구조: 0: 계정과목, 1: 전년, 2~13: 월별 실적/예측, 14: RF_06, 15: RF_07, 16: RF_07 - 전년
+
     if (showAllMonths) return true;
-    
-    // 월 접기 상태: 계정과목(0), 25년 YTD(1), 26년 YTD(14), 연간대비(15), good(16), bad(17)만 표시
+
+    // 월 접기 상태: 전년(1), RF_06(14) 이후만 표시
     if (idx === 0) return true; // 계정과목
-    if (idx === 1) return true; // 25년 YTD
-    if (idx >= 14) return true; // 26년 YTD, 연간대비, good, bad
-    
+    if (idx === 1) return true; // 전년
+    if (idx >= 14) return true; // RF_06, RF_07, RF_07 - 전년
+
     return false; // 26년 1월(실적) ~ Dec-26F 숨김
   };
 
