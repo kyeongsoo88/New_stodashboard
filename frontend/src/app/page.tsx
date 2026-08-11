@@ -6991,6 +6991,14 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
     return !isNaN(num) && num < 0;
   };
 
+  const wcHeaderLabel = (h: string) => {
+    if (h === 'RF_05 - RF_04') return 'RF_07 - RF_06';
+    if (h === 'RF_05 - 전년') return 'RF_07 - 전년';
+    if (h === 'RF_05') return 'RF_07';
+    if (h === 'RF_04') return 'RF_06';
+    return h;
+  };
+
   const visibleHeaderIndices = getStoBalanceSheetVisibleHeaderIndices(headers, showAllMonths);
 
   const processedRows = React.useMemo(() => {
@@ -7057,7 +7065,7 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
                       )}
                       style={{ backgroundColor: '#2E5C8A' }}
                     >
-                      {header}
+                      {wcHeaderLabel(header)}
                     </TableHead>
                   );
                 })}
