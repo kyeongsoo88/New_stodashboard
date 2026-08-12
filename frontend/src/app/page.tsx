@@ -9454,19 +9454,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         2026년 월별
                                     </TableHead>
                                 )}
-                                <TableHead 
+                                <TableHead
                                     rowSpan={2}
                                     className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    RF_05
+                                    RF_06
                                 </TableHead>
                                 <TableHead
                                     colSpan={3}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
-                                    RF_06
+                                    RF_07
                                 </TableHead>
                                 <TableHead
                                     rowSpan={2}
@@ -9517,23 +9517,23 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>12월</TableHead>
                                         </>
                                     )}
-                                    <TableHead 
+                                    <TableHead
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_06
+                                        RF_07
                                     </TableHead>
                                     <TableHead
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_06 - 전년
+                                        RF_07 - 전년
                                     </TableHead>
                                     <TableHead
                                         className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                         style={{ backgroundColor: '#2E5C8A' }}
                                     >
-                                        RF_06 - RF_05
+                                        RF_07 - RF_06
                                     </TableHead>
                                 </>
                             )}
@@ -9836,19 +9836,19 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     2026년 월별
                                 </TableHead>
                             )}
-                            <TableHead 
+                            <TableHead
                                 rowSpan={2}
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_05
+                                RF_06
                             </TableHead>
                             <TableHead
                                 colSpan={3}
                                 className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_06
+                                RF_07
                             </TableHead>
                             <TableHead
                                 rowSpan={2}
@@ -9877,23 +9877,23 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     <TableHead className="text-xs font-bold text-white h-10 px-2 text-center min-w-[80px] border border-gray-300" style={{ backgroundColor: '#2E5C8A' }}>12월</TableHead>
                                 </>
                             )}
-                            <TableHead 
+                            <TableHead
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_06
+                                RF_07
                             </TableHead>
                             <TableHead
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_06 - 전년
+                                RF_07 - 전년
                             </TableHead>
                             <TableHead
                                 className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                 style={{ backgroundColor: '#2E5C8A' }}
                             >
-                                RF_06 - RF_05
+                                RF_07 - RF_06
                             </TableHead>
                         </TableRow>
                     </TableHeader>
