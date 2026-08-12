@@ -1739,7 +1739,7 @@ function ExpenseSummarySection({
                         showStorageButton={card.title === "보관료"}
                         storageCostData={card.title === "보관료" ? storageCostData : undefined}
                         showSemButton={card.title === "SEM광고비"}
-                        semCpmLabel={card.title === "SEM광고비" ? "CPM 26.6 $15.1 vs 25.6 $10.5 (YoY 143%)" : undefined}
+                        semCpmLabel={card.title === "SEM광고비" ? "CPM 26.7 $13.6 vs 25.7 $9.4 (YoY 144%)" : undefined}
                         className={
                             index === 0 && title === "직접비 요약" ? "bg-purple-100" :
                             index === 0 && title === "영업비 요약" ? "bg-orange-100" :
