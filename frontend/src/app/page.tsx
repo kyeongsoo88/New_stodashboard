@@ -4787,30 +4787,56 @@ function MonthlyTrendSection({ selectedMonth }: { selectedMonth: string }) {
                     {heatmap.seasons.map(s => (
                       <th key={s} className="text-center px-3 py-2 font-semibold text-gray-600 bg-gray-50 border border-gray-200">{s}</th>
                     ))}
+                    <th className="text-center px-3 py-2 font-semibold text-gray-700 bg-gray-100 border border-gray-300">소계</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {heatmap.cells.map(row => (
-                    <tr key={row.item}>
-                      <td className="px-3 py-2 font-semibold text-gray-700 bg-gray-50 border border-gray-200 whitespace-nowrap">{row.item}</td>
-                      {row.values.map((cell: any) => {
-                        const intensity = heatmap.maxVal > 0 ? cell.revenue / heatmap.maxVal : 0;
-                        const bg = intensity < 0.005 ? '#f8fafc' : `rgba(37,99,235,${(0.1 + intensity * 0.78).toFixed(2)})`;
-                        const textColor = intensity > 0.45 ? '#ffffff' : '#1e40af';
-                        return (
-                          <td
-                            key={cell.season}
-                            className="text-center px-2 py-2 border border-gray-200 tabular-nums font-medium"
-                            style={{ backgroundColor: bg, color: cell.revenue > 0 ? textColor : '#cbd5e1' }}
-                            title={`${row.item} × ${cell.season}: $${cell.revenue.toLocaleString()}`}
-                          >
-                            {cell.revenue > 0 ? `$${(cell.revenue / 1000).toFixed(1)}K` : '—'}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
+                  {heatmap.cells.map((row: any) => {
+                    const rowTotal = row.values.reduce((sum: number, cell: any) => sum + cell.revenue, 0);
+                    return (
+                      <tr key={row.item}>
+                        <td className="px-3 py-2 font-semibold text-gray-700 bg-gray-50 border border-gray-200 whitespace-nowrap">{row.item}</td>
+                        {row.values.map((cell: any) => {
+                          const intensity = heatmap.maxVal > 0 ? cell.revenue / heatmap.maxVal : 0;
+                          const bg = intensity < 0.005 ? '#f8fafc' : `rgba(37,99,235,${(0.1 + intensity * 0.78).toFixed(2)})`;
+                          const textColor = intensity > 0.45 ? '#ffffff' : '#1e40af';
+                          return (
+                            <td
+                              key={cell.season}
+                              className="text-center px-2 py-2 border border-gray-200 tabular-nums font-medium"
+                              style={{ backgroundColor: bg, color: cell.revenue > 0 ? textColor : '#cbd5e1' }}
+                              title={`${row.item} × ${cell.season}: $${cell.revenue.toLocaleString()}`}
+                            >
+                              {cell.revenue > 0 ? `$${(cell.revenue / 1000).toFixed(1)}K` : '—'}
+                            </td>
+                          );
+                        })}
+                        <td className="text-center px-2 py-2 border border-gray-300 tabular-nums font-semibold bg-gray-100" style={{ color: '#374151' }}>
+                          {rowTotal > 0 ? `$${(rowTotal / 1000).toFixed(1)}K` : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <td className="px-3 py-2 font-semibold text-gray-700 bg-gray-100 border border-gray-300">소계</td>
+                    {heatmap.seasons.map((s: string) => {
+                      const colTotal = heatmap.cells.reduce((sum: number, row: any) => {
+                        const cell = row.values.find((c: any) => c.season === s);
+                        return sum + (cell?.revenue || 0);
+                      }, 0);
+                      return (
+                        <td key={s} className="text-center px-2 py-2 border border-gray-300 tabular-nums font-semibold bg-gray-100" style={{ color: '#374151' }}>
+                          {colTotal > 0 ? `$${(colTotal / 1000).toFixed(1)}K` : '—'}
+                        </td>
+                      );
+                    })}
+                    <td className="text-center px-2 py-2 border border-gray-300 tabular-nums font-bold bg-gray-200" style={{ color: '#111827' }}>
+                      {`$${(heatmap.cells.reduce((sum: number, row: any) => sum + row.values.reduce((s: number, c: any) => s + c.revenue, 0), 0) / 1000).toFixed(1)}K`}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           ) : (
