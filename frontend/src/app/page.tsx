@@ -12327,7 +12327,7 @@ export default function DashboardPage() {
                                         const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                         seasonLabels.forEach(seasonLabel => {
                                           const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                          if (seasonRow && seasonRow.ytd26) {
+                                          if (seasonRow !== undefined && seasonRow.ytd26) {
                                             const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                             const baseNum = parseFloat(cleanVal);
                                             if (!isNaN(baseNum)) {
@@ -12359,7 +12359,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12404,7 +12404,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12434,7 +12434,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12446,7 +12446,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -12466,7 +12466,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12489,7 +12489,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12512,7 +12512,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12535,7 +12535,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12558,7 +12558,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12580,7 +12580,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12598,7 +12598,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12616,7 +12616,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12643,7 +12643,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12673,7 +12673,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12685,7 +12685,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -12702,7 +12702,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12724,7 +12724,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12742,7 +12742,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12760,7 +12760,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12792,7 +12792,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12822,7 +12822,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12834,7 +12834,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -12851,7 +12851,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12873,7 +12873,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12891,7 +12891,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12909,7 +12909,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -12929,7 +12929,7 @@ export default function DashboardPage() {
                                     // 영업비 계산
                                     const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
-                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                    if (operatingExpenseRow !== undefined && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) operatingExpenseValue = num;
@@ -13042,7 +13042,7 @@ export default function DashboardPage() {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                       seasonLabels.forEach(seasonLabel => {
                                         const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
+                                        if (seasonRow !== undefined && seasonRow.ytd26) {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                           const baseNum = parseFloat(cleanVal);
                                           if (!isNaN(baseNum)) {
@@ -13070,7 +13070,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13103,7 +13103,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13133,7 +13133,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13145,7 +13145,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -13162,7 +13162,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13181,7 +13181,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13200,7 +13200,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13219,7 +13219,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13243,7 +13243,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13271,7 +13271,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13301,7 +13301,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13313,7 +13313,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -13330,7 +13330,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13352,7 +13352,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13370,7 +13370,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13388,7 +13388,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13418,7 +13418,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13448,7 +13448,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13460,7 +13460,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -13477,7 +13477,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13499,7 +13499,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13517,7 +13517,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13535,7 +13535,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13555,7 +13555,7 @@ export default function DashboardPage() {
                                     // 영업비 계산
                                     const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
-                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                    if (operatingExpenseRow !== undefined && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) operatingExpenseValue = num;
@@ -13573,7 +13573,7 @@ export default function DashboardPage() {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                       seasonLabels.forEach(seasonLabel => {
                                         const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
+                                        if (seasonRow !== undefined && seasonRow.ytd26) {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                           const baseNum = parseFloat(cleanVal);
                                           if (!isNaN(baseNum)) {
@@ -13600,7 +13600,7 @@ export default function DashboardPage() {
                                     let sum = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13617,7 +13617,7 @@ export default function DashboardPage() {
                                     let sum = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13730,7 +13730,7 @@ export default function DashboardPage() {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                       seasonLabels.forEach(seasonLabel => {
                                         const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
+                                        if (seasonRow !== undefined && seasonRow.ytd26) {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                           const baseNum = parseFloat(cleanVal);
                                           if (!isNaN(baseNum)) {
@@ -13762,7 +13762,7 @@ export default function DashboardPage() {
                                       const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                       seasonLabels.forEach(seasonLabel => {
                                         const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                        if (seasonRow && seasonRow.ytd26) {
+                                        if (seasonRow !== undefined && seasonRow.ytd26) {
                                           const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                           const baseNum = parseFloat(cleanVal);
                                           if (!isNaN(baseNum)) {
@@ -13789,7 +13789,7 @@ export default function DashboardPage() {
                                     let sum = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13806,7 +13806,7 @@ export default function DashboardPage() {
                                     let sum = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13825,7 +13825,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13858,7 +13858,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13888,7 +13888,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13900,7 +13900,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -13917,7 +13917,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13936,7 +13936,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13955,7 +13955,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13974,7 +13974,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -13998,7 +13998,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14026,7 +14026,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14056,7 +14056,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14068,7 +14068,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -14085,7 +14085,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14107,7 +14107,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14125,7 +14125,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14143,7 +14143,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14173,7 +14173,7 @@ export default function DashboardPage() {
                                     const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14203,7 +14203,7 @@ export default function DashboardPage() {
                                     let tagOnlineValue = 0;
                                     seasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14215,7 +14215,7 @@ export default function DashboardPage() {
                                     
                                     const tagWholesaleRow = simulPLData.find(r => r.label === '홀세일');
                                     let tagWholesaleValue = 0;
-                                    if (tagWholesaleRow && tagWholesaleRow.ytd26) {
+                                    if (tagWholesaleRow !== undefined && tagWholesaleRow.ytd26) {
                                       const cleanVal = tagWholesaleRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) tagWholesaleValue = num;
@@ -14232,7 +14232,7 @@ export default function DashboardPage() {
                                     const semSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     semSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14254,7 +14254,7 @@ export default function DashboardPage() {
                                     const shippingSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     shippingSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14272,7 +14272,7 @@ export default function DashboardPage() {
                                     const storageSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     storageSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14290,7 +14290,7 @@ export default function DashboardPage() {
                                     const feeSeasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
                                     feeSeasonLabels.forEach(seasonLabel => {
                                       const seasonRow = simulPLData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.ytd26) {
+                                      if (seasonRow !== undefined && seasonRow.ytd26) {
                                         const cleanVal = seasonRow.ytd26.replace(/,/g, '');
                                         const baseNum = parseFloat(cleanVal);
                                         if (!isNaN(baseNum)) {
@@ -14310,7 +14310,7 @@ export default function DashboardPage() {
                                     // 영업비 계산
                                     const operatingExpenseRow = simulPLData.find(r => r.label === '영업비');
                                     let operatingExpenseValue = 0;
-                                    if (operatingExpenseRow && operatingExpenseRow.ytd26) {
+                                    if (operatingExpenseRow !== undefined && operatingExpenseRow.ytd26) {
                                       const cleanVal = operatingExpenseRow.ytd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
                                       if (!isNaN(num)) operatingExpenseValue = num;
