@@ -1644,19 +1644,19 @@ function DetailedExpenseCard({
                                 <div className="space-y-4 pt-2">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-center">
-                                            <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">26년 6월 CPM</p>
-                                            <p className="text-3xl font-bold text-blue-700">$15.10</p>
+                                            <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">26년 7월 CPM</p>
+                                            <p className="text-3xl font-bold text-blue-700">$13.6</p>
                                         </div>
                                         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
-                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">25년 6월 CPM</p>
-                                            <p className="text-3xl font-bold text-gray-600">$10.54</p>
+                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">25년 7월 CPM</p>
+                                            <p className="text-3xl font-bold text-gray-600">$9.4</p>
                                         </div>
                                     </div>
                                     <div className="rounded-xl bg-red-50 border border-red-100 p-4 flex items-center justify-between">
                                         <span className="text-sm font-semibold text-gray-700">YoY 증감</span>
                                         <div className="text-right">
-                                            <span className="text-2xl font-bold text-red-600">+143%</span>
-                                            <p className="text-xs text-gray-400 mt-0.5">+$4.56 per 1,000 impressions</p>
+                                            <span className="text-2xl font-bold text-red-600">+144%</span>
+                                            <p className="text-xs text-gray-400 mt-0.5">+$4.2 per 1,000 impressions</p>
                                         </div>
                                     </div>
                                     <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 space-y-3">
