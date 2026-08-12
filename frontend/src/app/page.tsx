@@ -5068,7 +5068,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [drillVendor, setDrillVendor] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
   const [txPage, setTxPage] = React.useState(0);
-  const [activePanel, setActivePanel] = React.useState<'trend' | 'cost' | 'dept' | null>(null);
+
   const PAGE_SIZE = 50;
 
   const PL_KR: Record<string, string> = {
@@ -5383,7 +5383,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
 
   // ── SVG: Waterfall chart ──
   const WaterfallChart = () => {
-    const W = 820, H = 260, PAD = { t: 30, r: 20, b: 60, l: 70 };
+    const W = 820, H = 380, PAD = { t: 30, r: 20, b: 70, l: 70 };
     const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
     // bars: [prev_total, ...per-category deltas..., cur_total]
     const bars: { label: string; value: number; base: number; type: 'total' | 'up' | 'down' }[] = [];
@@ -5788,306 +5788,194 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
       {viewTab === '분석' && (
         <>
 
-          {/* ── 2 테마 요약 카드 ── */}
-          <div className="grid grid-cols-2 gap-4">
-
-            {/* 카드 1: 비용 트렌드 */}
-            <Card className="border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer"
-              onClick={() => setActivePanel('trend')}>
-              <CardHeader className="pb-2 pt-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-gray-700">📈 비용 트렌드</CardTitle>
-                  <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium",
-                    yoyPct > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700')}>
-                    YoY {yoyPct > 0 ? '+' : ''}{yoyPct.toFixed(1)}%
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">전년동기 비교 · 연간 계획 진척률</p>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="space-y-2">
-                  {categorySummary.slice(0, 4).map(({ pl, cur, prev }) => {
-                    const maxV = Math.max(cur, prev, 1);
-                    const yoyP = prev > 0 ? ((cur / prev - 1) * 100) : 0;
-                    return (
-                      <div key={pl} className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-600 w-20 flex-shrink-0 truncate">{PL_KR[pl] || pl}</span>
-                        <div className="flex-1 space-y-0.5">
-                          <div className="w-full bg-gray-100 rounded-sm h-1.5">
-                            <div className="h-1.5 bg-gray-300 rounded-sm" style={{ width: `${prev / maxV * 100}%` }}/>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-sm h-1.5">
-                            <div className={cn("h-1.5 rounded-sm", yoyP > 0 ? 'bg-red-400' : 'bg-emerald-400')} style={{ width: `${cur / maxV * 100}%` }}/>
-                          </div>
-                        </div>
-                        <span className={cn("text-[10px] font-bold w-9 text-right", yoyP > 0 ? 'text-red-500' : 'text-emerald-600')}>
-                          {yoyP > 0 ? '+' : ''}{yoyP.toFixed(0)}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                {topCatPlan && (
-                  <p className="mt-3 text-xs text-gray-400">계획 최대 소진: <strong className="text-indigo-600">{PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%</strong></p>
-                )}
-                <div className="mt-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
-                    전체 보기 <span className="text-base">→</span>
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 카드 2: 비용 구조 */}
-            <Card className="border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-              onClick={() => setActivePanel('cost')}>
-              <CardHeader className="pb-2 pt-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-gray-700">📊 비용 구조</CardTitle>
-                  <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium",
-                    yoyAmt > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700')}>
-                    {yoyAmt > 0 ? '+' : ''}{fmtKshort(yoyAmt)}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">폭포수 증감 · 카테고리별 상세</p>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="space-y-1.5">
-                  {waterfallItems.slice(0, 5).map(({ pl, label, delta }) => (
-                    <div key={pl} className="flex items-center gap-2 text-xs">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[pl] }}/>
-                      <span className="text-gray-700 flex-1 truncate">{label}</span>
-                      <span className={cn("font-mono font-bold tabular-nums text-[11px]",
-                        delta > 0 ? 'text-red-500' : 'text-emerald-600')}>
-                        {delta !== 0 ? fmtKsigned(delta) : '–'}
+          {/* ── 📈 비용 트렌드 (항상 표시) ── */}
+          {(() => {
+            const prevMoKey = `${prevYr}-${String(curMonthNum).padStart(2,'0')}`;
+            const yoyItems = PL_ITEMS.map(pl => ({
+              pl,
+              prev: getYTDVal(prevMoKey, pl),
+              cur: getYTDVal(selectedMonthLocal, pl),
+            })).filter(d => d.prev > 0 || d.cur > 0).sort((a, b) => b.cur - a.cur);
+            const maxVal = Math.max(...yoyItems.flatMap(d => [d.prev, d.cur]), 1);
+            const totalPrev = yoyItems.reduce((s, d) => s + d.prev, 0);
+            const totalCur = yoyItems.reduce((s, d) => s + d.cur, 0);
+            const totalYoy = totalPrev > 0 ? ((totalCur / totalPrev - 1) * 100) : 0;
+            return (
+              <div className="grid grid-cols-2 gap-5">
+                <Card className="border-gray-100">
+                  <CardHeader className="pb-2 pt-4">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">
+                        전년동기 비교 ({prevYr}년 1~{curMonthNum}월 vs {curYr}년 1~{curMonthNum}월)
+                      </CardTitle>
+                      <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2",
+                        totalYoy > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700')}>
+                        합계 YoY {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}%
                       </span>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-3 pt-2 border-t border-gray-100 flex gap-3 text-xs text-gray-500">
-                  <span>{prevYr}: <strong className="text-gray-700">{fmtKshort(prevTotal)}</strong></span>
-                  <span>→</span>
-                  <span>{curYr}: <strong className="text-gray-700">{fmtKshort(currentTotal)}</strong></span>
-                </div>
-                <div className="mt-3">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
-                    전체 보기 <span className="text-base">→</span>
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-          </div>{/* end 2컬럼 */}
-
-          {/* ── 모달 오버레이 ── */}
-          {activePanel && (
-            <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto"
-              onClick={e => { if (e.target === e.currentTarget) setActivePanel(null); }}>
-              <div className="min-h-full flex items-start justify-center p-6">
-              <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl my-4">
-                {/* 모달 헤더 */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white rounded-t-xl z-10">
-                  <h2 className="text-sm font-bold text-gray-900">
-                    {activePanel === 'trend'
-                      ? `📈 비용 트렌드 — ${prevYr}년 vs ${curYr}년 1~${curMonthNum}월`
-                      : `📊 비용 구조 — ${prevYr}년 → ${curYr}년 ${viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`} 증감`}
-                  </h2>
-                  <button onClick={() => setActivePanel(null)}
-                    className="text-gray-400 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-gray-100">×</button>
-                </div>
-                <div className="p-6 space-y-5">
-
-                  {/* ── 비용 트렌드 패널 ── */}
-                  {activePanel === 'trend' && (() => {
-                    const prevMoKey = `${prevYr}-${String(curMonthNum).padStart(2,'0')}`;
-                    const yoyItems = PL_ITEMS.map(pl => ({
-                      pl,
-                      prev: getYTDVal(prevMoKey, pl),
-                      cur: getYTDVal(selectedMonthLocal, pl),
-                    })).filter(d => d.prev > 0 || d.cur > 0).sort((a, b) => b.cur - a.cur);
-                    const maxVal = Math.max(...yoyItems.flatMap(d => [d.prev, d.cur]), 1);
-                    const totalPrev = yoyItems.reduce((s, d) => s + d.prev, 0);
-                    const totalCur = yoyItems.reduce((s, d) => s + d.cur, 0);
-                    const totalYoy = totalPrev > 0 ? ((totalCur / totalPrev - 1) * 100) : 0;
-                    return (
-                      <div className="grid grid-cols-2 gap-5">
-                        <Card className="border-gray-100">
-                          <CardHeader className="pb-2 pt-4">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-sm font-semibold text-gray-700">
-                                전년동기 비교 ({prevYr}년 1~{curMonthNum}월 vs {curYr}년 1~{curMonthNum}월)
-                              </CardTitle>
-                              <span className={cn("text-xs rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2",
-                                totalYoy > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700')}>
-                                합계 YoY {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}%
-                              </span>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="space-y-2.5">
+                      {yoyItems.map(d => {
+                        const yoy = d.prev > 0 ? ((d.cur / d.prev - 1) * 100) : 0;
+                        return (
+                          <div key={d.pl} className="flex items-center gap-2 text-xs">
+                            <span className="font-medium text-gray-700 w-28 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
+                            <div className="flex-1 space-y-0.5">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-400 w-7">{prevYr.slice(2)}년</span>
+                                <div className="flex-1 bg-gray-100 rounded-sm h-3">
+                                  <div className="h-3 bg-gray-300 rounded-sm" style={{ width: `${Math.min(d.prev / maxVal * 100, 100)}%` }}/>
+                                </div>
+                                <span className="text-[10px] text-gray-500 w-14 text-right tabular-nums">{fmtKshort(d.prev)}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[10px] text-gray-600 w-7 font-medium">{curYr.slice(2)}년</span>
+                                <div className="flex-1 bg-gray-100 rounded-sm h-3">
+                                  <div className={cn("h-3 rounded-sm", yoy > 10 ? 'bg-red-400' : yoy > 0 ? 'bg-amber-400' : 'bg-emerald-400')} style={{ width: `${Math.min(d.cur / maxVal * 100, 100)}%` }}/>
+                                </div>
+                                <span className="text-[10px] text-gray-800 font-medium w-14 text-right tabular-nums">{fmtKshort(d.cur)}</span>
+                              </div>
                             </div>
-                          </CardHeader>
-                          <CardContent className="pb-4">
-                            <div className="space-y-2.5">
-                              {yoyItems.map(d => {
-                                const yoy = d.prev > 0 ? ((d.cur / d.prev - 1) * 100) : 0;
-                                return (
-                                  <div key={d.pl} className="flex items-center gap-2 text-xs">
-                                    <span className="font-medium text-gray-700 w-28 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
-                                    <div className="flex-1 space-y-0.5">
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-[10px] text-gray-400 w-7">{prevYr.slice(2)}년</span>
-                                        <div className="flex-1 bg-gray-100 rounded-sm h-3">
-                                          <div className="h-3 bg-gray-300 rounded-sm" style={{ width: `${Math.min(d.prev / maxVal * 100, 100)}%` }}/>
-                                        </div>
-                                        <span className="text-[10px] text-gray-500 w-14 text-right tabular-nums">{fmtKshort(d.prev)}</span>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <span className="text-[10px] text-gray-600 w-7 font-medium">{curYr.slice(2)}년</span>
-                                        <div className="flex-1 bg-gray-100 rounded-sm h-3">
-                                          <div className={cn("h-3 rounded-sm", yoy > 10 ? 'bg-red-400' : yoy > 0 ? 'bg-amber-400' : 'bg-emerald-400')} style={{ width: `${Math.min(d.cur / maxVal * 100, 100)}%` }}/>
-                                        </div>
-                                        <span className="text-[10px] text-gray-800 font-medium w-14 text-right tabular-nums">{fmtKshort(d.cur)}</span>
-                                      </div>
-                                    </div>
-                                    <span className={cn("text-xs font-bold w-12 text-right tabular-nums",
-                                      yoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
-                                      {yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                              <span>{prevYr}년 합계: <strong className="text-gray-700">{fmtKshort(totalPrev)}</strong></span>
-                              <span>{curYr}년 합계: <strong className="text-gray-700">{fmtKshort(totalCur)}</strong></span>
-                              <span className={cn("font-bold", totalYoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
-                                {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}% ({totalYoy > 0 ? '+' : ''}{fmtKshort(totalCur - totalPrev)})
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        <Card className="border-gray-100">
-                          <CardHeader className="pb-2 pt-4">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-sm font-semibold text-gray-700">
-                                연간 계획 대비 진척률 (1~6월 실적 / 연간)
-                              </CardTitle>
-                              {topCatPlan && (
-                                <span className="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2">
-                                  최대: {PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-400 mt-0.5">연간 = 1~6월 실적 + 7~12월 계획 (Forecast)</p>
-                          </CardHeader>
-                          <CardContent className="pb-4">
-                            <div className="space-y-3">
-                              {annualPlanByPL.filter(d => d.plan > 0).map(d => {
-                                const bar = Math.min(d.progress, 100);
-                                return (
-                                  <div key={d.pl} className="flex items-center justify-between text-xs gap-2">
-                                    <span className="font-medium text-gray-700 w-32 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
-                                    <div className="flex-1">
-                                      <div className="w-full bg-gray-100 rounded-full h-5 relative overflow-hidden">
-                                        <div className={cn("h-5 rounded-full flex items-center justify-end pr-2",
-                                          bar > 60 ? 'bg-red-400' : bar > 45 ? 'bg-amber-400' : 'bg-emerald-400'
-                                        )} style={{ width: `${bar}%` }}>
-                                          <span className="text-white text-xs font-bold">{d.progress.toFixed(0)}%</span>
-                                        </div>
-                                        <div className="absolute top-0 bottom-0 w-px bg-gray-400 opacity-50" style={{ left: '50%' }}/>
-                                      </div>
-                                    </div>
-                                    <span className="text-gray-500 w-28 text-right tabular-nums">{fmtKshort(d.actual)} / {fmtKshort(d.plan)}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    );
-                  })()}
-
-                  {/* ── 비용 구조 패널 ── */}
-                  {activePanel === 'cost' && (
-                    <div className="grid grid-cols-2 gap-5">
-                      <Card className="border-gray-100">
-                        <CardHeader className="pb-2 pt-4">
-                          <CardTitle className="text-sm font-semibold text-gray-700">
-                            전년 대비 영업비 증감 분해 ({prevYr}년 → {curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월` : `${curMonthNum}월`})
-                          </CardTitle>
-                          <p className="text-xs text-gray-400 mt-1">
-                            <span className="inline-block w-3 h-3 rounded-sm bg-red-500 mr-1 align-middle"/>증가 &nbsp;
-                            <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500 mr-1 align-middle"/>감소 &nbsp;
-                            <span className="inline-block w-3 h-3 rounded-sm bg-slate-600 mr-1 align-middle"/>합계
-                          </p>
-                        </CardHeader>
-                        <CardContent className="pb-4"><WaterfallChart /></CardContent>
-                      </Card>
-                      <Card className="border-gray-100">
-                        <CardHeader className="pb-1 pt-4">
-                          <CardTitle className="text-sm font-semibold text-gray-700">카테고리별 증감 상세</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="bg-gray-50 border-b border-gray-100">
-                                <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-medium w-6"/>
-                                <th className="text-left px-2 py-2.5 text-xs text-gray-500 font-medium">카테고리</th>
-                                <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{prevYr}년</th>
-                                <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{curYr}년</th>
-                                <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감액</th>
-                                <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감률</th>
-                                <th className="w-28 px-3 py-2.5 text-xs text-gray-500 font-medium text-center">방향</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {waterfallItems.map(({ pl, label, cur, prev, delta }, idx) => (
-                                <tr key={pl} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20')}>
-                                  <td className="px-4 py-2"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }}/></td>
-                                  <td className="px-2 py-2 font-medium text-gray-800">{label}</td>
-                                  <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prev)}</td>
-                                  <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900">{fmtKshort(cur)}</td>
-                                  <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold",
-                                    delta > 0 ? 'text-red-600' : delta < 0 ? 'text-emerald-600' : 'text-gray-400')}>
-                                    {delta !== 0 ? fmtKsigned(delta) : '–'}
-                                  </td>
-                                  <td className={cn("px-3 py-2 text-right font-mono tabular-nums",
-                                    delta > 0 ? 'text-red-500' : delta < 0 ? 'text-emerald-500' : 'text-gray-400')}>
-                                    {prev > 0 ? (delta > 0 ? '+' : '') + ((delta / prev) * 100).toFixed(1) + '%' : 'N/A'}
-                                  </td>
-                                  <td className="px-3 py-2 text-center">
-                                    <span className={cn("inline-block px-2 py-0.5 rounded text-xs font-medium",
-                                      delta > 0 ? 'bg-red-50 text-red-600' : delta < 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400')}>
-                                      {delta > 0 ? '▲ 증가' : delta < 0 ? '▼ 감소' : '변동없음'}
-                                    </span>
-                                  </td>
-                                </tr>
-                              ))}
-                              <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
-                                <td className="px-4 py-2.5"/>
-                                <td className="px-2 py-2.5 text-gray-900">합계</td>
-                                <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prevTotal)}</td>
-                                <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-900">{fmtKshort(currentTotal)}</td>
-                                <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums font-bold",
-                                  yoyAmt > 0 ? 'text-red-600' : 'text-emerald-600')}>{fmtKsigned(yoyAmt)}</td>
-                                <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums",
-                                  yoyPct > 0 ? 'text-red-500' : 'text-emerald-500')}>
-                                  {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
-                                </td>
-                                <td/>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </CardContent>
-                      </Card>
+                            <span className={cn("text-xs font-bold w-12 text-right tabular-nums",
+                              yoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
+                              {yoy > 0 ? '+' : ''}{yoy.toFixed(0)}%
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-
-
-                </div>
+                    <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                      <span>{prevYr}년 합계: <strong className="text-gray-700">{fmtKshort(totalPrev)}</strong></span>
+                      <span>{curYr}년 합계: <strong className="text-gray-700">{fmtKshort(totalCur)}</strong></span>
+                      <span className={cn("font-bold", totalYoy > 0 ? 'text-red-500' : 'text-emerald-600')}>
+                        {totalYoy > 0 ? '+' : ''}{totalYoy.toFixed(1)}% ({totalYoy > 0 ? '+' : ''}{fmtKshort(totalCur - totalPrev)})
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-gray-100">
+                  <CardHeader className="pb-2 pt-4">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">
+                        연간 계획 대비 진척률 (1~{curMonthNum}월 실적 / 연간)
+                      </CardTitle>
+                      {topCatPlan && (
+                        <span className="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2">
+                          최대: {PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">연간 = 1~{curMonthNum}월 실적 + {curMonthNum + 1}~12월 계획 (Forecast)</p>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <div className="space-y-3">
+                      {annualPlanByPL.filter(d => d.plan > 0).map(d => {
+                        const bar = Math.min(d.progress, 100);
+                        return (
+                          <div key={d.pl} className="flex items-center justify-between text-xs gap-2">
+                            <span className="font-medium text-gray-700 w-32 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
+                            <div className="flex-1">
+                              <div className="w-full bg-gray-100 rounded-full h-5 relative overflow-hidden">
+                                <div className={cn("h-5 rounded-full flex items-center justify-end pr-2",
+                                  bar > 60 ? 'bg-red-400' : bar > 45 ? 'bg-amber-400' : 'bg-emerald-400'
+                                )} style={{ width: `${bar}%` }}>
+                                  <span className="text-white text-xs font-bold">{d.progress.toFixed(0)}%</span>
+                                </div>
+                                <div className="absolute top-0 bottom-0 w-px bg-gray-400 opacity-50" style={{ left: '50%' }}/>
+                              </div>
+                            </div>
+                            <span className="text-gray-500 w-28 text-right tabular-nums">{fmtKshort(d.actual)} / {fmtKshort(d.plan)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
+                  </CardContent>
+                </Card>
               </div>
-              </div>
+            );
+          })()}
+
+          {/* ── 📊 비용 구조 ── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+              <h3 className="text-sm font-semibold text-gray-700">📊 비용 구조</h3>
+              <span className="text-xs text-gray-400">{prevYr}년 → {curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`} 증감</span>
             </div>
-          )}
+            <div className="grid grid-cols-2 gap-5">
+              <Card className="border-gray-100">
+                <CardHeader className="pb-2 pt-4">
+                  <CardTitle className="text-sm font-semibold text-gray-700">
+                    전년 대비 영업비 증감 분해 ({prevYr}년 → {curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월` : `${curMonthNum}월`})
+                  </CardTitle>
+                  <p className="text-xs text-gray-400 mt-1">
+                    <span className="inline-block w-3 h-3 rounded-sm bg-red-500 mr-1 align-middle"/>증가 &nbsp;
+                    <span className="inline-block w-3 h-3 rounded-sm bg-emerald-500 mr-1 align-middle"/>감소 &nbsp;
+                    <span className="inline-block w-3 h-3 rounded-sm bg-slate-600 mr-1 align-middle"/>합계
+                  </p>
+                </CardHeader>
+                <CardContent className="pb-4"><WaterfallChart /></CardContent>
+              </Card>
+              <Card className="border-gray-100">
+                <CardHeader className="pb-1 pt-4">
+                  <CardTitle className="text-sm font-semibold text-gray-700">카테고리별 증감 상세</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-100">
+                        <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-medium w-6"/>
+                        <th className="text-left px-2 py-2.5 text-xs text-gray-500 font-medium">카테고리</th>
+                        <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{prevYr}년</th>
+                        <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">{curYr}년</th>
+                        <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감액</th>
+                        <th className="text-right px-3 py-2.5 text-xs text-gray-500 font-medium">증감률</th>
+                        <th className="w-28 px-3 py-2.5 text-xs text-gray-500 font-medium text-center">방향</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {waterfallItems.map(({ pl, label, cur, prev, delta }, idx) => (
+                        <tr key={pl} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/20')}>
+                          <td className="px-4 py-2"><span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PL_COLORS[pl] }}/></td>
+                          <td className="px-2 py-2 font-medium text-gray-800">{label}</td>
+                          <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prev)}</td>
+                          <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-900">{fmtKshort(cur)}</td>
+                          <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold",
+                            delta > 0 ? 'text-red-600' : delta < 0 ? 'text-emerald-600' : 'text-gray-400')}>
+                            {delta !== 0 ? fmtKsigned(delta) : '–'}
+                          </td>
+                          <td className={cn("px-3 py-2 text-right font-mono tabular-nums",
+                            delta > 0 ? 'text-red-500' : delta < 0 ? 'text-emerald-500' : 'text-gray-400')}>
+                            {prev > 0 ? (delta > 0 ? '+' : '') + ((delta / prev) * 100).toFixed(1) + '%' : 'N/A'}
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={cn("inline-block px-2 py-0.5 rounded text-xs font-medium",
+                              delta > 0 ? 'bg-red-50 text-red-600' : delta < 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400')}>
+                              {delta > 0 ? '▲ 증가' : delta < 0 ? '▼ 감소' : '변동없음'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
+                        <td className="px-4 py-2.5"/>
+                        <td className="px-2 py-2.5 text-gray-900">합계</td>
+                        <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-400">{fmtKshort(prevTotal)}</td>
+                        <td className="px-3 py-2.5 text-right font-mono tabular-nums text-gray-900">{fmtKshort(currentTotal)}</td>
+                        <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums font-bold",
+                          yoyAmt > 0 ? 'text-red-600' : 'text-emerald-600')}>{fmtKsigned(yoyAmt)}</td>
+                        <td className={cn("px-3 py-2.5 text-right font-mono tabular-nums",
+                          yoyPct > 0 ? 'text-red-500' : 'text-emerald-500')}>
+                          {prevTotal > 0 ? (yoyPct > 0 ? '+' : '') + yoyPct.toFixed(1) + '%' : 'N/A'}
+                        </td>
+                        <td/>
+                      </tr>
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
           {/* ── 🏢 부서 & 거래 — 하단 행 직접 표시 ── */}
           <div className="space-y-4 pt-2">
@@ -10661,14 +10549,14 @@ const SIMUL_BS_HEADERS = ['구분', '전년', 'RF_04', 'RF_05', 'RF_05 - 전년'
 const SIMUL_BS_SECTION_ROWS = new Set(['자산', '부채', '자본']);
 
 const SIMUL_TABLE = {
-  table: 'w-full border-collapse table-fixed text-[11px] leading-tight',
-  th: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-[#1e4a7a] text-center whitespace-nowrap tracking-wide',
-  thLabel: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-[#1e4a7a] text-left whitespace-nowrap tracking-wide',
-  tdLabel: 'px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 leading-tight',
-  tdLabelBold: 'px-2.5 py-1.5 text-[11px] font-semibold border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 leading-tight',
-  tdNum: 'text-right px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 font-mono tabular-nums font-normal leading-tight',
-  tdNumBold: 'text-right px-2.5 py-1.5 text-[11px] border-2 border-t-transparent border-b-transparent border-l-gray-200 border-r-gray-200 font-mono tabular-nums font-semibold leading-tight',
-  tdNumLoose: 'text-right px-2.5 py-1.5 text-[11px] font-mono tabular-nums font-normal leading-tight',
+  table: 'w-full border-collapse text-[12px]',
+  th: 'px-3 py-2.5 text-[11px] font-semibold text-right text-white border-r border-slate-600 last:border-r-0 whitespace-nowrap tracking-wide',
+  thLabel: 'px-3 py-2.5 text-[11px] font-semibold text-left text-white whitespace-nowrap tracking-wide',
+  tdLabel: 'px-3 py-1.5 text-[12px] border-b border-gray-100 text-gray-700 whitespace-nowrap',
+  tdLabelBold: 'px-3 py-2 text-[12px] font-bold border-b border-gray-200 text-gray-900 whitespace-nowrap',
+  tdNum: 'text-right px-3 py-1.5 text-[12px] border-b border-gray-100 font-mono tabular-nums',
+  tdNumBold: 'text-right px-3 py-2 text-[12px] font-bold border-b border-gray-200 font-mono tabular-nums',
+  tdNumLoose: 'text-right px-3 py-1.5 text-[12px] font-mono tabular-nums border-b border-gray-100',
 } as const;
 
 const parseSimulBalanceNum = (raw: string) => parseFloat((raw || '0').replace(/[,$]/g, '')) || 0;
@@ -10890,16 +10778,22 @@ export default function DashboardPage() {
           setSimulPLHeaders(headers);
         }
         
+        const roundNum = (s: string) => {
+          if (!s || s.includes('%')) return s;
+          const n = parseFloat(s.replace(/,/g, ''));
+          if (isNaN(n)) return s;
+          return String(Math.round(n));
+        };
         const data = lines.slice(1).map(line => {
           const values = parseCSVLine(line);
           return {
             label: values[0] || '',
-            fy25: values[1] || '0',
-            prevYtd26: values[2] || '0',
-            ytd26: values[3] || '0',
-            yoy: values[4] || '0',
-            monthDiff: values[5] || '0',
-            growth: values[6] || '0'
+            fy25: roundNum(values[1] || '0'),
+            prevYtd26: roundNum(values[2] || '0'),
+            ytd26: roundNum(values[3] || '0'),
+            yoy: roundNum(values[4] || '0'),
+            monthDiff: roundNum(values[5] || '0'),
+            growth: roundNum(values[6] || '0')
           };
         });
         setSimulPLData(data);
@@ -12414,11 +12308,11 @@ export default function DashboardPage() {
                   <div className="overflow-x-auto border-b-2 border-b-gray-200">
                     <table className={SIMUL_TABLE.table}>
                       <thead>
-                        <tr className="bg-[#2E5C8A] text-white">
+                        <tr className="bg-[#2E5C8A]">
                           {simulPLHeaders.map((header, idx) => (
                             <th
                               key={`pl-header-${idx}`}
-                              className={`${idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th} ${idx > 0 ? 'w-[16.67%]' : ''}`}
+                              className={`${idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th} ${idx > 0 ? 'w-[18%]' : 'w-[46%]'}`}
                               dangerouslySetInnerHTML={{ __html: header.replace(/\\n/g, '<br/>') }}
                             />
                           ))}
@@ -12464,13 +12358,13 @@ export default function DashboardPage() {
                           const isDirectCostChild = index > directCostIdx && index < directProfitIdx && !['직접비', '직접이익'].includes(label);
                           
                           let rowClass = '';
-                          if (isMainCategory) {
-                            rowClass = isProfitHighlight ? 'font-bold bg-blue-50' : 'font-bold bg-slate-100/70';
-                            if (isCollapsibleParent) rowClass += ' cursor-pointer hover:bg-slate-200/50';
-                          } else if (isEcom) {
-                            rowClass = 'hover:bg-slate-50 font-medium';
+                          if (isProfitHighlight) {
+                            rowClass = 'font-bold bg-blue-50 border-t-2 border-t-blue-200';
+                          } else if (isMainCategory) {
+                            rowClass = 'font-bold bg-slate-100';
+                            if (isCollapsibleParent) rowClass += ' cursor-pointer hover:bg-slate-200/60';
                           } else {
-                            rowClass = 'hover:bg-slate-50/60';
+                            rowClass = 'hover:bg-gray-50';
                           }
                           
                           let indentClass = '';
@@ -12478,12 +12372,8 @@ export default function DashboardPage() {
                           const isNetSalesSeasonItem = isSeasonItem && index > netSalesIdx && index < cogsIdx;
                           const isTagSalesSeasonItem = isSeasonItem && index > tagSalesIdx && index < netSalesIdx;
                           
-                          if (isNetSalesSeasonItem) {
-                            indentClass = 'pl-12';
-                          } else if (isTagSalesSeasonItem) {
-                            indentClass = 'text-center';
-                          } else if (isSeasonItem) {
-                            indentClass = 'pl-12';
+                          if (isNetSalesSeasonItem || isTagSalesSeasonItem || isSeasonItem) {
+                            indentClass = 'pl-6';
                           } else if (isEcom || isWholesale || isNetSalesChild || isCogsChild || isDirectCostChild) {
                             indentClass = 'pl-6';
                           }
@@ -12532,34 +12422,16 @@ export default function DashboardPage() {
                                   </div>
                                 )}
                               </td>
-                              <td className={`${SIMUL_TABLE.tdNum} bg-blue-50/10`}>
+                              <td className={`${isMainCategory ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum} bg-slate-50/60`}>
                                 {(() => {
-                                  // 실판매출 행 - 동적 계산 (온라인 + 홀세일 + 라이센스 + 기타)
+                                  // 실판매출 행 - 자식 행 합산
                                   if (isNetSales) {
-                                    // 온라인(아래 적용 할인율) 값
-                                    const onlineRow = simulPLData.find(r => r.label === '온라인(아래 적용 할인율)');
-                                    let onlineValue = 0;
-                                    if (onlineRow && onlineRow.fy25) {
-                                      const cleanVal = onlineRow.fy25.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) onlineValue = num;
-                                    }
-                                    
-                                    // 홀세일, 라이센스, 기타 값 찾기
-                                    let wholesaleValue = 0;
-                                    let licenseValue = 0;
-                                    let etcValue = 0;
-                                    
+                                    let total = 0;
                                     for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
-                                      const childRow = simulPLData[i];
-                                      const childVal = parseFloat(childRow.fy25?.replace(/,/g, '') || '0');
-                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
-                                      else if (childRow.label === '기타') etcValue = childVal;
+                                      const childVal = parseFloat((simulPLData[i].fy25 || '').replace(/,/g, ''));
+                                      if (!isNaN(childVal)) total += childVal;
                                     }
-                                    
-                                    const total = onlineValue + wholesaleValue + licenseValue + etcValue;
-                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
+                                    return total !== 0 ? <span>{Math.round(total).toLocaleString()}</span> : '';
                                   }
                                   
                                   const val = row.fy25;
@@ -12578,38 +12450,16 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={`${SIMUL_TABLE.tdNum} bg-amber-50/20 ${
-                                isSeasonItem || isEcom 
-                                  ? '!border-r-red-400' + (label === '온라인' ? ' !border-t-red-400' : '') 
-                                  : ''
-                              }`}>
+                              <td className={`${isMainCategory ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}`}>
                                 {(() => {
-                                  // 실판매출 행 - 동적 계산 (온라인 + 홀세일 + 라이센스 + 기타)
+                                  // 실판매출 행 - 자식 행 합산
                                   if (isNetSales) {
-                                    // 온라인(아래 적용 할인율) 값
-                                    const onlineRow = simulPLData.find(r => r.label === '온라인(아래 적용 할인율)');
-                                    let onlineValue = 0;
-                                    if (onlineRow && onlineRow.prevYtd26) {
-                                      const cleanVal = onlineRow.prevYtd26.replace(/,/g, '');
-                                      const num = parseFloat(cleanVal);
-                                      if (!isNaN(num)) onlineValue = num;
-                                    }
-                                    
-                                    // 홀세일, 라이센스, 기타 값 찾기
-                                    let wholesaleValue = 0;
-                                    let licenseValue = 0;
-                                    let etcValue = 0;
-                                    
+                                    let total = 0;
                                     for (let i = netSalesIdx + 1; i < cogsIdx; i++) {
-                                      const childRow = simulPLData[i];
-                                      const childVal = parseFloat(childRow.prevYtd26?.replace(/,/g, '') || '0');
-                                      if (childRow.label === '홀세일') wholesaleValue = childVal;
-                                      else if (childRow.label === '라이센스' || childRow.label === '라이선스') licenseValue = childVal;
-                                      else if (childRow.label === '기타') etcValue = childVal;
+                                      const childVal = parseFloat((simulPLData[i].prevYtd26 || '').replace(/,/g, ''));
+                                      if (!isNaN(childVal)) total += childVal;
                                     }
-                                    
-                                    const total = onlineValue + wholesaleValue + licenseValue + etcValue;
-                                    return total !== 0 ? Math.round(total).toLocaleString() : '';
+                                    return total !== 0 ? <span>{Math.round(total).toLocaleString()}</span> : '';
                                   }
                                   
                                   const val = row.prevYtd26;
@@ -12625,16 +12475,7 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={`${SIMUL_TABLE.tdNumLoose} ${
-                                // TAG매출 섹션의 시즌 항목과 온라인만 붉은 테두리
-                                (isSeasonItem || isEcom) && !isNetSalesSeasonItem && !isNetSalesOnline
-                                  ? 'bg-red-50/30 border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400' +
-                                    (label === '온라인' ? ' border-t-[7px] !border-t-red-400' : '') +
-                                    (label === 'CORE' ? ' border-b-[7px] !border-b-red-400' : '')
-                                  : isTagSales
-                                    ? 'bg-green-50/20 border-l-2 border-l-gray-200 border-r-2 border-r-gray-200 border-b-[7px] !border-b-red-400'
-                                    : 'bg-green-50/20 border-l-2 border-l-gray-200 border-r-2 border-r-gray-200'
-                              }`}>
+                              <td className={`${isMainCategory ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNumLoose}`}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(RF_05) 값만 표시
                                   const __plRawVal = row.ytd26 ?? '';
@@ -12645,8 +12486,8 @@ export default function DashboardPage() {
                                     const cleanRaw = rawVal.replace(/,/g, '');
                                     const rawNum = parseFloat(cleanRaw);
                                     if (isNaN(rawNum)) return rawVal;
-                                    if (rawNum < 0) return <span className="text-red-600">{rawNum.toLocaleString()}</span>;
-                                    return rawNum.toLocaleString();
+                                    if (rawNum < 0) return <span className="text-red-600 font-semibold">{rawNum.toLocaleString()}</span>;
+                                    return <span className="text-blue-700 font-semibold">+{rawNum.toLocaleString()}</span>;
                                   }
                                   // 매출원가 = TAG매출 26FY YTD × 19.93%
                                   if (isCOGS) {
@@ -13328,7 +13169,8 @@ export default function DashboardPage() {
                                   return val;
                                 })()}
                               </td>
-                              <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
+                              {/* yoy 컬럼 제거됨 */}
+                              {false && <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전년대비) 값만 표시
                                   const __yoyRawVal = row.yoy ?? '';
@@ -14010,8 +13852,9 @@ export default function DashboardPage() {
                                   const colorClass = diff < 0 ? 'text-red-600' : 'text-blue-600';
                                   return <span className={colorClass}>{Math.round(diff).toLocaleString()}</span>;
                                 })()}
-                              </td>
-                              <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
+                              </td>}
+                              {/* yoy/monthDiff 컬럼 제거됨 */}
+                              {false && <td className={isMainCategory || isProfitHighlight ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}>
                                 {(() => {
                                   // 모든 계산 로직 비활성화 - CSV(전월대비) 값만 표시
                                   const __monthRawVal = row.monthDiff ?? '';
@@ -14695,7 +14538,7 @@ export default function DashboardPage() {
                                   const colorClass = diff < 0 ? 'text-red-600' : 'text-blue-600';
                                   return <span className={colorClass}>{Math.round(diff).toLocaleString()}</span>;
                                 })()}
-                              </td>
+                              </td>}
                             </tr>
                           );
                         })}
@@ -14741,11 +14584,8 @@ export default function DashboardPage() {
                             if (!value || value === '0') return '';
                             const num = parseSimulBalanceNum(value);
                             if (isChangeCol && num !== 0) {
-                              return (
-                                <span className={num > 0 ? 'text-red-600' : 'text-blue-600'}>
-                                  {formatSimulBalanceNum(num)}
-                                </span>
-                              );
+                              if (num < 0) return <span className="text-red-600 font-semibold">{formatSimulBalanceNum(num)}</span>;
+                              return <span className="text-blue-600 font-semibold">+{formatSimulBalanceNum(num)}</span>;
                             }
                             if (num < 0) {
                               return <span className="text-red-600">{formatSimulBalanceNum(num)}</span>;
@@ -14753,7 +14593,7 @@ export default function DashboardPage() {
                             return formatSimulBalanceNum(num);
                           };
 
-                          const values = [row.prevYear, row.rf04, row.rf05, row.rf05PrevYear, row.rf05Rf04];
+                          const values = [row.prevYear, row.rf04, row.rf05];
 
                           return (
                             <tr key={`bs-row-${index}`} className={`hover:bg-gray-50 ${rowBg}`}>
@@ -14761,24 +14601,13 @@ export default function DashboardPage() {
                                 {row.label}
                               </td>
                               {values.map((value, colIdx) => {
-                                const cellContent = renderValue(value, colIdx >= 3);
-                                const showInventoryNote = row.label === '재고자산' && colIdx === 2 && cellContent;
-
+                                const cellContent = renderValue(value, colIdx >= 2);
                                 return (
                                   <td
                                     key={`bs-col-${index}-${colIdx}`}
-                                    className={cn(
-                                      isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum,
-                                      showInventoryNote && 'bg-sky-100 ring-1 ring-inset ring-sky-300 cursor-pointer'
-                                    )}
+                                    className={isSection ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum}
                                   >
-                                    {showInventoryNote ? (
-                                      <StickyNoteTooltip text={SIMUL_INVENTORY_RF05_NOTE}>
-                                        {cellContent}
-                                      </StickyNoteTooltip>
-                                    ) : (
-                                      cellContent
-                                    )}
+                                    {cellContent}
                                   </td>
                                 );
                               })}
@@ -14801,25 +14630,21 @@ export default function DashboardPage() {
                     <table className={SIMUL_TABLE.table}>
                       <thead>
                         <tr className="bg-[#2E5C8A] text-white">
-                          {simulInvenHeaders.map((header, idx) => {
-                            const isECHeader = header === 'EC 판매' || header === 'EC판매';
-                            return (
-                              <th 
-                                key={`inven-header-${idx}`}
-                                className={`${SIMUL_TABLE.th} ${isECHeader ? '!border-b-red-400' : ''}`}
-                                style={{ width: `${100 / simulInvenHeaders.length}%` }}
-                              >
-                                {header}
-                              </th>
-                            );
-                          })}
+                          {simulInvenHeaders.map((header, idx) => (
+                            <th
+                              key={`inven-header-${idx}`}
+                              className={idx === 0 ? SIMUL_TABLE.thLabel : SIMUL_TABLE.th}
+                              style={{ width: idx === 0 ? '20%' : `${80 / (simulInvenHeaders.length - 1)}%` }}
+                            >
+                              {header}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
                         {simulInvenData.map((row, index) => {
                           const isFirstRow = index === 0;
-                          const isYOY = row.label === 'YOY' || row.label.includes('YOY');
-                          const isDetailRow = index >= 2; // 27SS부터 CORE까지
+                          const isDetailRow = index >= 2;
                           
                           // 행 배경색 설정
                           let rowClass = 'hover:bg-gray-50';
@@ -14829,258 +14654,45 @@ export default function DashboardPage() {
                             rowClass = 'bg-blue-50/30 hover:bg-blue-50/50'; // 연한 파스텔 블루
                           }
                           
-                          const borderClass = 'border-2 border-gray-300';
-                          
-                          // 숫자 포맷팅 함수 (쉼표 제거 후 숫자로 변환)
-                          const formatNumber = (val: string, isYOYRow: boolean = false) => {
-                            if (!val || val === '0') return '';
-                            // % 포함된 경우 그대로 반환
-                            if (val.includes('%')) return val;
-                            // 쉼표 제거
-                            const cleanVal = val.replace(/,/g, '');
-                            const num = parseFloat(cleanVal);
-                            if (isNaN(num)) return val; // 숫자가 아니면 원본 반환
-                            return num.toLocaleString();
-                          };
-                          
-                          // 기말 자동 계산: 기초 + 상품매입 - 홀세일 판매 - EC 판매
-                          // CSV 인덱스: 기초=0, 상품매입=1, 홀세일 판매=2, EC 판매=3, 기말=4, 증감=5
-                          const calculateFinal = (colIdx: number) => {
-                            // 기말 컬럼인 경우만 계산
-                            const headerName = simulInvenHeaders[colIdx + 1] || '';
-                            if (!headerName.includes('기말')) {
-                              return formatNumber(row.values[colIdx] || '0', isYOY);
-                            }
-                            
-                            if (isYOY) return formatNumber(row.values[colIdx] || '0', true);
-                            
-                            const initialVal = (row.values[0] || '0').replace(/,/g, '');
-                            const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
-                            const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
-                            const ecSalesBaseVal = (row.values[3] || '0').replace(/,/g, '');
-                            
-                            const initial = parseFloat(initialVal) || 0;
-                            const purchase = parseFloat(purchaseVal) || 0;
-                            const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
-                            
-                            // EC 판매는 성장률 적용
-                            let ecSales = parseFloat(ecSalesBaseVal) || 0;
-                            const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                            if (seasonLabels.includes(row.label)) {
-                              const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                              ecSales = ecSales * (growthRate / 100);
-                            }
-                            
-                            const final = initial + purchase - wholesaleSales - ecSales;
-                            return final !== 0 ? Math.round(final).toLocaleString() : '';
-                          };
-                          
-                          // 증감 자동 계산: 기말 - 기초
-                          const calculateChange = (colIdx: number) => {
-                            // 증감 컬럼인 경우만 계산
-                            const headerName = simulInvenHeaders[colIdx + 1] || '';
-                            if (!headerName.includes('증감')) {
-                              return formatNumber(row.values[colIdx] || '0', isYOY);
-                            }
-                            
-                            if (isYOY) return formatNumber(row.values[colIdx] || '0', true);
-                            
-                            const initialVal = (row.values[0] || '0').replace(/,/g, '');
-                            const purchaseVal = (row.values[1] || '0').replace(/,/g, '');
-                            const wholesaleSalesVal = (row.values[2] || '0').replace(/,/g, '');
-                            const ecSalesBaseVal = (row.values[3] || '0').replace(/,/g, '');
-                            
-                            const initial = parseFloat(initialVal) || 0;
-                            const purchase = parseFloat(purchaseVal) || 0;
-                            const wholesaleSales = parseFloat(wholesaleSalesVal) || 0;
-                            
-                            // EC 판매는 성장률 적용
-                            let ecSales = parseFloat(ecSalesBaseVal) || 0;
-                            const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                            if (seasonLabels.includes(row.label)) {
-                              const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                              ecSales = ecSales * (growthRate / 100);
-                            }
-                            
-                            const final = initial + purchase - wholesaleSales - ecSales;
-                            const change = final - initial;
-                            return change !== 0 ? Math.round(change).toLocaleString() : '';
-                          };
-                          
-                          // 컬럼별 배경색 설정 (헤더 이름 기준)
-                          const getColumnBgClass = (colIdx: number) => {
-                            const headerName = simulInvenHeaders[colIdx + 1] || '';
-                            if (headerName.includes('상품매입')) return 'bg-amber-50/30';
-                            if (headerName === 'EC 판매' || headerName === 'EC판매') return 'bg-red-50/40';
-                            if (headerName.includes('홀세일 판매') || headerName.includes('홀세일판매')) return 'bg-blue-50/20';
-                            if (headerName.includes('기말')) return 'bg-green-50/40';
-                            return '';
-                          };
-                          
-                          // 컬럼별 테두리 색상 설정 (헤더 이름 기준)
-                          const getColumnBorderClass = (colIdx: number) => {
-                            return 'border-gray-300';
-                          };
-                          
-                          // 음수 여부 확인 (증감 컬럼용)
-                          const isNegativeValue = (colIdx: number) => {
-                            const headerName = simulInvenHeaders[colIdx + 1] || '';
-                            if (!headerName.includes('증감')) return false;
-                            
-                            const changeVal = calculateChange(colIdx);
-                            return changeVal.startsWith('-');
+                          // CSV 값을 그대로 포맷팅
+                          const formatVal = (v: string) => {
+                            if (!v || v === '0') return '';
+                            if (v.includes('%')) return v;
+                            const n = parseFloat(v.replace(/,/g, ''));
+                            if (isNaN(n)) return v;
+                            return n.toLocaleString();
                           };
                           
                           return (
                             <tr key={`inven-row-${index}`} className={rowClass}>
-                              <td className={`${isFirstRow ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel} ${isDetailRow ? 'text-center' : ''}`}>
+                              <td className={`${isFirstRow ? SIMUL_TABLE.tdLabelBold : SIMUL_TABLE.tdLabel}`}>
                                 {row.label}
                               </td>
                               {row.values.map((val, colIdx) => {
                                 const headerName = simulInvenHeaders[colIdx + 1] || '';
-                                const bgClass = getColumnBgClass(colIdx);
-                                const isFinalCol = headerName.includes('기말');
                                 const isChangeCol = headerName.includes('증감');
-                                const isECCol = headerName === 'EC 판매' || headerName === 'EC판매';
-                                
-                                // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용 (재고자산 합계 ~ CORE)
-                                const isFirstRowInTable = index === 0; // 재고자산 합계
-                                const isLastRowInTable = row.label === 'CORE';
-                                const isWholesaleCol = headerName.includes('홀세일 판매') || headerName.includes('홀세일판매');
-                                
-                                let displayValue = '';
-                                if (isFinalCol) {
-                                  // 재고자산 합계 행의 기말 컬럼: 모든 시즌 항목의 기말 합계
-                                  if (isFirstRow) {
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
-                                    let totalFinal = 0;
-                                    
-                                    seasonLabels.forEach(seasonLabel => {
-                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
-                                      if (seasonRow) {
-                                        const initialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
-                                        const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
-                                        const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
-                                        const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+                                const isFinalCol = headerName.includes('기말');
+                                const isSalesRateCol = headerName.includes('판매율');
+                                const displayValue = formatVal(val);
 
-                                        // EC 판매에 TAG 성장률 적용
-                                        const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                        const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                        
-                                        const final = initialVal + purchaseVal - wholesaleSalesVal - ecSales;
-                                        totalFinal += final;
-                                      }
-                                    });
-                                    
-                                    displayValue = totalFinal !== 0 ? Math.round(totalFinal).toLocaleString() : '';
-                                  }
-                                  // YOY 행의 기말 컬럼: (재고자산 합계의 기말 / 재고자산 합계의 기초) × 100
-                                  else if (isYOY) {
-                                    const totalRow = simulInvenData[0]; // 재고자산 합계
-                                    if (totalRow) {
-                                      // 기초 값 (첫 번째 컬럼)
-                                      const initialVal = parseFloat((totalRow.values[0] || '0').replace(/,/g, '')) || 0;
-                                      
-                                      // 기말 값 계산 (모든 시즌의 기말 합계)
-                                      const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', '과시즌', 'CORE'];
-                                      let finalVal = 0;
-                                      
-                                      seasonLabels.forEach(seasonLabel => {
-                                        const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
-                                        if (seasonRow) {
-                                          const sInitialVal = parseFloat((seasonRow.values[0] || '0').replace(/,/g, '')) || 0;
-                                          const purchaseVal = parseFloat((seasonRow.values[1] || '0').replace(/,/g, '')) || 0;
-                                          const wholesaleSalesVal = parseFloat((seasonRow.values[2] || '0').replace(/,/g, '')) || 0;
-                                          const ecSalesBaseVal = parseFloat((seasonRow.values[3] || '0').replace(/,/g, '')) || 0;
+                                const num = parseFloat((val || '').replace(/,/g, ''));
+                                let textColor = '';
+                                if (isChangeCol && displayValue) {
+                                  textColor = num < 0 ? 'text-red-600' : num > 0 ? 'text-blue-600' : '';
+                                } else if (isFinalCol && displayValue && !val.includes('%')) {
+                                  textColor = num < 0 ? 'text-red-700' : '';
+                                } else if (!val.includes('%') && num < 0) {
+                                  textColor = 'text-red-600';
+                                }
 
-                                          const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                          const ecSales = ecSalesBaseVal * (growthRate / 100);
-                                          
-                                          finalVal += sInitialVal + purchaseVal - wholesaleSalesVal - ecSales;
-                                        }
-                                      });
-                                      
-                                      // YOY 계산: (기말 / 기초) × 100
-                                      if (initialVal !== 0) {
-                                        const yoyPercent = (finalVal / initialVal) * 100;
-                                        displayValue = Math.round(yoyPercent) + '%';
-                                      } else {
-                                        displayValue = '';
-                                      }
-                                    }
-                                  } else {
-                                    displayValue = calculateFinal(colIdx);
-                                  }
-                                } else if (isChangeCol) {
-                                  displayValue = calculateChange(colIdx);
-                                } else if (isECCol && !isYOY) {
-                                  // EC 판매 컬럼
-                                  if (isFirstRow) {
-                                    // 재고자산 합계 행: 모든 시즌의 EC 판매 합계
-                                    let sum = 0;
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                    seasonLabels.forEach(seasonLabel => {
-                                      const seasonRow = simulInvenData.find(r => r.label === seasonLabel);
-                                      if (seasonRow && seasonRow.values[3]) {
-                                        const baseVal = (seasonRow.values[3] || '0').replace(/,/g, '');
-                                        const baseNum = parseFloat(baseVal) || 0;
-                                        const growthRate = tagSeasonGrowthRates[seasonLabel] || 100;
-                                        sum += baseNum * (growthRate / 100);
-                                      }
-                                    });
-                                    displayValue = sum !== 0 ? Math.round(sum).toLocaleString() : '';
-                                  } else {
-                                    // 시즌 항목에 성장률 적용
-                                    const seasonLabels = ['27SS', '26FW', '26SS', '25FW', '25SS', 'CORE', '과시즌'];
-                                    if (seasonLabels.includes(row.label)) {
-                                      const baseVal = (val || '0').replace(/,/g, '');
-                                      const baseNum = parseFloat(baseVal) || 0;
-                                      const growthRate = tagSeasonGrowthRates[row.label] || 100;
-                                      const calculatedValue = baseNum * (growthRate / 100);
-                                      displayValue = calculatedValue !== 0 ? Math.round(calculatedValue).toLocaleString() : '';
-                                    } else {
-                                      displayValue = formatNumber(val, isYOY);
-                                    }
-                                  }
-                                } else {
-                                  displayValue = formatNumber(val, isYOY);
-                                }
-                                
-                                const textColorClass = isChangeCol && isNegativeValue(colIdx) ? 'text-red-600' : isChangeCol ? 'text-blue-600' : '';
-                                const numCellClass = isFinalCol || isChangeCol || isFirstRow ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum;
-                                
-                                // 기말 컬럼 색상 추가
-                                let finalTextColor = '';
-                                if (isFinalCol && !isYOY) {
-                                  const finalValue = calculateFinal(colIdx);
-                                  if (finalValue && finalValue !== '') {
-                                    const numValue = parseFloat(finalValue.replace(/,/g, ''));
-                                    if (!isNaN(numValue)) {
-                                      finalTextColor = numValue < 0 ? 'text-red-700' : 'text-green-700';
-                                    }
-                                  }
-                                }
-                                
-                                // EC 판매 컬럼의 모든 행에 붉은색 테두리 적용
-                                let borderClass = '';
-                                if (isECCol) {
-                                  borderClass = 'border-l-[7px] !border-l-red-400 border-r-[7px] !border-r-red-400';
-                                  if (isFirstRowInTable) borderClass += ' border-t-[7px] !border-t-red-400';
-                                  if (isLastRowInTable) borderClass += ' border-b-[7px] !border-b-red-400';
-                                } else if (isWholesaleCol) {
-                                  borderClass = '!border-r-[7px] !border-r-red-400';
-                                }
-                                // 마지막 행(CORE) 하단에 구분선 추가
-                                if (isLastRowInTable && !isECCol) {
-                                  borderClass += ' border-b-2 !border-b-gray-300';
-                                }
-                                
+                                const bgClass = isFinalCol ? 'bg-green-50/40' : isChangeCol ? 'bg-slate-50/60' : '';
+                                const boldClass = (isFirstRow || isChangeCol || isFinalCol) ? SIMUL_TABLE.tdNumBold : SIMUL_TABLE.tdNum;
+                                const alignClass = isSalesRateCol ? 'text-center' : '';
+
+                                const showPlus = isChangeCol && displayValue && num > 0;
                                 return (
-                                  <td 
-                                    key={`inven-col-${colIdx}`}
-                                    className={`${numCellClass} ${borderClass} ${bgClass} ${textColorClass} ${finalTextColor}`}
-                                  >
-                                    {displayValue}
+                                  <td key={`inven-col-${colIdx}`} className={`${boldClass} ${bgClass} ${textColor} ${alignClass}`}>
+                                    {showPlus ? `+${displayValue}` : displayValue}
                                   </td>
                                 );
                               })}
