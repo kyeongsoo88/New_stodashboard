@@ -945,7 +945,7 @@ function DetailedMetricCard({
                                     className="h-7 text-[11px] px-2 w-full justify-between"
                                     onClick={() => setIsItemExpanded(!isItemExpanded)}
                                 >
-                                    <span className="font-bold text-blue-700">{title.includes("할인율") ? "US EC 할인율 상세보기" : "아이템별 상세보기"}</span>
+                                    <span className="font-bold text-blue-700">{title.includes("할인율") ? "할인율 상세보기" : "아이템별 상세보기"}</span>
                                     {isItemExpanded ? <ChevronUpIcon className="h-3 w-3" /> : <ChevronDownIcon className="h-3 w-3" />}
                                 </Button>
                                 
