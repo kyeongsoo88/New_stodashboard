@@ -12339,7 +12339,7 @@ export default function DashboardPage() {
                                       }
                                       
                                       let wholesaleValue = 0;
-                                      const wholesaleYtd26 = wholesaleRow?.ytd26;
+                                      const wholesaleYtd26 = wholesaleRow?.ytd26 || "";
                                       if (wholesaleYtd26) {
                                         const cleanVal = wholesaleYtd26.replace(/,/g, '');
                                         const num = parseFloat(cleanVal);
@@ -13054,7 +13054,7 @@ export default function DashboardPage() {
                                     }
                                     
                                     let wholesaleValue = 0;
-                                    const wholesaleYtd26 = wholesaleRow?.ytd26;
+                                    const wholesaleYtd26 = wholesaleRow?.ytd26 || "";
                                     if (wholesaleYtd26) {
                                       const cleanVal = wholesaleYtd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
@@ -13585,7 +13585,7 @@ export default function DashboardPage() {
                                     }
                                     
                                     let wholesaleValue = 0;
-                                    const wholesaleYtd26 = wholesaleRow?.ytd26;
+                                    const wholesaleYtd26 = wholesaleRow?.ytd26 || "";
                                     if (wholesaleYtd26) {
                                       const cleanVal = wholesaleYtd26.replace(/,/g, '');
                                       const wNum = parseFloat(cleanVal);
@@ -13742,7 +13742,7 @@ export default function DashboardPage() {
                                     }
                                     
                                     let wholesaleValue = 0;
-                                    const wholesaleYtd26 = wholesaleRow?.ytd26;
+                                    const wholesaleYtd26 = wholesaleRow?.ytd26 || "";
                                     if (wholesaleYtd26) {
                                       const cleanVal = wholesaleYtd26.replace(/,/g, '');
                                       const num = parseFloat(cleanVal);
@@ -13774,7 +13774,7 @@ export default function DashboardPage() {
                                     }
                                     
                                     let wholesaleValue = 0;
-                                    const wholesaleYtd26 = wholesaleRow?.ytd26;
+                                    const wholesaleYtd26 = wholesaleRow?.ytd26 || "";
                                     if (wholesaleYtd26) {
                                       const cleanVal = wholesaleYtd26.replace(/,/g, '');
                                       const wNum = parseFloat(cleanVal);
