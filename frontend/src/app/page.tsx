@@ -639,8 +639,13 @@ function DetailedMetricCard({
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
                                                             <span
-                                                                className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
+                                                                className={cn(
+                                                                    "text-xs min-w-[80px]",
+                                                                    item.subItems && "cursor-pointer select-none text-sky-700 font-medium",
+                                                                    item.name === "보관료" && "bg-blue-100 text-blue-700 rounded px-1"
+                                                                )}
                                                                 onClick={item.subItems ? toggleSub : undefined}
+                                                                title={item.name === "보관료" ? "3PL창고와 Recon으로 Credit $8K 8월 반영 예정" : undefined}
                                                             >
                                                                 {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
                                                             </span>
