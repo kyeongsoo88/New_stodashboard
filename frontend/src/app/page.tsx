@@ -1681,6 +1681,9 @@ function DetailedExpenseCard({
                                             </tbody>
                                         </table>
                                     </div>
+                                    <p className="text-xs text-gray-500 leading-relaxed pt-1 border-t border-gray-100">
+                                        26FY RF07_ 연간 물류용역비 $1.3M 수준(관세등은 재고 원가에 산입), 위에 재계약 협상을 통해 27년 연간 기준 $300K-$400K 물류용역비 절약 예상.
+                                    </p>
                                 </div>
                             </DialogContent>
                         </Dialog>
