@@ -44,6 +44,31 @@ const SimpleTooltip = ({ text, children }: { text: string, children: React.React
   );
 };
 
+// Fixed-position tooltip — bypasses overflow:hidden on ancestor cards
+const FixedTooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
+  const [pos, setPos] = React.useState<{ x: number, y: number } | null>(null);
+  return (
+    <span
+      className="inline-block"
+      onMouseEnter={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setPos({ x: rect.left, y: rect.bottom + 6 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <span
+          className="fixed z-[9999] w-64 rounded-md bg-gray-800 text-white text-xs px-2.5 py-1.5 leading-relaxed shadow-lg whitespace-normal pointer-events-none"
+          style={{ top: pos.y, left: pos.x }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
+
 const StickyNoteTooltip = ({ text, children }: { text: string, children: React.ReactNode }) => {
   const [show, setShow] = React.useState(false);
   return (
@@ -639,17 +664,11 @@ function DetailedMetricCard({
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
                                                             {item.name === "보관료" ? (
-                                                                <span className="relative group inline-block">
-                                                                    <span
-                                                                        className="text-xs min-w-[80px] bg-blue-100 text-blue-700 rounded px-1 cursor-default"
-                                                                        onClick={item.subItems ? toggleSub : undefined}
-                                                                    >
+                                                                <FixedTooltip text="3PL창고와 Recon으로 Credit $8K 8월 반영 예정">
+                                                                    <span className="text-xs min-w-[80px] bg-blue-100 text-blue-700 rounded px-1 cursor-default">
                                                                         {item.name}
                                                                     </span>
-                                                                    <span className="pointer-events-none absolute left-0 top-full mt-1 z-50 w-64 rounded-md bg-gray-800 text-white text-xs px-2.5 py-1.5 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-lg whitespace-normal">
-                                                                        3PL창고와 Recon으로 Credit $8K 8월 반영 예정
-                                                                    </span>
-                                                                </span>
+                                                                </FixedTooltip>
                                                             ) : (
                                                                 <span
                                                                     className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
