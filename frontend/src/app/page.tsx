@@ -1627,6 +1627,63 @@ function DetailedExpenseCard({
                                 </div>
                             </DialogContent>
                         </Dialog>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-6 text-xs px-2 w-full mt-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300">
+                                    3PL 재계약 협상
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                    <DialogTitle>3PL 재계약 협상</DialogTitle>
+                                </DialogHeader>
+                                <div className="space-y-5 pt-1">
+                                    {/* 핵심 변경사항 */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">보관료 과금 기준</p>
+                                            <p className="text-base font-bold text-gray-800">큐빅피트(부피) → <span className="text-teal-700">유닛(수량)</span></p>
+                                            <p className="text-xs text-teal-700 mt-2 leading-relaxed">이제 요금이 선반에 어떻게 적재되는지가 아니라 실제 보유 수량을 따라간다. 예측이 가능해지고, 우리 자체 수량 데이터로 검증할 수 있다.</p>
+                                        </div>
+                                        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                            <p className="text-xs text-gray-500 font-semibold mb-1">데드스톡 기산 기간</p>
+                                            <p className="text-base font-bold text-gray-800">6개월 → <span className="text-teal-700">18개월</span></p>
+                                            <p className="text-xs text-teal-700 mt-2 leading-relaxed">2026년 11월부터 적용. 섹션 1에서 본 재고 연령 구성을 감안하면 이번 계약에서 가장 큰 구조적 변화다.</p>
+                                        </div>
+                                    </div>
+                                    {/* 유닛 단가 테이블 */}
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-700 mb-2">유닛 단가 — 실질적으로 움직인 항목</p>
+                                        <table className="w-full text-sm border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-gray-200">
+                                                    <th className="text-left py-2 px-3 text-xs text-gray-500 font-semibold">항목</th>
+                                                    <th className="text-right py-2 px-3 text-xs text-gray-500 font-semibold">현행</th>
+                                                    <th className="text-right py-2 px-3 text-xs text-gray-500 font-semibold">협상 후</th>
+                                                    <th className="text-right py-2 px-3 text-xs text-gray-500 font-semibold">변동</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[
+                                                    { name: '보관료·유닛당', current: '$0.193', after: '$0.13', change: '-33%' },
+                                                    { name: '이커머스 출고·유닛당', current: '$1.41', after: '$1.04', change: '-27%' },
+                                                    { name: '입고·유닛당', current: '$0.60', after: '$0.51', change: '-15%' },
+                                                    { name: '홀세일 출고·유닛당', current: '$0.52', after: '$0.47', change: '-10%' },
+                                                    { name: '반품·유닛당', current: '$3.04', after: '$2.93', change: '-4%' },
+                                                ].map((row, i) => (
+                                                    <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                                                        <td className="py-2.5 px-3 text-gray-700">{row.name}</td>
+                                                        <td className="py-2.5 px-3 text-right text-gray-500">{row.current}</td>
+                                                        <td className="py-2.5 px-3 text-right font-semibold text-gray-800">{row.after}</td>
+                                                        <td className="py-2.5 px-3 text-right font-bold text-emerald-600">{row.change}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 )}
                 {showSemButton && semCpmLabel && (
