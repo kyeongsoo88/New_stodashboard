@@ -638,17 +638,26 @@ function DetailedMetricCard({
                                                 return (
                                                     <div key={idx}>
                                                         <div className="flex justify-between items-center py-0.5">
-                                                            <span
-                                                                className={cn(
-                                                                    "text-xs min-w-[80px]",
-                                                                    item.subItems && "cursor-pointer select-none text-sky-700 font-medium",
-                                                                    item.name === "보관료" && "bg-blue-100 text-blue-700 rounded px-1"
-                                                                )}
-                                                                onClick={item.subItems ? toggleSub : undefined}
-                                                                title={item.name === "보관료" ? "3PL창고와 Recon으로 Credit $8K 8월 반영 예정" : undefined}
-                                                            >
-                                                                {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
-                                                            </span>
+                                                            {item.name === "보관료" ? (
+                                                                <span className="relative group inline-block">
+                                                                    <span
+                                                                        className="text-xs min-w-[80px] bg-blue-100 text-blue-700 rounded px-1 cursor-default"
+                                                                        onClick={item.subItems ? toggleSub : undefined}
+                                                                    >
+                                                                        {item.name}
+                                                                    </span>
+                                                                    <span className="pointer-events-none absolute left-0 top-full mt-1 z-50 w-64 rounded-md bg-gray-800 text-white text-xs px-2.5 py-1.5 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-lg whitespace-normal">
+                                                                        3PL창고와 Recon으로 Credit $8K 8월 반영 예정
+                                                                    </span>
+                                                                </span>
+                                                            ) : (
+                                                                <span
+                                                                    className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
+                                                                    onClick={item.subItems ? toggleSub : undefined}
+                                                                >
+                                                                    {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
+                                                                </span>
+                                                            )}
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
                                                                 {item.value && (
                                                                     <span className={cn("font-medium text-xs w-[100px] text-right tabular-nums", item.subItems && "px-1.5 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
