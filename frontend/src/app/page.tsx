@@ -669,6 +669,12 @@ function DetailedMetricCard({
                                                                         {item.name}
                                                                     </span>
                                                                 </FixedTooltip>
+                                                            ) : (item.name === "지급수수료" && title.includes("영업비")) ? (
+                                                                <FixedTooltip text="EC 신규 채용 수수료 +$43K">
+                                                                    <span className="text-xs min-w-[80px] bg-blue-100 text-blue-700 rounded px-1 cursor-default">
+                                                                        {item.name}
+                                                                    </span>
+                                                                </FixedTooltip>
                                                             ) : (
                                                                 <span
                                                                     className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
