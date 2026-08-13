@@ -6056,73 +6056,23 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <span className="text-xs text-gray-400">{txCount.toLocaleString()}건</span>
             </div>
 
-            {/* 상단: 부서별 추이 + 교차 분석 */}
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="border-gray-100">
-                <CardHeader className="pb-2 pt-4">
-                  <CardTitle className="text-sm font-semibold text-gray-700">부서별 월별 영업비 추이 (최근 12개월)</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <DeptBarChart />
-                  <div className="flex flex-wrap gap-3 mt-3">
-                    {DEPTS.map(d => (
-                      <div key={d} className="flex items-center gap-1.5">
-                        <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: DEPT_COLORS[d] || '#94a3b8' }}/>
-                        <span className="text-xs text-gray-600">{d}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-gray-100">
-                <CardHeader className="pb-1 pt-4">
-                  <CardTitle className="text-sm font-semibold text-gray-700">
-                    부서 × 카테고리 교차 분석 ({curYr}년 {viewMode === 'YTD' ? `1~${curMonthNum}월 누계` : `${curMonthNum}월`})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 overflow-x-auto">
-                  <table className="w-full text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left px-3 py-2.5 text-gray-500 font-medium sticky left-0 bg-gray-50 min-w-36">부서</th>
-                        {PL_ITEMS.map(pl => (
-                          <th key={pl} className="text-right px-2 py-2.5 text-gray-500 font-medium min-w-20 whitespace-nowrap">{PL_KR[pl] || pl}</th>
-                        ))}
-                        <th className="text-right px-3 py-2.5 text-gray-700 font-bold min-w-20 bg-slate-50">합계</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DEPTS.map((dept, idx) => {
-                        const deptTotal = Object.values(deptPLCross[dept] || {}).reduce((s, v) => s + v, 0);
-                        return (
-                          <tr key={dept} className={cn("border-b border-gray-50", idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
-                            <td className="px-3 py-2 font-medium text-gray-800 sticky left-0 bg-inherit border-r border-gray-100">{dept}</td>
-                            {PL_ITEMS.map(pl => {
-                              const v = deptPLCross[dept]?.[pl] || 0;
-                              return <td key={pl} className={cn("px-2 py-2 text-right font-mono tabular-nums",
-                                v < -100 ? 'text-emerald-600' : v > 0 ? 'text-gray-800' : 'text-gray-300')}>
-                                {Math.abs(v) >= 1000 ? fmtKshort(v) : v !== 0 ? `$${Math.round(v / 100) / 10}K` : '–'}
-                              </td>;
-                            })}
-                            <td className="px-3 py-2 text-right font-mono font-bold text-gray-900 bg-slate-50/60">{fmtKshort(deptTotal)}</td>
-                          </tr>
-                        );
-                      })}
-                      <tr className="bg-slate-50 border-t-2 border-slate-200 font-bold">
-                        <td className="px-3 py-2.5 font-bold text-gray-900 sticky left-0 bg-slate-50 border-r border-gray-200">합계</td>
-                        {PL_ITEMS.map(pl => {
-                          const v = DEPTS.reduce((s, d) => s + (deptPLCross[d]?.[pl] || 0), 0);
-                          return <td key={pl} className="px-2 py-2.5 text-right font-mono text-gray-900 tabular-nums">{fmtKshort(v)}</td>;
-                        })}
-                        <td className="px-3 py-2.5 text-right font-mono font-bold text-gray-900">
-                          {fmtKshort(DEPTS.reduce((s, d) => s + Object.values(deptPLCross[d] || {}).reduce((a, b) => a + b, 0), 0))}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
-            </div>
+            {/* 상단: 부서별 추이 */}
+            <Card className="border-gray-100">
+              <CardHeader className="pb-2 pt-4">
+                <CardTitle className="text-sm font-semibold text-gray-700">부서별 월별 영업비 추이 (최근 12개월)</CardTitle>
+              </CardHeader>
+              <CardContent className="pb-4">
+                <DeptBarChart />
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {DEPTS.map(d => (
+                    <div key={d} className="flex items-center gap-1.5">
+                      <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: DEPT_COLORS[d] || '#94a3b8' }}/>
+                      <span className="text-xs text-gray-600">{d}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* 하단: 벤더 랭킹 + 거래내역 */}
             <div className="grid grid-cols-2 gap-4">
