@@ -14890,7 +14890,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <h2 className="text-lg font-bold text-gray-800">📊 26년 신규 계획 비교</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실績 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실績 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실적 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실적 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
@@ -14903,7 +14903,7 @@ export default function DashboardPage() {
                 {/* 헤더 */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border-b border-slate-700">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400 shrink-0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                  <span className="text-[11px] font-bold text-slate-200 tracking-wider uppercase">AI Analysis — Old Plan → New Plan 핵심 변화</span>
+                  <span className="text-sm font-bold text-slate-200 tracking-wide">AI Analysis — Old Plan → New Plan 핵심 변화</span>
                 </div>
 
                 {/* 플로우 카드 5개 + 화살표 */}
@@ -14914,77 +14914,77 @@ export default function DashboardPage() {
                     {/* S1: MSRP */}
                     <div className="flex-1 rounded-lg bg-white border border-slate-200 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">① MSRP</span>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">① MSRP</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                      <div className="text-[13px] text-slate-600 space-y-1">
                         <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$41,839K</span></div>
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">$40,160K</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-xs text-slate-500">
                         <span className="text-red-500 font-bold">-$1,616K</span> &nbsp;시즌별 판매계획 조정
                       </div>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
-                      <div className="text-[9px] text-red-400 font-bold mb-0.5">할인율</div>
-                      <div className="text-red-400">→</div>
-                      <div className="text-[9px] text-red-600 font-bold mt-0.5">↑+8.2%p</div>
+                    <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                      <div className="text-[10px] text-red-400 font-bold mb-0.5">할인율</div>
+                      <div className="text-base text-red-400">→</div>
+                      <div className="text-[10px] text-red-600 font-bold mt-0.5">↑+8.2%p</div>
                     </div>
 
                     {/* S2: 할인율 → Net Sales */}
                     <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">② 할인율 급등</span>
+                        <span className="text-xs font-bold text-red-500 uppercase tracking-wide">② 할인율 급등</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                      <div className="text-[13px] text-slate-600 space-y-1">
                         <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">45.3%</span></div>
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-600">53.5%</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
-                        <span className="text-red-600 font-bold">+8.2%p</span> &nbsp;8월 실績 반영 + H2 재고 소진
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-xs text-slate-500">
+                        <span className="text-red-600 font-bold">+8.2%p</span> &nbsp;8월 실적 반영 + H2 재고 소진
                       </div>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
-                      <div className="text-[9px] text-slate-400 mb-0.5">Net Sales</div>
-                      <div className="text-red-400">→</div>
-                      <div className="text-[9px] text-red-600 font-bold mt-0.5">급감</div>
+                    <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                      <div className="text-[10px] text-slate-400 mb-0.5">Net Sales</div>
+                      <div className="text-base text-red-400">→</div>
+                      <div className="text-[10px] text-red-600 font-bold mt-0.5">급감</div>
                     </div>
 
                     {/* S3: Net Sales */}
                     <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">③ Net Sales</span>
+                        <span className="text-xs font-bold text-red-500 uppercase tracking-wide">③ Net Sales</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                      <div className="text-[13px] text-slate-600 space-y-1">
                         <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$23,586K</span></div>
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-600">$19,935K</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
-                        <span className="text-red-600 font-bold">-$3,651K</span> &nbsp;MSRP 감소(-$1,616K)의 <span className="font-bold">2.3배</span>
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-xs text-slate-500">
+                        <span className="text-red-600 font-bold">-$3,651K</span> &nbsp;MSRP 감소의 <span className="font-bold">2.3배</span>
                       </div>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
-                      <div className="text-[9px] text-slate-400 mb-0.5">수익성</div>
-                      <div className="text-red-400">→</div>
-                      <div className="text-[9px] text-red-600 font-bold mt-0.5">악화</div>
+                    <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                      <div className="text-[10px] text-slate-400 mb-0.5">수익성</div>
+                      <div className="text-base text-red-400">→</div>
+                      <div className="text-[10px] text-red-600 font-bold mt-0.5">악화</div>
                     </div>
 
                     {/* S4: 영업이익 */}
                     <div className="flex-1 rounded-lg bg-red-100/70 border border-red-300 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-wide">④ 영업이익</span>
+                        <span className="text-xs font-bold text-red-600 uppercase tracking-wide">④ 영업이익</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                      <div className="text-[13px] text-slate-600 space-y-1">
                         <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">-$661K</span></div>
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-700">-$4,814K</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-red-200 text-[10px] text-slate-500">
-                        <span className="text-red-700 font-bold">-$4,153K</span> &nbsp;추가 악화. 직접이익도 -$3,109K↓
+                      <div className="mt-1.5 pt-1.5 border-t border-red-200 text-xs text-slate-500">
+                        <span className="text-red-700 font-bold">-$4,153K</span> &nbsp;추가 악화. 직접이익 -$3,109K↓
                       </div>
                     </div>
                   </div>
@@ -14995,64 +14995,64 @@ export default function DashboardPage() {
                     {/* S5: 재고 영향 제한적 */}
                     <div className="flex-1 rounded-lg bg-white border border-slate-200 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">⑤ 연말 재고</span>
-                        <span className="text-[9px] bg-slate-100 text-slate-500 px-1 rounded">소폭</span>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">⑤ 연말 재고</span>
+                        <span className="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">소폭</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                      <div className="text-[13px] text-slate-600 space-y-1">
                         <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$15,596K</span></div>
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">$15,988K</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
-                        <span className="text-orange-500 font-bold">+$392K</span> &nbsp;MSRP 감소 대비 영향 제한적
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-xs text-slate-500">
+                        <span className="text-orange-500 font-bold">+$392K</span> &nbsp;MSRP 감소 대비 제한적
                       </div>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
-                      <div className="text-[9px] text-slate-400 mb-0.5">수금 감소</div>
-                      <div className="text-red-400">→</div>
-                      <div className="text-[9px] text-red-600 font-bold mt-0.5">영업CF↓</div>
+                    <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                      <div className="text-[10px] text-slate-400 mb-0.5">수금 감소</div>
+                      <div className="text-base text-red-400">→</div>
+                      <div className="text-[10px] text-red-600 font-bold mt-0.5">영업CF↓</div>
                     </div>
 
                     {/* S6: 현금흐름 악화 */}
                     <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">⑥ 영업 현금</span>
+                        <span className="text-xs font-bold text-red-500 uppercase tracking-wide">⑥ 영업 현금</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
-                        <div className="flex justify-between"><span className="text-blue-500">판매수금 Old</span><span className="tabular-nums font-semibold">$22,854K</span></div>
-                        <div className="flex justify-between"><span className="text-emerald-600">판매수금 New</span><span className="tabular-nums font-bold text-red-600">$19,208K</span></div>
+                      <div className="text-[13px] text-slate-600 space-y-1">
+                        <div className="flex justify-between"><span className="text-blue-500">수금 Old</span><span className="tabular-nums font-semibold">$22,854K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">수금 New</span><span className="tabular-nums font-bold text-red-600">$19,208K</span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-xs text-slate-500">
                         영업CF: <span className="text-red-600 font-bold">-$1,154K → -$5,019K</span>
                       </div>
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
-                      <div className="text-[9px] text-amber-600 font-bold mb-0.5">재무결정</div>
-                      <div className="text-amber-500">→</div>
-                      <div className="text-[9px] text-amber-700 font-bold mt-0.5">★보전</div>
+                    <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                      <div className="text-[10px] text-amber-600 font-bold mb-0.5">재무결정</div>
+                      <div className="text-base text-amber-500">→</div>
+                      <div className="text-[10px] text-amber-700 font-bold mt-0.5">★보전</div>
                     </div>
 
                     {/* S7: 연말 현금 — 반전 */}
                     <div className="flex-1 rounded-lg bg-amber-50 border-2 border-amber-400 shadow-sm px-3 py-2.5 min-w-0">
                       <div className="flex items-center gap-1 mb-1.5">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">⑦ 연말 현금 ★</span>
+                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">⑦ 연말 현금 ★</span>
                       </div>
-                      <div className="text-[11px] text-slate-600 space-y-0.5">
-                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$2,846K <span className="text-[9px] text-slate-400">(12월 상환 $7K)</span></span></div>
-                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-emerald-700">$3,191K <span className="text-[9px] text-amber-600">(상환 $3K)</span></span></div>
+                      <div className="text-[13px] text-slate-600 space-y-1">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$2,846K <span className="text-[10px] text-slate-400">(12월 상환 $7K)</span></span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-emerald-700">$3,191K <span className="text-[10px] text-amber-600">(상환 $3K)</span></span></div>
                       </div>
-                      <div className="mt-1.5 pt-1.5 border-t border-amber-200 text-[10px]">
+                      <div className="mt-1.5 pt-1.5 border-t border-amber-200 text-xs">
                         <span className="text-amber-800 font-bold">12월 상환 $7K→$3K (-$4K)</span>
-                        <span className="text-slate-500 ml-1">로 영업CF 악화 상쇄</span>
+                        <span className="text-slate-500 ml-1">로 상쇄</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* 하단 요약 한 줄 */}
-                  <div className="mt-3 px-3 py-2 rounded-lg bg-slate-800 text-[11px] text-slate-200 leading-relaxed">
+                  {/* 하단 요약 */}
+                  <div className="mt-3 px-4 py-2.5 rounded-lg bg-slate-800 text-sm text-slate-200 leading-relaxed">
                     <span className="text-violet-300 font-bold">결론 :</span>
                     &nbsp;MSRP 소폭 감소(-$1.6M)에 비해 할인율이 +8.2%p 상승하면서 Net Sales가 <span className="text-red-300 font-bold">-$3.7M</span> 급감했고,
                     이로 인해 영업이익 <span className="text-red-300 font-bold">-$4.2M 추가 악화</span>, 판매수금 감소로 영업CF <span className="text-red-300 font-bold">-$3.9M 저하</span>됐습니다.
@@ -15061,40 +15061,6 @@ export default function DashboardPage() {
                     결국 연말 현금은 오히려 New &gt; Old(<span className="text-emerald-300 font-bold">$3,191K vs $2,846K, +$345K</span>)가 됩니다.
                   </div>
                 </div>
-              </div>
-
-              {/* ── KPI 카드 4개 ── */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {kpis.map(k => {
-                  const diff = k.a - k.b;
-                  const good = diff > 0;
-                  return (
-                    <Card key={k.label} className="border-gray-100 shadow-sm">
-                      <CardContent className="pt-3 pb-3 px-3">
-                        <p className="text-[11px] text-gray-400 font-semibold mb-2 truncate">{k.label}</p>
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center gap-1">
-                            <span className="text-[10px] text-blue-500 shrink-0">Old</span>
-                            <span className="text-xs font-semibold text-gray-600 tabular-nums">{fmt(k.b)}</span>
-                          </div>
-                          <div className="flex justify-between items-center gap-1">
-                            <span className="text-[10px] text-emerald-600 shrink-0">New</span>
-                            <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(k.a)}</span>
-                          </div>
-                          {(k as any).aRate && (
-                            <div className="flex justify-between items-center gap-1 text-[10px] text-gray-400">
-                              <span>{(k as any).bRate}</span><span>→</span><span className="font-semibold text-gray-600">{(k as any).aRate}</span>
-                            </div>
-                          )}
-                          <div className="border-t border-gray-100 pt-1 flex justify-between items-center">
-                            <span className="text-[10px] text-gray-400">변동</span>
-                            <span className={cn("text-xs font-bold tabular-nums", good ? 'text-emerald-600' : 'text-red-500')}>{fmtDiff(diff)}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
               </div>
 
               {/* ── P&L 테이블 + 월별 차트 ── */}
@@ -15308,7 +15274,7 @@ export default function DashboardPage() {
                   <p className="text-xs font-bold text-amber-800 mb-2">⚠️ Old → New Plan 주요 변화 포인트</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
                     <div><span className="font-semibold text-red-600">Net Sales -$3,651K</span><br/>Sep~Dec 계획 대폭 하향. Old $12,666K → New $8,703K</div>
-                    <div><span className="font-semibold text-red-600">할인율 +8.2%p</span><br/>45.3% → 53.5%. 8월 실績 반영 + 하반기 재고 소진 할인 반영</div>
+                    <div><span className="font-semibold text-red-600">할인율 +8.2%p</span><br/>45.3% → 53.5%. 8월 실적 반영 + 하반기 재고 소진 할인 반영</div>
                     <div><span className="font-semibold text-red-600">Operating Profit -$4,153K</span><br/>-$661K → -$4,814K. 광고비($651K→$1,416K) G&A 증가도 영향</div>
                     <div><span className="font-semibold text-red-600">Direct Profit -$3,109K</span><br/>$6,033K → $2,924K. 매출 하향 + 할인율 상승이 주 원인</div>
                   </div>
@@ -15348,7 +15314,7 @@ export default function DashboardPage() {
                   <Card className="col-span-3 border-gray-100 shadow-sm">
                     <CardHeader className="pb-2 pt-3">
                       <CardTitle className="text-sm font-semibold text-gray-700">월별 재고잔액 추이 (MSRP 기준, $K)</CardTitle>
-                      <p className="text-xs text-gray-400">Aug 실績 기준 분기점 — 이후 New Plan이 판매 감소로 재고 더 높음</p>
+                      <p className="text-xs text-gray-400">Aug 실적 기준 분기점 — 이후 New Plan이 판매 감소로 재고 더 높음</p>
                     </CardHeader>
                     <CardContent className="pb-3">
                       <ResponsiveContainer width="100%" height={220}>
