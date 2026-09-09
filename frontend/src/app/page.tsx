@@ -10639,6 +10639,10 @@ const parseSimulBalanceSheetCsv = (csvText: string): SimulBalanceSheetRow[] => {
 export default function DashboardPage() {
   const [expandAllDetails, setExpandAllDetails] = React.useState(true);
   const [activeTab, setActiveTab] = React.useState("대시보드");
+  const [plDirectOpen, setPlDirectOpen] = React.useState(false);
+  const [plGAOpen, setPlGAOpen] = React.useState(false);
+  const [plNsEcomOpen, setPlNsEcomOpen] = React.useState(false);
+  const [plNsWsOpen, setPlNsWsOpen] = React.useState(false);
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
@@ -12210,7 +12214,7 @@ export default function DashboardPage() {
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
     { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon },
-    { id: "26년 신규 계획", label: "26년 신규 계획", icon: TrendingUpIcon },
+    { id: "26년 신규 계획", label: "26년 변경 계획", icon: TrendingUpIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
@@ -14817,28 +14821,56 @@ export default function DashboardPage() {
 
           const plRows = [
             { label:'MSRP Sales', b:41839, a:40160, isMain:false, indent:0 },
+            { label:'E-com', b:38370, a:36859, isMain:false, indent:1 },
+            { label:'26FW', b:5105, a:5917, isMain:false, indent:2 },
+            { label:'26SS', b:11014, a:10133, isMain:false, indent:2 },
+            { label:'25FW', b:13232, a:12435, isMain:false, indent:2 },
+            { label:'25SS', b:7120, a:5781, isMain:false, indent:2 },
+            { label:'Aged', b:501, a:1508, isMain:false, indent:2 },
+            { label:'Core', b:1393, a:1079, isMain:false, indent:2 },
+            { label:'Gift Card', b:5, a:5, isMain:false, indent:2 },
+            { label:'Wholesale (inc. Samplesale)', b:3469, a:3301, isMain:false, indent:1 },
+            { label:'26FW', b:1853, a:1498, isMain:false, indent:2 },
+            { label:'26SS', b:1266, a:1311, isMain:false, indent:2 },
+            { label:'25FW', b:124, a:134, isMain:false, indent:2 },
+            { label:'25SS', b:176, a:284, isMain:false, indent:2 },
+            { label:'Aged', b:45, a:69, isMain:false, indent:2 },
+            { label:'Core', b:4, a:6, isMain:false, indent:2 },
             { label:'Net Sales', b:23586, a:19935, isMain:true, indent:0 },
-            { label:'  E-com', b:21608, a:17461, isMain:false, indent:1 },
-            { label:'  Wholesale', b:1277, a:1206, isMain:false, indent:1 },
-            { label:'  License', b:418, a:173, isMain:false, indent:1 },
-            { label:'  Others', b:283, a:1096, isMain:false, indent:1 },
+            { label:'E-com', b:21608, a:17461, isMain:false, indent:1, isToggle:true, toggleKey:'nsEcom' },
+            { label:'26FW', b:4030, a:3493, isMain:false, indent:2, group:'nsEcom' },
+            { label:'26SS', b:7358, a:5466, isMain:false, indent:2, group:'nsEcom' },
+            { label:'25FW', b:6388, a:5416, isMain:false, indent:2, group:'nsEcom' },
+            { label:'25SS', b:2313, a:1824, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Aged', b:341, a:460, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Core', b:1168, a:791, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Gift Card', b:9, a:10, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Wholesale (inc. Samplesale)', b:1277, a:1206, isMain:false, indent:1, isToggle:true, toggleKey:'nsWs' },
+            { label:'26FW', b:681, a:556, isMain:false, indent:2, group:'nsWs' },
+            { label:'26SS', b:491, a:502, isMain:false, indent:2, group:'nsWs' },
+            { label:'25FW', b:36, a:38, isMain:false, indent:2, group:'nsWs' },
+            { label:'25SS', b:56, a:90, isMain:false, indent:2, group:'nsWs' },
+            { label:'Aged', b:12, a:18, isMain:false, indent:2, group:'nsWs' },
+            { label:'Core', b:1, a:1, isMain:false, indent:2, group:'nsWs' },
+            { label:'License', b:418, a:173, isMain:false, indent:1 },
+            { label:'Others', b:283, a:1096, isMain:false, indent:1 },
             { label:'Discount Rate', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', isRate:true, isMain:false, indent:0 },
             { label:'CoGs', b:8512, a:8069, isMain:false, indent:0 },
             { label:'Gross Profit', b:15074, a:11865, isMain:true, indent:0, bStr:'63.9%', aStr:'59.5%' },
-            { label:'── Direct Cost', b:9041, a:8942, isMain:false, indent:0, isCost:true },
-            { label:'  Marketing', b:4278, a:3914, isMain:false, indent:1, isCost:true },
-            { label:'  Freight', b:1344, a:1422, isMain:false, indent:1, isCost:true },
-            { label:'  Order Processing', b:1308, a:1578, isMain:false, indent:1, isCost:true },
-            { label:'  Prof. Service', b:2110, a:2027, isMain:false, indent:1, isCost:true },
+            { label:'Direct Cost', b:9041, a:8942, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'direct' },
+            { label:'Marketing', b:4278, a:3914, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Freight', b:1344, a:1422, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Order Processing', b:1308, a:1578, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Prof. Service', b:2110, a:2027, isMain:false, indent:1, isCost:true, group:'direct' },
             { label:'Direct Profit', b:6033, a:2924, isMain:true, indent:0, bStr:'25.6%', aStr:'14.7%' },
-            { label:'── G&A', b:6694, a:7738, isMain:false, indent:0, isCost:true },
-            { label:'  Salaries', b:4186, a:4273, isMain:false, indent:1, isCost:true },
-            { label:'  Advertising', b:651, a:1416, isMain:false, indent:1, isCost:true },
-            { label:'  T&E', b:51, a:56, isMain:false, indent:1, isCost:true },
-            { label:'  Rent', b:294, a:299, isMain:false, indent:1, isCost:true },
-            { label:'  Sample', b:98, a:95, isMain:false, indent:1, isCost:true },
-            { label:'  Prof. Service', b:1081, a:1207, isMain:false, indent:1, isCost:true },
-            { label:'  D&A', b:68, a:89, isMain:false, indent:1, isCost:true },
+            { label:'G&A', b:6694, a:7738, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'ga' },
+            { label:'Salaries', b:4186, a:4273, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Advertising', b:651, a:1416, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'T&E', b:51, a:56, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Rent', b:294, a:299, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Sample', b:98, a:95, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Prof. Service', b:1081, a:1207, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'D&A', b:68, a:89, isMain:false, indent:1, isCost:true, group:'ga' },
             { label:'Operating Profit', b:-661, a:-4814, isMain:true, indent:0, bStr:'-2.8%', aStr:'-24.1%' },
           ] as any[];
 
@@ -14889,7 +14921,7 @@ export default function DashboardPage() {
               {/* ── 헤더 ── */}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-800">📊 26년 신규 계획 비교</h2>
+                  <h2 className="text-lg font-bold text-gray-800">📊 26년 변경 계획 비교</h2>
                   <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실적 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실적 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -14899,7 +14931,9 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
                   </div>
                   {/* 섹션 이동 버튼 */}
-                  <div className="flex gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-slate-400 font-medium tracking-wide">▼ 분석 바로가기</span>
+                    <div className="flex gap-1.5">
                     {[
                       { label:'손익 분석', id:'section-pl' },
                       { label:'재고 분석', id:'section-inven' },
@@ -14913,7 +14947,8 @@ export default function DashboardPage() {
                         {btn.label}
                       </button>
                     ))}
-                  </div>
+                    </div>{/* /버튼 flex */}
+                  </div>{/* /바로가기 wrapper */}
                 </div>
               </div>
 
@@ -15060,11 +15095,11 @@ export default function DashboardPage() {
                         <span className="text-xs font-bold text-amber-700 uppercase tracking-wide">⑦ 연말 현금 ★</span>
                       </div>
                       <div className="text-[13px] text-slate-600 space-y-1">
-                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$2,846K <span className="text-[10px] text-slate-400">(12월 상환 $7K)</span></span></div>
-                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-emerald-700">$3,191K <span className="text-[10px] text-amber-600">(상환 $3K)</span></span></div>
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$2,846K <span className="text-[10px] text-slate-400">(12월 상환 $7,000K)</span></span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-emerald-700">$3,191K <span className="text-[10px] text-amber-600">(상환 $3,000K)</span></span></div>
                       </div>
                       <div className="mt-1.5 pt-1.5 border-t border-amber-200 text-xs">
-                        <span className="text-amber-800 font-bold">12월 상환 $7K→$3K (-$4K)</span>
+                        <span className="text-amber-800 font-bold">12월 상환 $7,000K→$3,000K (-$4,000K)</span>
                         <span className="text-slate-500 ml-1">로 상쇄</span>
                       </div>
                     </div>
@@ -15105,15 +15140,28 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {plRows.map((row: any, i: number) => {
+                        {plRows.filter((row: any) => {
+                          if (row.group === 'direct') return plDirectOpen;
+                          if (row.group === 'ga') return plGAOpen;
+                          if (row.group === 'nsEcom') return plNsEcomOpen;
+                          if (row.group === 'nsWs') return plNsWsOpen;
+                          return true;
+                        }).map((row: any, i: number) => {
                           const diff = (row.b !== null && row.a !== null) ? row.a - row.b : null;
                           const isGoodDiff = row.isCost ? (diff !== null && diff < 0) : (diff !== null && diff > 0);
                           const rowBg = row.isMain ? 'bg-slate-50' : '';
                           const fontW = row.isMain ? 'font-bold' : 'font-normal';
+                          const isOpen = row.toggleKey === 'direct' ? plDirectOpen : row.toggleKey === 'ga' ? plGAOpen : row.toggleKey === 'nsEcom' ? plNsEcomOpen : row.toggleKey === 'nsWs' ? plNsWsOpen : false;
+                          const toggle = row.toggleKey === 'direct' ? () => setPlDirectOpen(v => !v) : row.toggleKey === 'ga' ? () => setPlGAOpen(v => !v) : row.toggleKey === 'nsEcom' ? () => setPlNsEcomOpen(v => !v) : row.toggleKey === 'nsWs' ? () => setPlNsWsOpen(v => !v) : null;
                           return (
-                            <tr key={i} className={cn("border-b border-gray-50", rowBg)}>
-                              <td className={cn("px-3 py-1.5 text-gray-700", fontW, row.indent === 1 && 'pl-5 text-gray-500')}>
-                                {row.label.replace(/^──\s*/, '')}
+                            <tr key={i} className={cn("border-b border-gray-50", rowBg, row.indent === 2 && 'bg-gray-50/50')}>
+                              <td className={cn("px-3 py-1.5 text-gray-700", fontW, row.indent === 1 && 'pl-5 text-gray-500 text-[12px]', row.indent === 2 && 'pl-9 text-gray-400 text-[11px]')}>
+                                {row.isToggle ? (
+                                  <button onClick={toggle} className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full text-left">
+                                    <span className="text-[10px] text-gray-400">{isOpen ? '▼' : '▶'}</span>
+                                    {row.label}
+                                  </button>
+                                ) : row.indent === 2 ? `· ${row.label}` : row.label.replace(/^──\s*/, '')}
                               </td>
                               {row.isRate ? (
                                 <>
@@ -15123,9 +15171,9 @@ export default function DashboardPage() {
                                 </>
                               ) : (
                                 <>
-                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{fmt(row.b)}</td>
-                                  <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW)}>{fmt(row.a)}</td>
-                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums text-gray-600", row.indent === 2 && 'text-[11px] text-gray-400')}>{fmt(row.b)}</td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW, row.indent === 2 && 'text-[11px] text-gray-500')}>{fmt(row.a)}</td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
                                     {diff !== null ? fmtDiff(diff) : ''}
                                   </td>
                                 </>
@@ -15141,12 +15189,13 @@ export default function DashboardPage() {
                 <div className="col-span-3 flex flex-col gap-4">
                   {/* 시즌별 MSRP / Net Sales — always visible */}
                   {(() => {
-                const seasons = ['26FW','26SS','25FW','과시즌','CORE'];
-                const colors  = ['#f97316','#22d3ee','#a78bfa','#94a3b8','#6b7280'];
-                const bMsrp   = [6957,12067,13028,8353,1371];
-                const aMsrp   = [5900,12000,12300,8600,1360];
-                const bNs     = [4100,7200,7300,3800,1186];
-                const aNs     = [3100,6200,5800,3800,1035];
+                // E-com + Wholesale 합산 (Excel PL_before/after 기준, K USD)
+                const seasons = ['26FW','26SS','25FW','25SS','Aged','Core'];
+                const colors  = ['#f97316','#22d3ee','#a78bfa','#6366f1','#94a3b8','#6b7280'];
+                const bMsrp   = [6958, 12280, 13356, 7296,  546, 1397];
+                const aMsrp   = [7415, 11444, 12569, 6065, 1577, 1085];
+                const bNs     = [4711,  7849,  6424, 2369,  353, 1169];
+                const aNs     = [4049,  5968,  5454, 1914,  478,  792];
                 const bDr     = seasons.map((_,i) => ((bMsrp[i]-bNs[i])/bMsrp[i]*100).toFixed(1)+'%');
                 const aDr     = seasons.map((_,i) => ((aMsrp[i]-aNs[i])/aMsrp[i]*100).toFixed(1)+'%');
                 const chartSeasonData = seasons.map((s,i) => ({
@@ -15236,12 +15285,24 @@ export default function DashboardPage() {
                               })}
                               <tr className="bg-indigo-100/40 border-t border-indigo-200 font-bold text-[11px]">
                                 <td className="px-2 py-1.5 text-gray-700">합계</td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-blue-600 border-l border-indigo-100">41,776</td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-indigo-700">40,160 <span className="text-[9px] text-red-400">(-1,616)</span></td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-emerald-700 border-l border-indigo-100">23,586</td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-teal-700">19,935 <span className="text-[9px] text-red-400">(-3,651)</span></td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">43.6%</td>
-                                <td className="px-1 py-1.5 text-right tabular-nums text-red-600">50.3%</td>
+                                {(() => {
+                                  const tBMsrp = bMsrp.reduce((s,v)=>s+v,0);
+                                  const tAMsrp = aMsrp.reduce((s,v)=>s+v,0);
+                                  const tBNs   = bNs.reduce((s,v)=>s+v,0);
+                                  const tANs   = aNs.reduce((s,v)=>s+v,0);
+                                  const msrpD  = tAMsrp - tBMsrp;
+                                  const nsD    = tANs   - tBNs;
+                                  const bDrT   = ((tBMsrp-tBNs)/tBMsrp*100).toFixed(1)+'%';
+                                  const aDrT   = ((tAMsrp-tANs)/tAMsrp*100).toFixed(1)+'%';
+                                  return (<>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-blue-600 border-l border-indigo-100">{tBMsrp.toLocaleString()}</td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-indigo-700">{tAMsrp.toLocaleString()} <span className="text-[9px] text-red-400">({msrpD>0?'+':''}{msrpD.toLocaleString()})</span></td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-emerald-700 border-l border-indigo-100">{tBNs.toLocaleString()}</td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-teal-700">{tANs.toLocaleString()} <span className="text-[9px] text-red-400">({nsD>0?'+':''}{nsD.toLocaleString()})</span></td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">{bDrT}</td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-red-600">{aDrT}</td>
+                                  </>);
+                                })()}
                               </tr>
                             </tbody>
                           </table>
@@ -15290,6 +15351,116 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
                   </CardContent>
                   </Card>
+
+                  {/* ── Aug~Dec 월별 비교표 ── */}
+                  {(() => {
+                    const months = ['8월','9월','10월','11월','12월','합계'];
+                    // Old Plan (PL_before): Aug~Dec + Sum  (K USD)
+                    const bMsrpM  = [2714, 4430, 3828, 6483, 6483, 23938];
+                    const aMsrpM  = [2045, 3151, 3559, 7010, 6495, 22261];
+                    const bNsM    = [1484, 2655, 2277, 3713, 3713, 13842];
+                    const aNsM    = [1026, 1448, 1598, 2804, 2748,  9625];
+                    const bDrM    = ['45.3%','40.1%','40.5%','42.7%','42.7%','42.2%'];
+                    const aDrM    = ['49.8%','54.1%','55.1%','60.0%','57.7%','56.8%'];
+                    const bOpM    = [-157,  396,   72,   754,  638,  1703];
+                    const aOpM    = [-511, -355, -474,  -628, -481, -2449];
+
+                    const fmtK = (v: number) => v === 0 ? '–' : (v > 0 ? `$${v.toLocaleString()}` : `-$${Math.abs(v).toLocaleString()}`);
+                    const metrics = [
+                      { label:'MSRP', b: bMsrpM, a: aMsrpM, isRate:false, higherIsGood:false },
+                      { label:'Net Sales', b: bNsM,  a: aNsM,  isRate:false, higherIsGood:true  },
+                      { label:'할인율',    b: bDrM,  a: aDrM,  isRate:true,  higherIsGood:false },
+                      { label:'영업이익',  b: bOpM,  a: aOpM,  isRate:false, higherIsGood:true  },
+                    ];
+
+                    return (
+                      <Card className="border-slate-100 shadow-sm">
+                        <CardHeader className="pb-2 pt-3">
+                          <CardTitle className="text-sm font-semibold text-slate-700">📋 Aug~Dec 월별 비교 — Old vs New Plan (K USD)</CardTitle>
+                          <p className="text-[11px] text-gray-400">Old Plan: Aug~Dec Forecast &nbsp;|&nbsp; New Plan: <span className="text-amber-600 font-medium">Aug 실적</span> + Sep~Dec Forecast &nbsp;·&nbsp; Net Sales = E-com + Wholesale</p>
+                        </CardHeader>
+                        <CardContent className="pb-3">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs border-collapse">
+                              <thead>
+                                <tr className="bg-slate-100 border-b border-slate-200">
+                                  <th className="text-left px-3 py-1.5 text-slate-500 font-semibold w-20">월구분</th>
+                                  <th className="text-[10px] text-slate-400 font-medium px-1 py-1.5 w-10"/>
+                                  {['8월','9월','10월','11월','12월'].map((m,i) => (
+                                    <th key={m} className={cn("text-right px-2 py-1.5 text-slate-600 font-semibold", i===0 && 'text-amber-600')}>
+                                      {m}{i===0 && <span className="text-[9px] ml-0.5 font-normal text-amber-500">(실적)</span>}
+                                    </th>
+                                  ))}
+                                  <th className="text-right px-2 py-1.5 text-slate-700 font-bold border-l border-slate-200">8-12월 합계</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {metrics.map((m, mi) => {
+                                  const isDiff = m.label === '영업이익';
+                                  return (<>
+                                    {/* Old row */}
+                                    <tr key={`${mi}-b`} className={cn("border-b border-slate-50", mi % 2 === 0 ? 'bg-white' : 'bg-slate-50/40')}>
+                                      <td rowSpan={isDiff ? 3 : 2} className="px-3 py-1.5 font-semibold text-slate-700 border-r border-slate-100 align-middle">{m.label}</td>
+                                      <td className="px-1 py-1 text-blue-500 font-medium text-[10px]">Old</td>
+                                      {(m.b as any[]).slice(0,5).map((v,i) => (
+                                        <td key={i} className="px-2 py-1 text-right tabular-nums text-gray-500">
+                                          {m.isRate ? v : fmtK(v as number)}
+                                        </td>
+                                      ))}
+                                      <td className="px-2 py-1 text-right tabular-nums text-blue-600 font-semibold border-l border-slate-200">
+                                        {m.isRate ? (m.b as string[])[5] : fmtK((m.b as number[])[5])}
+                                      </td>
+                                    </tr>
+                                    {/* New row */}
+                                    <tr key={`${mi}-a`} className={cn("border-b border-slate-100", mi % 2 === 0 ? 'bg-white' : 'bg-slate-50/40')}>
+                                      <td className="px-1 py-1 text-emerald-600 font-medium text-[10px]">New</td>
+                                      {(m.a as any[]).slice(0,5).map((v,i) => {
+                                        const bv = (m.b as any[])[i];
+                                        const isWorse = m.isRate
+                                          ? parseFloat(v) > parseFloat(bv)
+                                          : m.higherIsGood ? (v as number) < (bv as number) : (v as number) > (bv as number);
+                                        return (
+                                          <td key={i} className={cn("px-2 py-1 text-right tabular-nums font-semibold", isWorse ? 'text-red-500' : 'text-emerald-600')}>
+                                            {m.isRate ? v : fmtK(v as number)}
+                                          </td>
+                                        );
+                                      })}
+                                      <td className={cn("px-2 py-1 text-right tabular-nums font-bold border-l border-slate-200",
+                                        m.isRate
+                                          ? parseFloat((m.a as string[])[5]) > parseFloat((m.b as string[])[5]) ? 'text-red-500' : 'text-emerald-600'
+                                          : m.higherIsGood ? (m.a as number[])[5] < (m.b as number[])[5] ? 'text-red-500' : 'text-emerald-600'
+                                                           : (m.a as number[])[5] > (m.b as number[])[5] ? 'text-red-500' : 'text-emerald-600'
+                                      )}>
+                                        {m.isRate ? (m.a as string[])[5] : fmtK((m.a as number[])[5])}
+                                      </td>
+                                    </tr>
+                                    {/* 영업이익 diff row */}
+                                    {isDiff && (() => {
+                                      const diffVals = (m.a as number[]).map((v,i) => v - (m.b as number[])[i]);
+                                      return (
+                                        <tr key={`${mi}-diff`} className="border-b border-slate-200 bg-slate-100/60">
+                                          <td className="px-1 py-1 text-slate-500 font-medium text-[10px] whitespace-nowrap">New−Old</td>
+                                          {diffVals.slice(0,5).map((d,i) => (
+                                            <td key={i} className={cn("px-2 py-1 text-right tabular-nums font-bold text-[11px]", d >= 0 ? 'text-emerald-600' : 'text-red-500')}>
+                                              {d > 0 ? `+$${d.toLocaleString()}` : `-$${Math.abs(d).toLocaleString()}`}
+                                            </td>
+                                          ))}
+                                          <td className={cn("px-2 py-1 text-right tabular-nums font-bold text-[11px] border-l border-slate-200", diffVals[5] >= 0 ? 'text-emerald-600' : 'text-red-500')}>
+                                            {diffVals[5] > 0 ? `+$${diffVals[5].toLocaleString()}` : `-$${Math.abs(diffVals[5]).toLocaleString()}`}
+                                          </td>
+                                        </tr>
+                                      );
+                                    })()}
+                                  </>);
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })()}
+
                 </div>
               </div>
 
@@ -15557,7 +15728,7 @@ export default function DashboardPage() {
                     <p className="text-xs font-bold text-amber-900 mb-3">★ 현금흐름 핵심 시사점 — 본사 차입금 상환 결정이 연말 현금을 결정함</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
                       <div className="bg-white rounded-lg p-3 border border-amber-200">
-                        <p className="font-bold text-amber-800 mb-1.5">★ 재무결정: 12월 상환 $7K→$3K (-$4K)</p>
+                        <p className="font-bold text-amber-800 mb-1.5">★ 재무결정: 12월 상환 $7,000K→$3,000K (-$4,000K)</p>
                         <p>Old Plan은 12월에 본사 차입금 $7,000K를 상환할 계획이었으나, New Plan에서는 $3,000K로 축소 (-$4,000K). 이 단일 재무결정이 영업성과 악화를 상쇄하고 연말 현금 역전을 만듦.</p>
                         <p className="mt-1.5 text-amber-700 font-semibold text-[11px]">→ 남은 $4,000K는 2027년으로 이월 예정</p>
                       </div>
