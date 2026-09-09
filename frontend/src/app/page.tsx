@@ -12213,7 +12213,7 @@ export default function DashboardPage() {
     { id: "재무상태표", label: "재무상태표", icon: BriefcaseIcon },
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
-    { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon },
+    // { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon }, // 임시 숨김
     { id: "26년 신규 계획", label: "26년 변경 계획", icon: TrendingUpIcon },
   ];
   
