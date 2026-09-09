@@ -14921,34 +14921,34 @@ export default function DashboardPage() {
               {/* ── 헤더 ── */}
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-800">📊 26년 변경 계획 비교</h2>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h2 className="text-lg font-bold text-gray-800">📊 26년 변경 계획 비교</h2>
+                    {/* 섹션 이동 버튼 - 제목 바로 오른쪽 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-400 font-medium tracking-wide">▼ 분석 바로가기</span>
+                      <div className="flex gap-1.5">
+                      {[
+                        { label:'손익 분석', id:'section-pl' },
+                        { label:'재고 분석', id:'section-inven' },
+                        { label:'현금 분석', id:'section-cash' },
+                      ].map(btn => (
+                        <button
+                          key={btn.id}
+                          onClick={() => document.getElementById(btn.id)?.scrollIntoView({behavior:'smooth', block:'start'})}
+                          className="text-xs px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors font-medium shadow-sm"
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                      </div>
+                    </div>
+                  </div>
                   <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실적 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실적 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {/* 범례 */}
-                  <div className="flex gap-3">
-                    <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
-                    <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
-                  </div>
-                  {/* 섹션 이동 버튼 */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-slate-400 font-medium tracking-wide">▼ 분석 바로가기</span>
-                    <div className="flex gap-1.5">
-                    {[
-                      { label:'손익 분석', id:'section-pl' },
-                      { label:'재고 분석', id:'section-inven' },
-                      { label:'현금 분석', id:'section-cash' },
-                    ].map(btn => (
-                      <button
-                        key={btn.id}
-                        onClick={() => document.getElementById(btn.id)?.scrollIntoView({behavior:'smooth', block:'start'})}
-                        className="text-xs px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors font-medium shadow-sm"
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
-                    </div>{/* /버튼 flex */}
-                  </div>{/* /바로가기 wrapper */}
+                {/* 범례 */}
+                <div className="flex gap-3">
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
                 </div>
               </div>
 
