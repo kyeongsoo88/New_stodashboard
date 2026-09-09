@@ -5136,7 +5136,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [rawRows, setRawRows] = React.useState<Record<string, string>[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [viewTab, setViewTab] = React.useState<'트렌드' | '분석'>('분석');
-  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-07');
+  const [selectedMonthLocal, setSelectedMonthLocal] = React.useState<string>(selectedMonth || '2026-08');
   const [viewMode, setViewMode] = React.useState<'당월' | 'YTD'>('당월');
   const [activePL, setActivePL] = React.useState<Set<string>>(new Set(['HQ', 'Benefits', 'Contractors', 'Advertising', 'Professional Service']));
   const [drillPL, setDrillPL] = React.useState<string | null>(null);
@@ -10642,13 +10642,13 @@ export default function DashboardPage() {
   
   // 각 탭별로 독립적인 조회 기준 월 관리
   const [tabSelectedMonths, setTabSelectedMonths] = React.useState<Record<string, string>>({
-    "대시보드": "2026-07",
-    "손익계산서": "2026-07",
-    "재무상태표": "2026-07",
-    "현금흐름표": "2026-07",
-    "영업비 분석": "2026-07",
-    "당월 추세": "2026-07",
-    "시뮬레이션": "2026-07",
+    "대시보드": "2026-08",
+    "손익계산서": "2026-08",
+    "재무상태표": "2026-08",
+    "현금흐름표": "2026-08",
+    "영업비 분석": "2026-08",
+    "당월 추세": "2026-08",
+    "시뮬레이션": "2026-08",
   });
   
   // CSV 데이터 로딩 상태
@@ -10906,7 +10906,7 @@ export default function DashboardPage() {
   }, []);
 
   // 현재 활성 탭의 선택된 월 (useMemo보다 먼저 선언)
-  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-07";
+  const currentSelectedMonth = tabSelectedMonths[activeTab] || "2026-08";
   
   // CSV 데이터에서 선택된 월의 값을 가져오는 헬퍼 함수
   const getDataValue = (dataKey: string, month: string, defaultValue: string = ''): string => {
@@ -10930,7 +10930,8 @@ export default function DashboardPage() {
       '2026-04': '26-Apr',
       '2026-05': '26-May',
       '2026-06': '26-Jun',
-      '2026-07': '26-Jul'
+      '2026-07': '26-Jul',
+      '2026-08': '26-Aug'
     };
 
     const csvMonthKey = monthMapping[month] || month;
@@ -10965,7 +10966,8 @@ export default function DashboardPage() {
       '2026-04': '26-Apr',
       '2026-05': '26-May',
       '2026-06': '26-Jun',
-      '2026-07': '26-Jul'
+      '2026-07': '26-Jul',
+      '2026-08': '26-Aug'
     };
 
     const csvMonthKey = monthMapping[month] || month;
@@ -11960,7 +11962,7 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
 
     // 채널별 매출 추세 데이터
     const channelSalesData: Record<string, number[]> = {};
@@ -12063,8 +12065,8 @@ export default function DashboardPage() {
       return null;
     }
     
-    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
-    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월', '6월', '7월'];
+    const months = ['2025-01', '2025-02', '2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
+    const monthLabels = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월'];
 
       const monthMapping: Record<string, string> = {
         '2025-01': '25-Jan',
@@ -12085,7 +12087,8 @@ export default function DashboardPage() {
         '2026-04': '26-Apr',
         '2026-05': '26-May',
         '2026-06': '26-Jun',
-        '2026-07': '26-Jul'
+        '2026-07': '26-Jul',
+        '2026-08': '26-Aug'
       };
 
       const getValue = (key: string, month: string, defaultValue: string = '') => {
@@ -12102,9 +12105,9 @@ export default function DashboardPage() {
     
     // 3월부터 5월까지 데이터 수집 (CSV 컬럼 매핑: 25-Mar -> 3월, ..., 26-Mar -> 3월, 26-Apr -> 4월, 26-May -> 5월)
     // 차트에서 구분하기 위해 3월은 공백 추가, 4월은 공백 2개 추가, 5월은 공백 3개 추가
-    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     '];  // 마지막 구분용 공백
+    const inventoryMonths = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     ', '8월      '];  // 마지막 구분용 공백
     // CSV 헤더와 매핑
-    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May', '26-Jun', '26-Jul'];
+    const csvMonthKeys = ['25-Mar', '25-Apr', '25-May', '25-Jun', '25-Jul', '25-Aug', '25-Sep', '25-Oct', '25-Nov', '25-Dec', '26-Jan', '26-Feb', '26-Mar', '26-Apr', '26-May', '26-Jun', '26-Jul', '26-Aug'];
     
     inventoryMonths.forEach((monthLabel, idx) => {
       const csvMonthKey = csvMonthKeys[idx]; // CSV 컬럼 키 (각 컬럼이 한 달을 나타냄)
@@ -12172,8 +12175,8 @@ export default function DashboardPage() {
       return summaryData[key][csvMonthKey];
     };
 
-    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'];
-    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     '];  // 마지막 구분용 공백 추가
+    const shippingMonths = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];
+    const shippingLabels = ['3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월', '1월', '2월', '3월 ', '4월  ', '5월   ', '6월    ', '7월     ', '8월      '];  // 마지막 구분용 공백 추가
     const shippingChartData = shippingMonths.map((month, idx) => {
       const usCost = parseFloat(getSummaryValueForPopup('팝업_운반비_US건당단가', month, '0').replace(/[,$]/g, '')) || 0;
       const euCost = parseFloat(getSummaryValueForPopup('팝업_운반비_EU건당단가', month, '0').replace(/[,$]/g, '')) || 0;
@@ -12207,6 +12210,7 @@ export default function DashboardPage() {
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
     { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon },
+    { id: "26년 신규 계획", label: "26년 신규 계획", icon: TrendingUpIcon },
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
@@ -12250,6 +12254,7 @@ export default function DashboardPage() {
               <SelectItem value="2026-05">2026년 05월</SelectItem>
               <SelectItem value="2026-06">2026년 06월</SelectItem>
               <SelectItem value="2026-07">2026년 07월</SelectItem>
+              <SelectItem value="2026-08">2026년 08월</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -14760,6 +14765,906 @@ export default function DashboardPage() {
           </div>
         )}
         
+        {/* 26년 신규 계획 탭 콘텐츠 — REPLACED */}
+        {activeTab === "26년 신규 계획" && (() => {
+          const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+          // P&L 월별 데이터
+          const bNetSales   = [1175,1074,1223,1458,1726,1353,1374,1535,2755,2330,3767,3814];
+          const aNetSales   = [1175,1074,1223,1458,1726,1353,1373,1849,1492,1602,2813,2796];
+          const bGrossProfit= [636,688,805,974,991,832,740,985,1865,1562,2474,2521];
+          const aGrossProfit= [636,688,805,974,991,832,738,1369,869,901,1479,1582];
+          const bDirProfit  = [-59,231,368,434,303,106,137,422,892,701,1298,1197];
+          const aDirProfit  = [-59,231,368,434,303,106,136,894,205,131,20,153];
+          const bOpProfit   = [-634,-269,-23,-272,-155,-595,-415,-157,396,72,754,638];
+          const aOpProfit   = [-634,-269,-23,-272,-155,-595,-416,-511,-355,-474,-628,-481];
+
+          // 재고 월말 잔액 (MSRP 기준, $K) — Inven_before / Inven_after 시트에서
+          const bInven = [22849,33224,35319,33554,30342,27877,30352,33770,32230,28402,21919,15596];
+          const aInven = [22520,32768,34711,32809,29416,26863,29226,33048,30162,29493,22483,15988];
+
+          // 현금 월말 잔액 ($K) — Cash_before / Cash_after 시트 행43
+          const bCash = [4874,2562,2458,2451,2762,2433,1592,810,2002,2743,4324,2846];
+          const aCash = [4874,2562,2458,2451,2762,2433,1592,811,980,1041,2263,3191];
+
+          // 판매수금 월별 ($K) — Cash sheet 행6
+          const bSalesIn = [1834,1042,1432,1426,1769,1582,1367,944,2402,2201,3357,3498];
+          const aSalesIn = [1834,1042,1432,1426,1769,1582,1367,944,1317,1453,2547,2496];
+
+          // SG&A 운영비용 월별 ($K) — Cash sheet 행17 SG&A합계
+          const bSGA = [1616,2839,1490,1394,1336,1342,1686,1509,1331,1460,1776,1977];
+          const aSGA = [1616,2839,1490,1394,1336,1342,1686,1509,1547,1391,1326,2567];
+
+          // 영업CF 월별 ($K) — Cash sheet 행40
+          const bOpCF = [-1487,-2418,-104,-6,311,-330,-841,-782,658,741,1581,1521];
+          const aOpCF = [-1487,-2418,-104,-6,311,-330,-841,-781,-575,62,1221,-71];
+
+          const chartData = MONTHS.map((m,i) => ({
+            month: m,
+            bNetSales: bNetSales[i], aNetSales: aNetSales[i],
+            bOpProfit: bOpProfit[i], aOpProfit: aOpProfit[i],
+            bDirProfit: bDirProfit[i], aDirProfit: aDirProfit[i],
+            bInven: bInven[i], aInven: aInven[i],
+            bCash: bCash[i], aCash: aCash[i],
+            bSalesIn: bSalesIn[i], aSalesIn: aSalesIn[i],
+            bSGA: bSGA[i], aSGA: aSGA[i],
+            bOpCF: bOpCF[i], aOpCF: aOpCF[i],
+          }));
+
+          const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
+          const fmt = (v: number) => v >= 0 ? `$${v.toLocaleString()}K` : `-$${Math.abs(v).toLocaleString()}K`;
+          const fmtDiff = (d: number) => d > 0 ? `+$${d.toLocaleString()}K` : d < 0 ? `-$${Math.abs(d).toLocaleString()}K` : '–';
+
+          const plRows = [
+            { label:'MSRP Sales', b:41839, a:40160, isMain:false, indent:0 },
+            { label:'Net Sales', b:23586, a:19935, isMain:true, indent:0 },
+            { label:'  E-com', b:21608, a:17461, isMain:false, indent:1 },
+            { label:'  Wholesale', b:1277, a:1206, isMain:false, indent:1 },
+            { label:'  License', b:418, a:173, isMain:false, indent:1 },
+            { label:'  Others', b:283, a:1096, isMain:false, indent:1 },
+            { label:'Discount Rate', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', isRate:true, isMain:false, indent:0 },
+            { label:'CoGs', b:8512, a:8069, isMain:false, indent:0 },
+            { label:'Gross Profit', b:15074, a:11865, isMain:true, indent:0, bStr:'63.9%', aStr:'59.5%' },
+            { label:'── Direct Cost', b:9041, a:8942, isMain:false, indent:0, isCost:true },
+            { label:'  Marketing', b:4278, a:3914, isMain:false, indent:1, isCost:true },
+            { label:'  Freight', b:1344, a:1422, isMain:false, indent:1, isCost:true },
+            { label:'  Order Processing', b:1308, a:1578, isMain:false, indent:1, isCost:true },
+            { label:'  Prof. Service', b:2110, a:2027, isMain:false, indent:1, isCost:true },
+            { label:'Direct Profit', b:6033, a:2924, isMain:true, indent:0, bStr:'25.6%', aStr:'14.7%' },
+            { label:'── G&A', b:6694, a:7738, isMain:false, indent:0, isCost:true },
+            { label:'  Salaries', b:4186, a:4273, isMain:false, indent:1, isCost:true },
+            { label:'  Advertising', b:651, a:1416, isMain:false, indent:1, isCost:true },
+            { label:'  T&E', b:51, a:56, isMain:false, indent:1, isCost:true },
+            { label:'  Rent', b:294, a:299, isMain:false, indent:1, isCost:true },
+            { label:'  Sample', b:98, a:95, isMain:false, indent:1, isCost:true },
+            { label:'  Prof. Service', b:1081, a:1207, isMain:false, indent:1, isCost:true },
+            { label:'  D&A', b:68, a:89, isMain:false, indent:1, isCost:true },
+            { label:'Operating Profit', b:-661, a:-4814, isMain:true, indent:0, bStr:'-2.8%', aStr:'-24.1%' },
+          ] as any[];
+
+          const kpis = [
+            { label:'Net Sales', b:sum(bNetSales), a:sum(aNetSales) },
+            { label:'Gross Profit', b:sum(bGrossProfit), a:sum(aGrossProfit), bRate:'63.9%', aRate:'59.5%' },
+            { label:'Direct Profit', b:sum(bDirProfit), a:sum(aDirProfit), bRate:'25.6%', aRate:'14.7%' },
+            { label:'Operating Profit', b:sum(bOpProfit), a:sum(aOpProfit), bRate:'-2.8%', aRate:'-24.1%' },
+          ];
+
+          // 시즌별 재고 (연말 Dec ending, MSRP $K) — Inven_before/after 시트 row34~40
+          const seasonRows = [
+            { label:'Core',        b:1364,  a:1650,  color:'#94a3b8' },
+            { label:'26FW',        b:6021,  a:5564,  color:'#f97316' },
+            { label:'26SS',        b:2300,  a:2924,  color:'#22d3ee' },
+            { label:'25FW',        b:4745,  a:4988,  color:'#a78bfa' },
+            { label:'25SS+Aged',   b:1166,  a:862,   color:'#d1d5db' },
+          ];
+
+          // SG&A 항목별 (연간, $K)
+          const sgaRows = [
+            { label:'물류비/운반비',   b:3502, a:3785, isCost:true },
+            { label:'광고선전비(SEM)', b:4349, a:4046, isCost:true },
+            { label:'광고선전비(일반)',b:1347, a:1513, isCost:true },
+            { label:'인건비',          b:3468, a:3562, isCost:true },
+            { label:'지급수수료',      b:2991, a:3065, isCost:true },
+            { label:'관세',            b:1845, a:1787, isCost:true },
+            { label:'세금과공과',      b:840,  a:777,  isCost:true },
+            { label:'임차료',          b:383,  a:383,  isCost:true },
+            { label:'복리후생비',      b:793,  a:789,  isCost:true },
+            { label:'기타(샘플·출장·기타)', b:239, a:336, isCost:true },
+            { label:'SG&A 합계', b:19756, a:20042, isCost:true, isTotal:true },
+          ];
+
+          // 현금흐름 드라이버 ($K, 연간)
+          const cfDriverRows = [
+            { label:'판매수금',                 b:22854, a:19208, isCost:false },
+            { label:'운영비용(SG&A)',           b:19756, a:20042, isCost:true },
+            { label:'차입금상환 (2월, 공통)',   b:18000, a:18000, isCost:true },
+            { label:'차입금상환 (12월) ★',     b:7000,  a:3000,  isCost:true, isHighlight:true },
+            { label:'차입금상환 합계',          b:25000, a:21000, isCost:true, isSubtotal:true },
+            { label:'영업CF',                   b:-1154, a:-5019, isCost:false },
+            { label:'기말 현금잔액',            b:2846,  a:3191,  isCost:false, isTotal:true },
+          ];
+
+          return (
+            <div className="space-y-6">
+              {/* ── 헤더 ── */}
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-800">📊 26년 신규 계획 비교</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실績 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실績 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
+                </div>
+              </div>
+
+              {/* ── AI Insight ── */}
+              <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white shadow-sm overflow-hidden">
+                {/* 헤더 */}
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border-b border-slate-700">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400 shrink-0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  <span className="text-[11px] font-bold text-slate-200 tracking-wider uppercase">AI Analysis — Old Plan → New Plan 핵심 변화</span>
+                </div>
+
+                {/* 플로우 카드 5개 + 화살표 */}
+                <div className="p-4">
+                  {/* Step 1–4: 가로 플로우 */}
+                  <div className="flex items-stretch gap-0 mb-3">
+
+                    {/* S1: MSRP */}
+                    <div className="flex-1 rounded-lg bg-white border border-slate-200 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">① MSRP</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$41,839K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">$40,160K</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
+                        <span className="text-red-500 font-bold">-$1,616K</span> &nbsp;시즌별 판매계획 조정
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
+                      <div className="text-[9px] text-red-400 font-bold mb-0.5">할인율</div>
+                      <div className="text-red-400">→</div>
+                      <div className="text-[9px] text-red-600 font-bold mt-0.5">↑+8.2%p</div>
+                    </div>
+
+                    {/* S2: 할인율 → Net Sales */}
+                    <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">② 할인율 급등</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">45.3%</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-600">53.5%</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
+                        <span className="text-red-600 font-bold">+8.2%p</span> &nbsp;8월 실績 반영 + H2 재고 소진
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
+                      <div className="text-[9px] text-slate-400 mb-0.5">Net Sales</div>
+                      <div className="text-red-400">→</div>
+                      <div className="text-[9px] text-red-600 font-bold mt-0.5">급감</div>
+                    </div>
+
+                    {/* S3: Net Sales */}
+                    <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">③ Net Sales</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$23,586K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-600">$19,935K</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
+                        <span className="text-red-600 font-bold">-$3,651K</span> &nbsp;MSRP 감소(-$1,616K)의 <span className="font-bold">2.3배</span>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
+                      <div className="text-[9px] text-slate-400 mb-0.5">수익성</div>
+                      <div className="text-red-400">→</div>
+                      <div className="text-[9px] text-red-600 font-bold mt-0.5">악화</div>
+                    </div>
+
+                    {/* S4: 영업이익 */}
+                    <div className="flex-1 rounded-lg bg-red-100/70 border border-red-300 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-wide">④ 영업이익</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">-$661K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-red-700">-$4,814K</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-red-200 text-[10px] text-slate-500">
+                        <span className="text-red-700 font-bold">-$4,153K</span> &nbsp;추가 악화. 직접이익도 -$3,109K↓
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 5–7: 결과 플로우 */}
+                  <div className="flex items-stretch gap-0">
+
+                    {/* S5: 재고 영향 제한적 */}
+                    <div className="flex-1 rounded-lg bg-white border border-slate-200 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">⑤ 연말 재고</span>
+                        <span className="text-[9px] bg-slate-100 text-slate-500 px-1 rounded">소폭</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$15,596K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">$15,988K</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500">
+                        <span className="text-orange-500 font-bold">+$392K</span> &nbsp;MSRP 감소 대비 영향 제한적
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
+                      <div className="text-[9px] text-slate-400 mb-0.5">수금 감소</div>
+                      <div className="text-red-400">→</div>
+                      <div className="text-[9px] text-red-600 font-bold mt-0.5">영업CF↓</div>
+                    </div>
+
+                    {/* S6: 현금흐름 악화 */}
+                    <div className="flex-1 rounded-lg bg-red-50 border border-red-200 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-red-500 uppercase tracking-wide">⑥ 영업 현금</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">판매수금 Old</span><span className="tabular-nums font-semibold">$22,854K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">판매수금 New</span><span className="tabular-nums font-bold text-red-600">$19,208K</span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-red-100 text-[10px] text-slate-500">
+                        영업CF: <span className="text-red-600 font-bold">-$1,154K → -$5,019K</span>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex flex-col items-center justify-center px-1.5 shrink-0">
+                      <div className="text-[9px] text-amber-600 font-bold mb-0.5">재무결정</div>
+                      <div className="text-amber-500">→</div>
+                      <div className="text-[9px] text-amber-700 font-bold mt-0.5">★보전</div>
+                    </div>
+
+                    {/* S7: 연말 현금 — 반전 */}
+                    <div className="flex-1 rounded-lg bg-amber-50 border-2 border-amber-400 shadow-sm px-3 py-2.5 min-w-0">
+                      <div className="flex items-center gap-1 mb-1.5">
+                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">⑦ 연말 현금 ★</span>
+                      </div>
+                      <div className="text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$2,846K <span className="text-[9px] text-slate-400">(12월 상환 $7K)</span></span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-bold text-emerald-700">$3,191K <span className="text-[9px] text-amber-600">(상환 $3K)</span></span></div>
+                      </div>
+                      <div className="mt-1.5 pt-1.5 border-t border-amber-200 text-[10px]">
+                        <span className="text-amber-800 font-bold">12월 상환 $7K→$3K (-$4K)</span>
+                        <span className="text-slate-500 ml-1">로 영업CF 악화 상쇄</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 하단 요약 한 줄 */}
+                  <div className="mt-3 px-3 py-2 rounded-lg bg-slate-800 text-[11px] text-slate-200 leading-relaxed">
+                    <span className="text-violet-300 font-bold">결론 :</span>
+                    &nbsp;MSRP 소폭 감소(-$1.6M)에 비해 할인율이 +8.2%p 상승하면서 Net Sales가 <span className="text-red-300 font-bold">-$3.7M</span> 급감했고,
+                    이로 인해 영업이익 <span className="text-red-300 font-bold">-$4.2M 추가 악화</span>, 판매수금 감소로 영업CF <span className="text-red-300 font-bold">-$3.9M 저하</span>됐습니다.
+                    재고는 상대적으로 소폭(<span className="text-orange-300">+$0.4M</span>) 증가에 그쳤으나,
+                    현금 방어를 위해 <span className="text-amber-300 font-bold">12월 본사 차입금 상환을 $7M → $3M으로 $4M 축소</span>하기로 결정,
+                    결국 연말 현금은 오히려 New &gt; Old(<span className="text-emerald-300 font-bold">$3,191K vs $2,846K, +$345K</span>)가 됩니다.
+                  </div>
+                </div>
+              </div>
+
+              {/* ── KPI 카드 4개 ── */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {kpis.map(k => {
+                  const diff = k.a - k.b;
+                  const good = diff > 0;
+                  return (
+                    <Card key={k.label} className="border-gray-100 shadow-sm">
+                      <CardContent className="pt-3 pb-3 px-3">
+                        <p className="text-[11px] text-gray-400 font-semibold mb-2 truncate">{k.label}</p>
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center gap-1">
+                            <span className="text-[10px] text-blue-500 shrink-0">Old</span>
+                            <span className="text-xs font-semibold text-gray-600 tabular-nums">{fmt(k.b)}</span>
+                          </div>
+                          <div className="flex justify-between items-center gap-1">
+                            <span className="text-[10px] text-emerald-600 shrink-0">New</span>
+                            <span className="text-sm font-bold text-gray-900 tabular-nums">{fmt(k.a)}</span>
+                          </div>
+                          {(k as any).aRate && (
+                            <div className="flex justify-between items-center gap-1 text-[10px] text-gray-400">
+                              <span>{(k as any).bRate}</span><span>→</span><span className="font-semibold text-gray-600">{(k as any).aRate}</span>
+                            </div>
+                          )}
+                          <div className="border-t border-gray-100 pt-1 flex justify-between items-center">
+                            <span className="text-[10px] text-gray-400">변동</span>
+                            <span className={cn("text-xs font-bold tabular-nums", good ? 'text-emerald-600' : 'text-red-500')}>{fmtDiff(diff)}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              {/* ── P&L 테이블 + 월별 차트 ── */}
+              <div className="grid grid-cols-5 gap-4">
+                <Card className="border-gray-100 shadow-sm col-span-2">
+                  <CardHeader className="pb-2 pt-3">
+                    <CardTitle className="text-sm font-semibold text-gray-700">P&amp;L 연간 비교 (K USD)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 pb-2">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="text-left px-3 py-2 text-gray-500 font-medium">항목</th>
+                          <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
+                          <th className="text-right px-2 py-2 text-emerald-600 font-medium">New</th>
+                          <th className="text-right px-2 py-2 text-gray-500 font-medium">변동</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {plRows.map((row: any, i: number) => {
+                          const diff = (row.b !== null && row.a !== null) ? row.a - row.b : null;
+                          const isGoodDiff = row.isCost ? (diff !== null && diff < 0) : (diff !== null && diff > 0);
+                          const rowBg = row.isMain ? 'bg-slate-50' : '';
+                          const fontW = row.isMain ? 'font-bold' : 'font-normal';
+                          return (
+                            <tr key={i} className={cn("border-b border-gray-50", rowBg)}>
+                              <td className={cn("px-3 py-1.5 text-gray-700", fontW, row.indent === 1 && 'pl-5 text-gray-500')}>
+                                {row.label.replace(/^──\s*/, '')}
+                              </td>
+                              {row.isRate ? (
+                                <>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{row.bStr}</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-800 font-semibold">{row.aStr}</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-red-500 font-bold">{row.diffStr}</td>
+                                </>
+                              ) : (
+                                <>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{fmt(row.b)}</td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW)}>{fmt(row.a)}</td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
+                                    {diff !== null ? fmtDiff(diff) : ''}
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </CardContent>
+                </Card>
+
+                <div className="col-span-3 flex flex-col gap-4">
+                  {/* 시즌별 MSRP / Net Sales — always visible */}
+                  {(() => {
+                const seasons = ['26FW','26SS','25FW','과시즌','CORE'];
+                const colors  = ['#f97316','#22d3ee','#a78bfa','#94a3b8','#6b7280'];
+                const bMsrp   = [6957,12067,13028,8353,1371];
+                const aMsrp   = [5900,12000,12300,8600,1360];
+                const bNs     = [4100,7200,7300,3800,1186];
+                const aNs     = [3100,6200,5800,3800,1035];
+                const bDr     = seasons.map((_,i) => ((bMsrp[i]-bNs[i])/bMsrp[i]*100).toFixed(1)+'%');
+                const aDr     = seasons.map((_,i) => ((aMsrp[i]-aNs[i])/aMsrp[i]*100).toFixed(1)+'%');
+                const chartSeasonData = seasons.map((s,i) => ({
+                  season: s,
+                  bMsrp: bMsrp[i], aMsrp: aMsrp[i],
+                  bNs: bNs[i],     aNs: aNs[i],
+                }));
+                return (
+                  <Card className="border-indigo-100 bg-indigo-50/30 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-sm font-semibold text-indigo-700">📊 시즌별 MSRP & Net Sales — Old vs New (K USD)</CardTitle>
+                      <p className="text-xs text-gray-400">Old Plan: Jan~Jul A + Aug~Dec F &nbsp;|&nbsp; New Plan: Jan~Aug A + Sep~Dec F</p>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* 차트 */}
+                        <div>
+                          <p className="text-[11px] text-gray-500 font-semibold mb-1">MSRP Sales by Season ($K)</p>
+                          <ResponsiveContainer width="100%" height={180}>
+                            <BarChart data={chartSeasonData} margin={{top:4,right:4,left:0,bottom:0}}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff"/>
+                              <XAxis dataKey="season" tick={{fontSize:10}}/>
+                              <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${(v/1000).toFixed(0)}M`} width={38}/>
+                              <Tooltip formatter={(v:any,n:string)=>[`$${Number(v).toLocaleString()}K`,n]} contentStyle={{fontSize:'10px'}}/>
+                              <Legend wrapperStyle={{fontSize:'10px'}}/>
+                              <Bar dataKey="bMsrp" name="MSRP Old" fill="#93c5fd" opacity={0.7} radius={[2,2,0,0]} barSize={14}/>
+                              <Bar dataKey="aMsrp" name="MSRP New" fill="#818cf8" opacity={0.9} radius={[2,2,0,0]} barSize={14}/>
+                            </BarChart>
+                          </ResponsiveContainer>
+                          <p className="text-[11px] text-gray-500 font-semibold mb-1 mt-3">Net Sales by Season ($K)</p>
+                          <ResponsiveContainer width="100%" height={180}>
+                            <BarChart data={chartSeasonData} margin={{top:4,right:4,left:0,bottom:0}}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff"/>
+                              <XAxis dataKey="season" tick={{fontSize:10}}/>
+                              <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${(v/1000).toFixed(0)}M`} width={38}/>
+                              <Tooltip formatter={(v:any,n:string)=>[`$${Number(v).toLocaleString()}K`,n]} contentStyle={{fontSize:'10px'}}/>
+                              <Legend wrapperStyle={{fontSize:'10px'}}/>
+                              <Bar dataKey="bNs" name="Net Sales Old" fill="#34d399" opacity={0.7} radius={[2,2,0,0]} barSize={14}/>
+                              <Bar dataKey="aNs" name="Net Sales New" fill="#10b981" opacity={0.9} radius={[2,2,0,0]} barSize={14}/>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                        {/* 상세 테이블 */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-indigo-100/60 border-b border-indigo-200">
+                                <th className="text-left px-2 py-1.5 text-gray-600 font-semibold">시즌</th>
+                                <th colSpan={2} className="text-center px-1 py-1.5 text-blue-600 font-semibold border-l border-indigo-200">MSRP ($K)</th>
+                                <th colSpan={2} className="text-center px-1 py-1.5 text-emerald-600 font-semibold border-l border-indigo-200">Net Sales ($K)</th>
+                                <th colSpan={2} className="text-center px-1 py-1.5 text-orange-600 font-semibold border-l border-indigo-200">할인율</th>
+                              </tr>
+                              <tr className="bg-indigo-50/50 border-b border-indigo-100 text-[10px] text-gray-400">
+                                <th className="px-2 py-1"/>
+                                <th className="text-right px-1 py-1 border-l border-indigo-100">Old</th>
+                                <th className="text-right px-1 py-1">New</th>
+                                <th className="text-right px-1 py-1 border-l border-indigo-100">Old</th>
+                                <th className="text-right px-1 py-1">New</th>
+                                <th className="text-right px-1 py-1 border-l border-indigo-100">Old</th>
+                                <th className="text-right px-1 py-1">New</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {seasons.map((s,i) => {
+                                const msrpD = aMsrp[i] - bMsrp[i];
+                                const nsD   = aNs[i] - bNs[i];
+                                return (
+                                  <tr key={s} className="border-b border-indigo-50 hover:bg-indigo-50/20">
+                                    <td className="px-2 py-1.5 font-semibold flex items-center gap-1">
+                                      <span className="inline-block w-2 h-2 rounded-full shrink-0" style={{background: colors[i]}}/>
+                                      {s}
+                                    </td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">{bMsrp[i].toLocaleString()}</td>
+                                    <td className={cn("px-1 py-1.5 text-right tabular-nums font-semibold", msrpD < 0 ? 'text-red-500' : 'text-emerald-600')}>
+                                      {aMsrp[i].toLocaleString()} <span className="text-[9px]">({msrpD > 0 ? '+' : ''}{msrpD.toLocaleString()})</span>
+                                    </td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">{bNs[i].toLocaleString()}</td>
+                                    <td className={cn("px-1 py-1.5 text-right tabular-nums font-semibold", nsD < 0 ? 'text-red-500' : 'text-emerald-600')}>
+                                      {aNs[i].toLocaleString()} <span className="text-[9px]">({nsD > 0 ? '+' : ''}{nsD.toLocaleString()})</span>
+                                    </td>
+                                    <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">{bDr[i]}</td>
+                                    <td className={cn("px-1 py-1.5 text-right tabular-nums font-semibold", parseFloat(aDr[i]) > parseFloat(bDr[i]) ? 'text-red-500' : 'text-emerald-600')}>
+                                      {aDr[i]}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                              <tr className="bg-indigo-100/40 border-t border-indigo-200 font-bold text-[11px]">
+                                <td className="px-2 py-1.5 text-gray-700">합계</td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-blue-600 border-l border-indigo-100">41,776</td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-indigo-700">40,160 <span className="text-[9px] text-red-400">(-1,616)</span></td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-emerald-700 border-l border-indigo-100">23,586</td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-teal-700">19,935 <span className="text-[9px] text-red-400">(-3,651)</span></td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-gray-500 border-l border-indigo-100">43.6%</td>
+                                <td className="px-1 py-1.5 text-right tabular-nums text-red-600">50.3%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">
+                            25FW·26FW 중심 하반기 판매 하향 + 할인율 상승으로 Net Sales 감소 폭이 MSRP 감소 폭보다 큼.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
+                  <Card className="border-gray-100 shadow-sm">
+                  <CardHeader className="pb-2 pt-3">
+                    <CardTitle className="text-sm font-semibold text-gray-700">월별 Net Sales · Operating Profit 비교</CardTitle>
+                    <p className="text-xs text-gray-400">실선=Old Plan &nbsp;|&nbsp; 점선=New Plan &nbsp;|&nbsp; 회색음영=Forecast 구간</p>
+                  </CardHeader>
+                  <CardContent className="pb-3">
+                    <ResponsiveContainer width="100%" height={210}>
+                      <ComposedChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="month" tick={{fontSize:10}} />
+                        <YAxis yAxisId="sales" tick={{fontSize:10}} tickFormatter={(v)=>`$${(v/1000).toFixed(0)}M`} width={42}/>
+                        <YAxis yAxisId="op" orientation="right" tick={{fontSize:10}} tickFormatter={(v)=>`$${v}K`} width={52}/>
+                        <Tooltip formatter={(v:any,name:string)=>[`$${Number(v).toLocaleString()}K`, name]} contentStyle={{fontSize:'11px'}}/>
+                        <Legend wrapperStyle={{fontSize:'11px'}}/>
+                        <ReferenceArea yAxisId="sales" x="Aug" x2="Dec" fill="#f8f8f8" fillOpacity={0.6}/>
+                        <Bar yAxisId="sales" dataKey="bNetSales" name="Net Sales Old" fill="#93c5fd" opacity={0.6} radius={[2,2,0,0]}/>
+                        <Bar yAxisId="sales" dataKey="aNetSales" name="Net Sales New" fill="#34d399" opacity={0.8} radius={[2,2,0,0]}/>
+                        <Line yAxisId="op" type="monotone" dataKey="bOpProfit" name="OP Old" stroke="#3b82f6" strokeWidth={2} dot={{r:2}} strokeDasharray="4 2"/>
+                        <Line yAxisId="op" type="monotone" dataKey="aOpProfit" name="OP New" stroke="#ef4444" strokeWidth={2} dot={{r:2}}/>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={150}>
+                      <ComposedChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="month" tick={{fontSize:10}} />
+                        <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${v}K`} width={52}/>
+                        <Tooltip formatter={(v:any,name:string)=>[`$${Number(v).toLocaleString()}K`, name]} contentStyle={{fontSize:'11px'}}/>
+                        <Legend wrapperStyle={{fontSize:'11px'}}/>
+                        <ReferenceArea x="Aug" x2="Dec" fill="#f8f8f8" fillOpacity={0.6}/>
+                        <Line type="monotone" dataKey="bDirProfit" name="Direct Profit Old" stroke="#3b82f6" strokeWidth={2} dot={{r:2}} strokeDasharray="4 2"/>
+                        <Line type="monotone" dataKey="aDirProfit" name="Direct Profit New" stroke="#10b981" strokeWidth={2} dot={{r:2}}/>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* ── P&L 주요 변화 ── */}
+              <Card className="border-amber-100 bg-amber-50/40 shadow-sm">
+                <CardContent className="py-3 px-4">
+                  <p className="text-xs font-bold text-amber-800 mb-2">⚠️ Old → New Plan 주요 변화 포인트</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-700">
+                    <div><span className="font-semibold text-red-600">Net Sales -$3,651K</span><br/>Sep~Dec 계획 대폭 하향. Old $12,666K → New $8,703K</div>
+                    <div><span className="font-semibold text-red-600">할인율 +8.2%p</span><br/>45.3% → 53.5%. 8월 실績 반영 + 하반기 재고 소진 할인 반영</div>
+                    <div><span className="font-semibold text-red-600">Operating Profit -$4,153K</span><br/>-$661K → -$4,814K. 광고비($651K→$1,416K) G&A 증가도 영향</div>
+                    <div><span className="font-semibold text-red-600">Direct Profit -$3,109K</span><br/>$6,033K → $2,924K. 매출 하향 + 할인율 상승이 주 원인</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ══════════════════════════════════════════════════════
+                  재고 분석
+              ══════════════════════════════════════════════════════ */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>📦</span> 재고 분석 — Old vs New Plan
+                </h3>
+
+                {/* 재고 KPI */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  {[
+                    { label:'연말 총재고 (Old)', val: 15596, sub:'MSRP 기준 $K', color:'text-blue-600' },
+                    { label:'연말 총재고 (New)', val: 15988, sub:'MSRP 기준 $K', color:'text-emerald-700' },
+                    { label:'재고 증가분', val: 392, sub:'New Plan 잔여분 ↑', color:'text-red-500', prefix:'+' },
+                    { label:'연간 판매율 (New)', val: null, sub:'Old 90.1% → New 88.1%', color:'text-orange-600', strVal:'88.1%' },
+                  ].map((k,i) => (
+                    <Card key={i} className="border-gray-100 shadow-sm">
+                      <CardContent className="pt-3 pb-3 px-3">
+                        <p className="text-[10px] text-gray-400 font-semibold mb-1">{k.label}</p>
+                        <p className={cn("text-lg font-bold tabular-nums", k.color)}>
+                          {k.strVal ?? `${k.prefix ?? '$'}${(k.val as number).toLocaleString()}${k.prefix ? '' : 'K'}`}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{k.sub}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-5 gap-4">
+                  {/* 월별 재고 추이 */}
+                  <Card className="col-span-3 border-gray-100 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-sm font-semibold text-gray-700">월별 재고잔액 추이 (MSRP 기준, $K)</CardTitle>
+                      <p className="text-xs text-gray-400">Aug 실績 기준 분기점 — 이후 New Plan이 판매 감소로 재고 더 높음</p>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <ComposedChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                          <XAxis dataKey="month" tick={{fontSize:10}}/>
+                          <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${(v/1000).toFixed(0)}M`} width={48} domain={[0,40000]}/>
+                          <Tooltip formatter={(v:any,name:string)=>[`$${Number(v).toLocaleString()}K`, name]} contentStyle={{fontSize:'11px'}}/>
+                          <Legend wrapperStyle={{fontSize:'11px'}}/>
+                          <ReferenceArea x="Aug" x2="Dec" fill="#fef9c3" fillOpacity={0.4}/>
+                          <ReferenceLine x="Aug" stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1.5}/>
+                          <Line type="monotone" dataKey="bInven" name="재고 Old Plan" stroke="#3b82f6" strokeWidth={2} dot={{r:2}} strokeDasharray="4 2"/>
+                          <Line type="monotone" dataKey="aInven" name="재고 New Plan" stroke="#f97316" strokeWidth={2.5} dot={{r:3}}/>
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* 시즌별 재고 비교 */}
+                  <Card className="col-span-2 border-gray-100 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-sm font-semibold text-gray-700">연말 시즌별 재고 비교 ($K)</CardTitle>
+                      <p className="text-xs text-gray-400">H2 판매 하향으로 FW·SS 잔여분 증가</p>
+                    </CardHeader>
+                    <CardContent className="p-0 pb-2">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="text-left px-3 py-2 text-gray-500 font-medium">시즌</th>
+                            <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
+                            <th className="text-right px-2 py-2 text-orange-500 font-medium">New</th>
+                            <th className="text-right px-2 py-2 text-gray-400 font-medium">증감</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {seasonRows.map((r,i) => {
+                            const d = r.a - r.b;
+                            return (
+                              <tr key={i} className="border-b border-gray-50">
+                                <td className="px-3 py-1.5 text-gray-700 flex items-center gap-1.5">
+                                  <span className="inline-block w-2 h-2 rounded-full" style={{background: r.color}}/>
+                                  {r.label}
+                                </td>
+                                <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">${r.b.toLocaleString()}</td>
+                                <td className="px-2 py-1.5 text-right tabular-nums text-gray-800 font-semibold">${r.a.toLocaleString()}</td>
+                                <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", d > 0 ? 'text-red-500' : d < 0 ? 'text-emerald-600' : 'text-gray-400')}>
+                                  {d > 0 ? `+$${d.toLocaleString()}` : d < 0 ? `-$${Math.abs(d).toLocaleString()}` : '–'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          <tr className="bg-slate-50 border-t border-gray-200 font-bold">
+                            <td className="px-3 py-1.5 text-gray-700">합계</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-blue-600">$15,596</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-orange-600">$15,988</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-red-500">+$392</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div className="px-3 pt-2 pb-1 text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 mt-1">
+                        26FW·25FW 중심 재고 증가. H2 할인 판매로 수익성 추가 압박 예상.
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card className="border-orange-100 bg-orange-50/40 shadow-sm mt-3">
+                  <CardContent className="py-3 px-4">
+                    <p className="text-xs font-bold text-orange-800 mb-2">📦 재고 핵심 시사점</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
+                      <div><span className="font-semibold text-orange-700">New Plan 연말 재고 +$392K</span><br/>H2 Net Sales 하향으로 재고 소진 속도 감소. 단, Old보다 규모 차이는 작음 (Old $15,596K → New $15,988K, +2.5%).</div>
+                      <div><span className="font-semibold text-orange-700">시즌별 구성 변화</span><br/>26SS New $2,924K (Old $2,300K 대비 +$624K). 25SS+Aged는 New -$304K 감소. 전반적으로 시즌별 혼합 재편.</div>
+                      <div><span className="font-semibold text-orange-700">할인율 상승 악순환</span><br/>재고 소진 위해 할인 심화 → 할인율 53.5%로 추가 상승 → 수익성 추가 저하. Q4 가격 관리 전략 필요.</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* ══════════════════════════════════════════════════════
+                  현금흐름 분석
+              ══════════════════════════════════════════════════════ */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>💰</span> 현금흐름 분석 — Old vs New Plan
+                </h3>
+
+                {/* ★ 핵심 포인트 배너 */}
+                <div className="mb-4 rounded-lg border-2 border-amber-400 bg-amber-50 px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl shrink-0">★</span>
+                    <div>
+                      <p className="text-sm font-bold text-amber-900 mb-1">CF 분석 핵심: 본사 차입금 상환 12월 $7,000K → $3,000K (-$4,000K)</p>
+                      <p className="text-xs text-amber-800 leading-relaxed">
+                        New Plan은 12월 본사 차입금 상환을 Old $7,000K에서 $3,000K로 <span className="font-bold">$4,000K 축소</span>하기로 결정했습니다.
+                        이 재무결정 하나가, 영업현금흐름 악화 (-$3,865K: Old -$1,154K → New -$5,019K)를 상쇄하고
+                        연말 현금이 오히려 New &gt; Old ($3,191K vs $2,846K, <span className="font-bold">+$345K</span>)가 되는 결정적 이유입니다.
+                        즉, <span className="font-bold">연말 현금 우위는 영업성과가 아닌 재무결정(차입금 덜 갚기)의 결과</span>입니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 현금 KPI */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                  <Card className="border-gray-100 shadow-sm">
+                    <CardContent className="pt-3 pb-3 px-3">
+                      <p className="text-[10px] text-gray-400 font-semibold mb-1">연말 현금 Old</p>
+                      <p className="text-lg font-bold tabular-nums text-blue-600">$2,846K</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">12월 차입금상환 $7,000K 포함</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-emerald-200 bg-emerald-50/40 shadow-sm">
+                    <CardContent className="pt-3 pb-3 px-3">
+                      <p className="text-[10px] text-emerald-600 font-semibold mb-1">연말 현금 New (+$345K)</p>
+                      <p className="text-lg font-bold tabular-nums text-emerald-700">$3,191K</p>
+                      <p className="text-[10px] text-amber-600 font-semibold mt-0.5">★ 12월 상환 $3,000K (Old 대비 -$4,000K)</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-red-100 bg-red-50/20 shadow-sm">
+                    <CardContent className="pt-3 pb-3 px-3">
+                      <p className="text-[10px] text-red-500 font-semibold mb-1">영업CF 악화 (New-Old)</p>
+                      <p className="text-lg font-bold tabular-nums text-red-500">-$3,865K</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Old -$1,154K → New -$5,019K</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-amber-200 bg-amber-50/30 shadow-sm">
+                    <CardContent className="pt-3 pb-3 px-3">
+                      <p className="text-[10px] text-amber-600 font-semibold mb-1">최저 현금 (8월, 공통)</p>
+                      <p className="text-lg font-bold tabular-nums text-amber-700">$810K</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">Old·New 동일 구간 — 유동성 주의</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-5 gap-4">
+                  {/* 월별 현금 추이 */}
+                  <Card className="col-span-3 border-gray-100 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-sm font-semibold text-gray-700">월말 현금잔액 추이 ($K)</CardTitle>
+                      <p className="text-xs text-gray-400">8월 최저점 $810K 이후 회복 — New Plan 연말 현금 $3,191K (Old $2,846K 대비 +$345K)</p>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <ResponsiveContainer width="100%" height={220}>
+                        <ComposedChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                          <XAxis dataKey="month" tick={{fontSize:10}}/>
+                          <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${v}K`} width={52} domain={[0,6000]}/>
+                          <Tooltip formatter={(v:any,name:string)=>[`$${Number(v).toLocaleString()}K`, name]} contentStyle={{fontSize:'11px'}}/>
+                          <Legend wrapperStyle={{fontSize:'11px'}}/>
+                          <ReferenceArea x="Aug" x2="Aug" fill="#fee2e2" fillOpacity={0.5}/>
+                          <ReferenceLine y={810} stroke="#f59e0b" strokeDasharray="3 3" strokeWidth={1} label={{value:'최저 $810K', position:'right', fontSize:9, fill:'#f59e0b'}}/>
+                          <Line type="monotone" dataKey="bCash" name="현금 Old Plan" stroke="#3b82f6" strokeWidth={2} dot={{r:2}} strokeDasharray="4 2"/>
+                          <Line type="monotone" dataKey="aCash" name="현금 New Plan" stroke="#10b981" strokeWidth={2.5} dot={{r:3}}/>
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* 현금흐름 주요 드라이버 */}
+                  <Card className="col-span-2 border-gray-100 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-sm font-semibold text-gray-700">현금흐름 주요 드라이버 ($K)</CardTitle>
+                      <p className="text-xs text-gray-400">연간 누적 기준 Old vs New 비교</p>
+                    </CardHeader>
+                    <CardContent className="p-0 pb-2">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="text-left px-3 py-2 text-gray-500 font-medium">항목</th>
+                            <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
+                            <th className="text-right px-2 py-2 text-red-500 font-medium">New</th>
+                            <th className="text-right px-2 py-2 text-gray-400 font-medium">변동</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cfDriverRows.map((r,i) => {
+                            const d = r.a - r.b;
+                            const isGood = r.isCost ? d < 0 : d > 0;
+                            const isHL = (r as any).isHighlight;
+                            const isSub = (r as any).isSubtotal;
+                            const rowBg = r.isTotal
+                              ? 'bg-slate-50 font-bold border-t-2 border-gray-300'
+                              : isSub
+                              ? 'bg-gray-50 font-semibold border-t border-gray-200'
+                              : isHL
+                              ? 'bg-amber-50 border-l-4 border-l-amber-400'
+                              : '';
+                            return (
+                              <tr key={i} className={cn("border-b border-gray-100", rowBg)}>
+                                <td className={cn("px-3 py-1.5", isHL ? 'text-amber-900 font-bold' : 'text-gray-700')}>
+                                  {r.label}
+                                  {isHL && <span className="ml-1 text-[9px] bg-amber-400 text-white px-1 py-0.5 rounded font-bold">핵심</span>}
+                                </td>
+                                <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">{fmt(r.b)}</td>
+                                <td className={cn("px-2 py-1.5 text-right tabular-nums", isHL ? 'font-bold text-amber-700' : 'text-gray-800')}>{fmt(r.a)}</td>
+                                <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", isHL ? 'text-emerald-600 text-sm' : isGood ? 'text-emerald-600' : 'text-red-500')}>
+                                  {fmtDiff(d)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <div className="px-3 pt-2 pb-1 text-[10px] leading-relaxed border-t-2 border-amber-200 mt-1 bg-amber-50/50">
+                        <span className="font-bold text-amber-800">★ 12월 차입금상환: Old $7,000K → New $3,000K (-$4,000K)</span>
+                        <span className="text-gray-500 ml-1">이 결정이 영업CF 악화(-$3,865K)를 상쇄하고 New 연말 현금을 +$345K 높임.</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card className="border-amber-300 bg-amber-50/60 shadow-sm mt-3">
+                  <CardContent className="py-3 px-4">
+                    <p className="text-xs font-bold text-amber-900 mb-3">★ 현금흐름 핵심 시사점 — 본사 차입금 상환 결정이 연말 현금을 결정함</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
+                      <div className="bg-white rounded-lg p-3 border border-amber-200">
+                        <p className="font-bold text-amber-800 mb-1.5">★ 재무결정: 12월 상환 $7K→$3K (-$4K)</p>
+                        <p>Old Plan은 12월에 본사 차입금 $7,000K를 상환할 계획이었으나, New Plan에서는 $3,000K로 축소 (-$4,000K). 이 단일 재무결정이 영업성과 악화를 상쇄하고 연말 현금 역전을 만듦.</p>
+                        <p className="mt-1.5 text-amber-700 font-semibold text-[11px]">→ 남은 $4,000K는 2027년으로 이월 예정</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-red-100">
+                        <p className="font-bold text-red-700 mb-1.5">영업CF 악화: -$3,865K (New-Old)</p>
+                        <p>Old -$1,154K → New -$5,019K. H2 판매수금 -$3,646K (Old $22,854K → New $19,208K)가 주원인. 운영 현금 창출력은 크게 저하됨에도 재무결정으로 연말 현금은 보전.</p>
+                        <p className="mt-1.5 text-red-600 font-semibold text-[11px]">→ 영업 현금은 악화, 재무 현금이 보전</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3 border border-gray-100">
+                        <p className="font-bold text-gray-700 mb-1.5">8월 최저 유동성 $810K (Old·New 공통)</p>
+                        <p>8월 말 기준 Old $810K / New $811K로 동일하게 연중 최저점. 이 시점이 가장 유동성 취약 구간. 이후 New Plan은 9~11월 회복 후 12월 상환 축소 효과로 $3,191K로 마감.</p>
+                        <p className="mt-1.5 text-amber-600 font-semibold text-[11px]">→ 상반기 유동성 관리 플랜 필요</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* 매출수금 & 운영비용 상세 분석 */}
+                <div className="mt-4">
+                  <h4 className="text-xs font-bold text-gray-600 mb-3">📈 매출수금 · 운영비용 상세 분석 — Old vs New</h4>
+                  <div className="grid grid-cols-5 gap-4">
+                    {/* 월별 판매수금 차트 */}
+                    <Card className="col-span-3 border-gray-100 shadow-sm">
+                      <CardHeader className="pb-2 pt-3">
+                        <CardTitle className="text-sm font-semibold text-gray-700">월별 판매수금 비교 ($K)</CardTitle>
+                        <p className="text-xs text-gray-400">연간 합계: Old $22,854K vs New $19,208K (-$3,646K)</p>
+                      </CardHeader>
+                      <CardContent className="pb-3">
+                        <ResponsiveContainer width="100%" height={180}>
+                          <BarChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                            <XAxis dataKey="month" tick={{fontSize:10}}/>
+                            <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${v}K`} width={48}/>
+                            <Tooltip formatter={(v:any,n:string)=>[`$${Number(v).toLocaleString()}K`,n]} contentStyle={{fontSize:'11px'}}/>
+                            <Legend wrapperStyle={{fontSize:'11px'}}/>
+                            <ReferenceArea x="Sep" x2="Dec" fill="#f0f9ff" fillOpacity={0.5}/>
+                            <Bar dataKey="bSalesIn" name="판매수금 Old" fill="#93c5fd" opacity={0.75} radius={[2,2,0,0]}/>
+                            <Bar dataKey="aSalesIn" name="판매수금 New" fill="#34d399" opacity={0.9} radius={[2,2,0,0]}/>
+                          </BarChart>
+                        </ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height={150}>
+                          <BarChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                            <XAxis dataKey="month" tick={{fontSize:10}}/>
+                            <YAxis tick={{fontSize:10}} tickFormatter={(v)=>`$${v}K`} width={48}/>
+                            <Tooltip formatter={(v:any,n:string)=>[`$${Number(v).toLocaleString()}K`,n]} contentStyle={{fontSize:'11px'}}/>
+                            <Legend wrapperStyle={{fontSize:'11px'}}/>
+                            <ReferenceArea x="Sep" x2="Dec" fill="#f0fdf4" fillOpacity={0.5}/>
+                            <Bar dataKey="bOpCF" name="영업CF Old" fill="#3b82f6" opacity={0.7} radius={[2,2,0,0]}/>
+                            <Bar dataKey="aOpCF" name="영업CF New" fill="#ef4444" opacity={0.8} radius={[2,2,0,0]}/>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* SG&A 항목별 테이블 */}
+                    <Card className="col-span-2 border-gray-100 shadow-sm">
+                      <CardHeader className="pb-2 pt-3">
+                        <CardTitle className="text-sm font-semibold text-gray-700">SG&amp;A 항목별 비교 ($K)</CardTitle>
+                        <p className="text-xs text-gray-400">연간 합계: Old $19,756K → New $20,042K (+$286K)</p>
+                      </CardHeader>
+                      <CardContent className="p-0 pb-2">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="text-left px-3 py-2 text-gray-500 font-medium">항목</th>
+                              <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
+                              <th className="text-right px-2 py-2 text-emerald-600 font-medium">New</th>
+                              <th className="text-right px-2 py-2 text-gray-400 font-medium">변동</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sgaRows.map((r,i) => {
+                              const d = r.a - r.b;
+                              const isGood = d < 0;
+                              const rowBg = (r as any).isTotal ? 'bg-slate-50 font-bold border-t border-gray-200' : '';
+                              return (
+                                <tr key={i} className={cn("border-b border-gray-50", rowBg)}>
+                                  <td className="px-3 py-1.5 text-gray-700">{r.label}</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">{fmt(r.b)}</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-800">{fmt(r.a)}</td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", isGood ? 'text-emerald-600' : 'text-red-500')}>
+                                    {fmtDiff(d)}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          );
+        })()}
+
         {/* 당월 추세 탭 콘텐츠 */}
         {activeTab === "당월 추세" && <MonthlyTrendSection selectedMonth={currentSelectedMonth} />}
         
