@@ -15057,7 +15057,7 @@ export default function DashboardPage() {
                         <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">${seasonRows.reduce((s:number,r:any)=>s+r.a,0).toLocaleString()}K</span></div>
                       </div>
                       <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-xs text-slate-500">
-                        <span className="text-orange-500 font-bold">+$392K</span> &nbsp;MSRP 감소 대비 제한적
+                        <span className="text-orange-500 font-bold">+${seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0).toLocaleString()}K</span> &nbsp;MSRP 감소 대비 제한적
                       </div>
                     </div>
 
