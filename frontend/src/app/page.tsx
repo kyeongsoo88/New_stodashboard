@@ -14784,7 +14784,7 @@ export default function DashboardPage() {
           const aOpProfit   = [-634,-269,-23,-272,-155,-595,-416,-511,-355,-474,-628,-481];
 
           // 재고 월말 잔액 (MSRP 기준, $K) — Inven_before / Inven_after 시트에서
-          const bInven = [22849,33224,35319,33554,30342,27877,30352,33770,32230,28402,21919,15596];
+          const bInven = [22520,32768,34711,32810,29416,26864,29225,32642,31103,27274,20792,14309];
           const aInven = [22520,32768,34711,32809,29416,26863,29226,33048,30162,29493,22483,15988];
 
           // 현금 월말 잔액 ($K) — Cash_before / Cash_after 시트 행43
@@ -14820,58 +14820,58 @@ export default function DashboardPage() {
           const fmtDiff = (d: number) => d > 0 ? `+$${d.toLocaleString()}K` : d < 0 ? `-$${Math.abs(d).toLocaleString()}K` : '–';
 
           const plRows = [
-            { label:'MSRP Sales', b:41839, a:40160, isMain:false, indent:0 },
-            { label:'E-com', b:38370, a:36859, isMain:false, indent:1 },
-            { label:'26FW', b:5105, a:5917, isMain:false, indent:2 },
-            { label:'26SS', b:11014, a:10133, isMain:false, indent:2 },
-            { label:'25FW', b:13232, a:12435, isMain:false, indent:2 },
-            { label:'25SS', b:7120, a:5781, isMain:false, indent:2 },
-            { label:'Aged', b:501, a:1508, isMain:false, indent:2 },
-            { label:'Core', b:1393, a:1079, isMain:false, indent:2 },
-            { label:'Gift Card', b:5, a:5, isMain:false, indent:2 },
-            { label:'Wholesale (inc. Samplesale)', b:3469, a:3301, isMain:false, indent:1 },
-            { label:'26FW', b:1853, a:1498, isMain:false, indent:2 },
-            { label:'26SS', b:1266, a:1311, isMain:false, indent:2 },
-            { label:'25FW', b:124, a:134, isMain:false, indent:2 },
-            { label:'25SS', b:176, a:284, isMain:false, indent:2 },
-            { label:'Aged', b:45, a:69, isMain:false, indent:2 },
-            { label:'Core', b:4, a:6, isMain:false, indent:2 },
-            { label:'Net Sales', b:23586, a:19935, isMain:true, indent:0 },
-            { label:'E-com', b:21608, a:17461, isMain:false, indent:1, isToggle:true, toggleKey:'nsEcom' },
-            { label:'26FW', b:4030, a:3493, isMain:false, indent:2, group:'nsEcom' },
-            { label:'26SS', b:7358, a:5466, isMain:false, indent:2, group:'nsEcom' },
-            { label:'25FW', b:6388, a:5416, isMain:false, indent:2, group:'nsEcom' },
-            { label:'25SS', b:2313, a:1824, isMain:false, indent:2, group:'nsEcom' },
-            { label:'Aged', b:341, a:460, isMain:false, indent:2, group:'nsEcom' },
-            { label:'Core', b:1168, a:791, isMain:false, indent:2, group:'nsEcom' },
-            { label:'Gift Card', b:9, a:10, isMain:false, indent:2, group:'nsEcom' },
-            { label:'Wholesale (inc. Samplesale)', b:1277, a:1206, isMain:false, indent:1, isToggle:true, toggleKey:'nsWs' },
-            { label:'26FW', b:681, a:556, isMain:false, indent:2, group:'nsWs' },
-            { label:'26SS', b:491, a:502, isMain:false, indent:2, group:'nsWs' },
-            { label:'25FW', b:36, a:38, isMain:false, indent:2, group:'nsWs' },
-            { label:'25SS', b:56, a:90, isMain:false, indent:2, group:'nsWs' },
-            { label:'Aged', b:12, a:18, isMain:false, indent:2, group:'nsWs' },
-            { label:'Core', b:1, a:1, isMain:false, indent:2, group:'nsWs' },
-            { label:'License', b:418, a:173, isMain:false, indent:1 },
-            { label:'Others', b:283, a:1096, isMain:false, indent:1 },
-            { label:'Discount Rate', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', isRate:true, isMain:false, indent:0 },
-            { label:'CoGs', b:8512, a:8069, isMain:false, indent:0 },
-            { label:'Gross Profit', b:15074, a:11865, isMain:true, indent:0, bStr:'63.9%', aStr:'59.5%' },
-            { label:'Direct Cost', b:9041, a:8942, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'direct' },
-            { label:'Marketing', b:4278, a:3914, isMain:false, indent:1, isCost:true, group:'direct' },
-            { label:'Freight', b:1344, a:1422, isMain:false, indent:1, isCost:true, group:'direct' },
-            { label:'Order Processing', b:1308, a:1578, isMain:false, indent:1, isCost:true, group:'direct' },
-            { label:'Prof. Service', b:2110, a:2027, isMain:false, indent:1, isCost:true, group:'direct' },
-            { label:'Direct Profit', b:6033, a:2924, isMain:true, indent:0, bStr:'25.6%', aStr:'14.7%' },
-            { label:'G&A', b:6694, a:7738, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'ga' },
-            { label:'Salaries', b:4186, a:4273, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'Advertising', b:651, a:1416, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'T&E', b:51, a:56, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'Rent', b:294, a:299, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'Sample', b:98, a:95, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'Prof. Service', b:1081, a:1207, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'D&A', b:68, a:89, isMain:false, indent:1, isCost:true, group:'ga' },
-            { label:'Operating Profit', b:-661, a:-4814, isMain:true, indent:0, bStr:'-2.8%', aStr:'-24.1%' },
+            { label:'MSRP Sales', c25:43736, b:41839, a:40160, isMain:false, indent:0 },
+            { label:'E-com', c25:39538, b:38370, a:36859, isMain:false, indent:1 },
+            { label:'26FW', c25:0, b:5105, a:5917, isMain:false, indent:2 },
+            { label:'26SS', c25:0, b:11014, a:10133, isMain:false, indent:2 },
+            { label:'25FW', c25:6662, b:13232, a:12435, isMain:false, indent:2 },
+            { label:'25SS', c25:18430, b:7120, a:5781, isMain:false, indent:2 },
+            { label:'Aged', c25:237, b:501, a:1508, isMain:false, indent:2 },
+            { label:'Core', c25:2285, b:1393, a:1079, isMain:false, indent:2 },
+            { label:'Gift Card', c25:7, b:5, a:5, isMain:false, indent:2 },
+            { label:'Wholesale (inc. Samplesale)', c25:4198, b:3469, a:3301, isMain:false, indent:1 },
+            { label:'26FW', c25:0, b:1853, a:1498, isMain:false, indent:2 },
+            { label:'26SS', c25:0, b:1266, a:1311, isMain:false, indent:2 },
+            { label:'25FW', c25:1463, b:124, a:134, isMain:false, indent:2 },
+            { label:'25SS', c25:2581, b:176, a:284, isMain:false, indent:2 },
+            { label:'Aged', c25:-27, b:45, a:69, isMain:false, indent:2 },
+            { label:'Core', c25:180, b:4, a:6, isMain:false, indent:2 },
+            { label:'Net Sales', c25:22819, b:23586, a:19191, isMain:true, indent:0 },
+            { label:'E-com', c25:20322, b:21608, a:17461, isMain:false, indent:1, isToggle:true, toggleKey:'nsEcom' },
+            { label:'26FW', c25:3918, b:4030, a:3493, isMain:false, indent:2, group:'nsEcom' },
+            { label:'26SS', c25:9655, b:7358, a:5466, isMain:false, indent:2, group:'nsEcom' },
+            { label:'25FW', c25:4540, b:6388, a:5416, isMain:false, indent:2, group:'nsEcom' },
+            { label:'25SS', c25:690, b:2313, a:1824, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Aged', c25:80, b:341, a:460, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Core', c25:1422, b:1168, a:791, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Gift Card', c25:16, b:9, a:10, isMain:false, indent:2, group:'nsEcom' },
+            { label:'Wholesale (inc. Samplesale)', c25:1515, b:1277, a:1206, isMain:false, indent:1, isToggle:true, toggleKey:'nsWs' },
+            { label:'26FW', c25:546, b:681, a:556, isMain:false, indent:2, group:'nsWs' },
+            { label:'26SS', c25:959, b:491, a:502, isMain:false, indent:2, group:'nsWs' },
+            { label:'25FW', c25:0, b:36, a:38, isMain:false, indent:2, group:'nsWs' },
+            { label:'25SS', c25:0, b:56, a:90, isMain:false, indent:2, group:'nsWs' },
+            { label:'Aged', c25:0, b:12, a:18, isMain:false, indent:2, group:'nsWs' },
+            { label:'Core', c25:11, b:1, a:1, isMain:false, indent:2, group:'nsWs' },
+            { label:'License', c25:832, b:418, a:173, isMain:false, indent:1 },
+            { label:'Others', c25:150, b:283, a:352, isMain:false, indent:1 },
+            { label:'Discount Rate', c25:null, c25Str:'50.1%', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', isRate:true, isMain:false, indent:0 },
+            { label:'CoGs', c25:9071, b:8512, a:8069, isMain:false, indent:0 },
+            { label:'Gross Profit', c25:13748, b:15074, a:11121, isMain:true, indent:0, c25Str:'60.2%', bStr:'63.9%', aStr:'57.9%' },
+            { label:'Direct Cost', c25:8570, b:9041, a:8942, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'direct' },
+            { label:'Marketing', c25:3994, b:4278, a:3914, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Freight', c25:1244, b:1344, a:1422, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Order Processing', c25:1346, b:1308, a:1578, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Prof. Service', c25:1986, b:2110, a:2027, isMain:false, indent:1, isCost:true, group:'direct' },
+            { label:'Direct Profit', c25:5178, b:6033, a:2180, isMain:true, indent:0, c25Str:'22.7%', bStr:'25.6%', aStr:'11.4%' },
+            { label:'G&A', c25:7116, b:6694, a:6994, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'ga' },
+            { label:'Salaries', c25:4137, b:4186, a:4273, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Advertising', c25:1037, b:651, a:672, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'T&E', c25:68, b:51, a:56, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Rent', c25:296, b:294, a:299, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Sample', c25:152, b:98, a:95, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Prof. Service', c25:1268, b:1081, a:1207, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'D&A', c25:45, b:68, a:89, isMain:false, indent:1, isCost:true, group:'ga' },
+            { label:'Operating Profit', c25:-1939, b:-661, a:-4814, isMain:true, indent:0, c25Str:'-8.5%', bStr:'-2.8%', aStr:'-25.1%' },
           ] as any[];
 
           const kpis = [
@@ -14883,11 +14883,11 @@ export default function DashboardPage() {
 
           // 시즌별 재고 (연말 Dec ending, MSRP $K) — Inven_before/after 시트 row34~40
           const seasonRows = [
-            { label:'Core',        b:1364,  a:1650,  color:'#94a3b8' },
-            { label:'26FW',        b:6021,  a:5564,  color:'#f97316' },
-            { label:'26SS',        b:2300,  a:2924,  color:'#22d3ee' },
-            { label:'25FW',        b:4745,  a:4988,  color:'#a78bfa' },
-            { label:'25SS+Aged',   b:1166,  a:862,   color:'#d1d5db' },
+            { label:'Core',        b:1339,  a:1650,  color:'#94a3b8' },
+            { label:'26FW',        b:6020,  a:5564,  color:'#f97316' },
+            { label:'26SS',        b:2088,  a:2924,  color:'#22d3ee' },
+            { label:'25FW',        b:3732,  a:4988,  color:'#a78bfa' },
+            { label:'25SS+Aged',   b:1131,  a:862,   color:'#d1d5db' },
           ];
 
           // SG&A 항목별 (연간, $K)
@@ -15053,8 +15053,8 @@ export default function DashboardPage() {
                         <span className="text-[10px] bg-slate-100 text-slate-500 px-1 rounded">소폭</span>
                       </div>
                       <div className="text-[13px] text-slate-600 space-y-1">
-                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">$15,596K</span></div>
-                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">$15,988K</span></div>
+                        <div className="flex justify-between"><span className="text-blue-500">Old</span><span className="tabular-nums font-semibold">${seasonRows.reduce((s:number,r:any)=>s+r.b,0).toLocaleString()}K</span></div>
+                        <div className="flex justify-between"><span className="text-emerald-600">New</span><span className="tabular-nums font-semibold">${seasonRows.reduce((s:number,r:any)=>s+r.a,0).toLocaleString()}K</span></div>
                       </div>
                       <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-xs text-slate-500">
                         <span className="text-orange-500 font-bold">+$392K</span> &nbsp;MSRP 감소 대비 제한적
@@ -15134,6 +15134,7 @@ export default function DashboardPage() {
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
                           <th className="text-left px-3 py-2 text-gray-500 font-medium">항목</th>
+                          <th className="text-right px-2 py-2 text-violet-500 font-medium">25년 실적</th>
                           <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
                           <th className="text-right px-2 py-2 text-emerald-600 font-medium">New</th>
                           <th className="text-right px-2 py-2 text-gray-500 font-medium">변동</th>
@@ -15165,12 +15166,14 @@ export default function DashboardPage() {
                               </td>
                               {row.isRate ? (
                                 <>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-violet-400">{row.c25Str ?? ''}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{row.bStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-800 font-semibold">{row.aStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-red-500 font-bold">{row.diffStr}</td>
                                 </>
                               ) : (
                                 <>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums text-violet-400", row.indent === 2 && 'text-[11px] text-violet-300')}>{fmt(row.c25)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums text-gray-600", row.indent === 2 && 'text-[11px] text-gray-400')}>{fmt(row.b)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW, row.indent === 2 && 'text-[11px] text-gray-500')}>{fmt(row.a)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
@@ -15489,9 +15492,9 @@ export default function DashboardPage() {
                 {/* 재고 KPI */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   {[
-                    { label:'연말 총재고 (Old)', val: 15596, sub:'MSRP 기준 $K', color:'text-blue-600' },
-                    { label:'연말 총재고 (New)', val: 15988, sub:'MSRP 기준 $K', color:'text-emerald-700' },
-                    { label:'재고 증가분', val: 392, sub:'New Plan 잔여분 ↑', color:'text-red-500', prefix:'+' },
+                    { label:'연말 총재고 (Old)', val: seasonRows.reduce((s:number,r:any)=>s+r.b,0), sub:'MSRP 기준 $K', color:'text-blue-600' },
+                    { label:'연말 총재고 (New)', val: seasonRows.reduce((s:number,r:any)=>s+r.a,0), sub:'MSRP 기준 $K', color:'text-emerald-700' },
+                    { label:'재고 증가분', val: seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0), sub:'New Plan 잔여분 ↑', color:'text-red-500', prefix:'+' },
                     { label:'연간 판매율 (New)', val: null, sub:'Old 90.1% → New 88.1%', color:'text-orange-600', strVal:'88.1%' },
                   ].map((k,i) => (
                     <Card key={i} className="border-gray-100 shadow-sm">
@@ -15565,9 +15568,9 @@ export default function DashboardPage() {
                           })}
                           <tr className="bg-slate-50 border-t border-gray-200 font-bold">
                             <td className="px-3 py-1.5 text-gray-700">합계</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums text-blue-600">$15,596</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums text-orange-600">$15,988</td>
-                            <td className="px-2 py-1.5 text-right tabular-nums text-red-500">+$392</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-blue-600">${seasonRows.reduce((s:number,r:any)=>s+r.b,0).toLocaleString()}</td>
+                            <td className="px-2 py-1.5 text-right tabular-nums text-orange-600">${seasonRows.reduce((s:number,r:any)=>s+r.a,0).toLocaleString()}</td>
+                            <td className={`px-2 py-1.5 text-right tabular-nums ${seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0)>0?'text-red-500':'text-emerald-600'}`}>{seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0)>0?'+':''}{`$${seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0).toLocaleString()}`}</td>
                           </tr>
                         </tbody>
                       </table>
@@ -15582,7 +15585,7 @@ export default function DashboardPage() {
                   <CardContent className="py-3 px-4">
                     <p className="text-xs font-bold text-orange-800 mb-2">📦 재고 핵심 시사점</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-700">
-                      <div><span className="font-semibold text-orange-700">New Plan 연말 재고 +$392K</span><br/>H2 Net Sales 하향으로 재고 소진 속도 감소. 단, Old보다 규모 차이는 작음 (Old $15,596K → New $15,988K, +2.5%).</div>
+                      <div><span className="font-semibold text-orange-700">New Plan 연말 재고 {(()=>{const d=seasonRows.reduce((s:number,r:any)=>s+r.a-r.b,0);return (d>0?'+':'')+`$${d.toLocaleString()}K`;})()}</span><br/>H2 Net Sales 하향으로 재고 소진 속도 감소. Old ${seasonRows.reduce((s:number,r:any)=>s+r.b,0).toLocaleString()}K → New ${seasonRows.reduce((s:number,r:any)=>s+r.a,0).toLocaleString()}K.</div>
                       <div><span className="font-semibold text-orange-700">시즌별 구성 변화</span><br/>26SS New $2,924K (Old $2,300K 대비 +$624K). 25SS+Aged는 New -$304K 감소. 전반적으로 시즌별 혼합 재편.</div>
                       <div><span className="font-semibold text-orange-700">할인율 상승 악순환</span><br/>재고 소진 위해 할인 심화 → 할인율 53.5%로 추가 상승 → 수익성 추가 저하. Q4 가격 관리 전략 필요.</div>
                     </div>
