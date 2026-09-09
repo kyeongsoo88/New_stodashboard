@@ -14892,9 +14892,28 @@ export default function DashboardPage() {
                   <h2 className="text-lg font-bold text-gray-800">📊 26년 신규 계획 비교</h2>
                   <p className="text-xs text-gray-400 mt-0.5">Old Plan: Jan~Jul 실적 + Aug~Dec F &nbsp;→&nbsp; New Plan: Jan~Aug 실적 + Sep~Dec F &nbsp;·&nbsp; Unit: K USD</p>
                 </div>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
-                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {/* 범례 */}
+                  <div className="flex gap-3">
+                    <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-400"/><span className="text-xs text-gray-600">Old Plan</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-500"/><span className="text-xs text-gray-600">New Plan</span></div>
+                  </div>
+                  {/* 섹션 이동 버튼 */}
+                  <div className="flex gap-1.5">
+                    {[
+                      { label:'손익 분석', id:'section-pl' },
+                      { label:'재고 분석', id:'section-inven' },
+                      { label:'현금 분석', id:'section-cash' },
+                    ].map(btn => (
+                      <button
+                        key={btn.id}
+                        onClick={() => document.getElementById(btn.id)?.scrollIntoView({behavior:'smooth', block:'start'})}
+                        className="text-xs px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-400 transition-colors font-medium shadow-sm"
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -15062,6 +15081,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+
+              {/* ══ 손익 분석 섹션 ══ */}
+              <div id="section-pl" className="scroll-mt-4">
+                <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>📊</span> 손익 분석 — Old vs New Plan
+                </h3>
 
               {/* ── P&L 테이블 + 월별 차트 ── */}
               <div className="grid grid-cols-5 gap-4">
@@ -15280,11 +15305,12 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+              </div>{/* /section-pl */}
 
               {/* ══════════════════════════════════════════════════════
                   재고 분석
               ══════════════════════════════════════════════════════ */}
-              <div>
+              <div id="section-inven" className="scroll-mt-4">
                 <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                   <span>📦</span> 재고 분석 — Old vs New Plan
                 </h3>
@@ -15396,7 +15422,7 @@ export default function DashboardPage() {
               {/* ══════════════════════════════════════════════════════
                   현금흐름 분석
               ══════════════════════════════════════════════════════ */}
-              <div>
+              <div id="section-cash" className="scroll-mt-4">
                 <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
                   <span>💰</span> 현금흐름 분석 — Old vs New Plan
                 </h3>
