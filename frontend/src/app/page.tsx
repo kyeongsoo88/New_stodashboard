@@ -6405,10 +6405,10 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
   };
 
   const bsHeaderLabel = (h: string) => {
-    if (h === 'RF_05 - RF_04') return 'RF_07 - RF_06';
-    if (h === 'RF_05 - 전년') return 'RF_07 - 전년';
-    if (h === 'RF_05') return 'RF_07';
-    if (h === 'RF_04') return 'RF_06';
+    if (h === 'RF_05 - RF_04') return 'RF_08 - RF_07';
+    if (h === 'RF_05 - 전년') return 'RF_08 - 전년';
+    if (h === 'RF_05') return 'RF_08';
+    if (h === 'RF_04') return 'RF_07';
     return h;
   };
 
@@ -6933,10 +6933,10 @@ function STOWorkingCapitalBalanceSheetSection({ selectedMonth }: { selectedMonth
   };
 
   const wcHeaderLabel = (h: string) => {
-    if (h === 'RF_05 - RF_04') return 'RF_07 - RF_06';
-    if (h === 'RF_05 - 전년') return 'RF_07 - 전년';
-    if (h === 'RF_05') return 'RF_07';
-    if (h === 'RF_04') return 'RF_06';
+    if (h === 'RF_05 - RF_04') return 'RF_08 - RF_07';
+    if (h === 'RF_05 - 전년') return 'RF_08 - 전년';
+    if (h === 'RF_05') return 'RF_08';
+    if (h === 'RF_04') return 'RF_07';
     return h;
   };
 
