@@ -1731,19 +1731,19 @@ function DetailedExpenseCard({
                                 <div className="space-y-4 pt-2">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 text-center">
-                                            <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">26년 7월 CPM</p>
-                                            <p className="text-3xl font-bold text-blue-700">$13.6</p>
+                                            <p className="text-xs text-blue-400 font-semibold uppercase tracking-wide mb-1">26년 8월 CPM</p>
+                                            <p className="text-3xl font-bold text-blue-700">$14.56</p>
                                         </div>
                                         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
-                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">25년 7월 CPM</p>
-                                            <p className="text-3xl font-bold text-gray-600">$9.4</p>
+                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">25년 8월 CPM</p>
+                                            <p className="text-3xl font-bold text-gray-600">$10.7</p>
                                         </div>
                                     </div>
                                     <div className="rounded-xl bg-red-50 border border-red-100 p-4 flex items-center justify-between">
                                         <span className="text-sm font-semibold text-gray-700">YoY 증감</span>
                                         <div className="text-right">
-                                            <span className="text-2xl font-bold text-red-600">+144%</span>
-                                            <p className="text-xs text-gray-400 mt-0.5">+$4.2 per 1,000 impressions</p>
+                                            <span className="text-2xl font-bold text-red-600">+136%</span>
+                                            <p className="text-xs text-gray-400 mt-0.5">+$3.86 per 1,000 impressions</p>
                                         </div>
                                     </div>
                                     <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 space-y-3">
@@ -1826,7 +1826,7 @@ function ExpenseSummarySection({
                         showStorageButton={card.title === "보관료"}
                         storageCostData={card.title === "보관료" ? storageCostData : undefined}
                         showSemButton={card.title === "SEM광고비"}
-                        semCpmLabel={card.title === "SEM광고비" ? "CPM 26.7 $13.6 vs 25.7 $9.4 (YoY 144%)" : undefined}
+                        semCpmLabel={card.title === "SEM광고비" ? "CPM 26.8 $14.56 vs 25.8 $10.7 (YoY 136%)" : undefined}
                         className={
                             index === 0 && title === "직접비 요약" ? "bg-purple-100" :
                             index === 0 && title === "영업비 요약" ? "bg-orange-100" :
