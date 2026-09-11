@@ -6610,173 +6610,173 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
 
       {/* 차입금 상세 정보 팝업 */}
       <Dialog open={isLoanDialogOpen} onOpenChange={setIsLoanDialogOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-50 to-white">
-          <DialogHeader className="border-b-2 border-blue-200 pb-4">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent flex items-center gap-2">
-              <span className="text-blue-600">💼</span>
+        <DialogContent className="max-w-[92vw] max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader className="pb-3 border-b border-slate-200">
+            <DialogTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span>💼</span>
               미국법인 본사 차입금 사용처
-              <span className="text-sm font-normal text-gray-500 ml-2">(단위 : K USD)</span>
+              <span className="text-xs font-normal text-slate-400 ml-1">(단위 : K USD)</span>
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-x-auto mt-4">
-            <table className="w-full border-collapse text-sm table-fixed shadow-lg rounded-lg overflow-hidden min-w-[1200px]">
+          <div className="overflow-x-auto mt-3">
+            <table className="border-collapse text-sm" style={{ width: '100%', minWidth: '900px' }}>
               <colgroup>
-                <col style={{ width: '120px' }} />
-                <col style={{ width: '120px' }} />
-                <col style={{ width: '200px' }} />
-                <col style={{ width: '120px' }} />
-                <col style={{ width: '120px' }} />
-                <col style={{ width: 'auto' }} />
+                <col style={{ width: '90px' }} />
+                <col style={{ width: '80px' }} />
+                <col style={{ width: '220px' }} />
+                <col style={{ width: '90px' }} />
+                <col style={{ width: '90px' }} />
+                <col style={{ width: 'auto', minWidth: '280px' }} />
               </colgroup>
               <thead>
-                <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white h-14">
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">대분류</th>
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">중분류</th>
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">소분류</th>
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">현금흐름</th>
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">차입금<br/>합계</th>
-                  <th className="border border-blue-500 px-4 py-3 text-center font-bold text-sm tracking-wide">상세</th>
+                <tr style={{ backgroundColor: '#1d4ed8', color: 'white', height: '42px' }}>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">대분류</th>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">중분류</th>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">소분류</th>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">현금흐름</th>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">차입금 합계</th>
+                  <th className="border border-blue-700 px-3 py-2 text-center font-semibold text-xs tracking-wide">상세</th>
                 </tr>
               </thead>
               <tbody>
                 {/* 기초잔금 */}
-                <tr className="bg-gradient-to-r from-indigo-50 to-blue-50 hover:from-indigo-100 hover:to-blue-100 transition-colors h-12">
-                  <td colSpan={3} className="border border-slate-300 px-4 py-3.5 text-center font-semibold italic text-slate-700 bg-white/50">기초잔금(22년 8월 F&F 인수 시점)</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">598</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#f8fafc', height: '40px' }}>
+                  <td colSpan={3} className="border border-slate-300 px-3 py-2 text-center font-medium text-slate-600 text-xs italic">기초잔금(22년 8월 F&F 인수 시점)</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">598</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                
+
                 {/* 22년 기중 */}
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td rowSpan={4} className="border border-slate-300 px-4 py-3.5 text-center font-bold align-middle bg-gradient-to-br from-slate-100 to-slate-50 text-slate-800">22년 기중</td>
-                  <td rowSpan={3} className="border border-slate-300 px-4 py-3.5 text-center align-middle bg-blue-50/50 font-semibold text-slate-700">영업활동</td>
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">22년 당기순손실</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right text-rose-600 font-bold tabular-nums">-1,486</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-sm text-slate-600">√ 22년 8월~12월 (5개월 당기순손실)</td>
+                <tr style={{ height: '38px' }}>
+                  <td rowSpan={4} className="border border-slate-300 px-3 py-2 text-center font-bold align-middle text-slate-700 text-xs" style={{ backgroundColor: '#f1f5f9' }}>22년 기중</td>
+                  <td rowSpan={3} className="border border-slate-300 px-3 py-2 text-center align-middle text-slate-600 text-xs font-medium" style={{ backgroundColor: '#eff6ff' }}>영업활동</td>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>22년 당기순손실</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right text-rose-600 font-bold tabular-nums text-xs">-1,486</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2 text-xs text-slate-500">√ 22년 8월~12월 (5개월 당기순손실)</td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">비현금거래</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">210</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>비현금거래</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">210</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">법인운영비</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">2,600</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">2,600</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-sm leading-relaxed text-slate-600">√ 인수 후, STE → STO 배당 중지 운영자금 1,500K<br/>√ STO 직원 인수 후 보너스 1,100K</td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">법인운영비</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">2,600</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">2,600</td>
+                  <td className="border border-slate-300 px-3 py-2 text-xs text-slate-500 leading-relaxed">√ 인수 후, STE → STO 배당 중지 운영자금 1,500K<br/>√ STO 직원 인수 후 보너스 1,100K</td>
                 </tr>
-                <tr className="bg-gradient-to-r from-slate-200 to-slate-100 font-bold hover:from-slate-300 hover:to-slate-200 transition-colors h-12">
-                  <td colSpan={2} className="border border-slate-400 px-4 py-3.5 text-center italic text-slate-800">22년 기말 현금 / 22년 차입금 소계</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-slate-900 tabular-nums">1,921</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-blue-700 tabular-nums font-extrabold">2,600</td>
-                  <td className="border border-slate-400 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#e2e8f0', height: '40px' }}>
+                  <td colSpan={2} className="border border-slate-400 px-3 py-2 text-center font-bold text-slate-700 text-xs italic">22년 기말 현금 / 22년 차입금 소계</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-bold underline text-slate-800 tabular-nums text-xs">1,921</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-extrabold underline text-blue-700 tabular-nums text-xs">2,600</td>
+                  <td className="border border-slate-400 px-3 py-2"></td>
                 </tr>
-                
+
                 {/* 23년 기중 */}
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 text-center font-bold bg-gradient-to-br from-slate-100 to-slate-50 text-slate-800">23년 기중</td>
-                  <td colSpan={2} className="border border-slate-300 px-4 py-3.5 text-center bg-emerald-50/50 font-medium text-slate-700 italic">23년 기중 차입 없음</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 text-xs" style={{ backgroundColor: '#f1f5f9' }}>23년 기중</td>
+                  <td colSpan={2} className="border border-slate-300 px-3 py-2 text-center text-slate-500 text-xs italic">23년 기중 차입 없음</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="bg-gradient-to-r from-slate-200 to-slate-100 font-bold hover:from-slate-300 hover:to-slate-200 transition-colors h-12">
-                  <td colSpan={3} className="border border-slate-400 px-4 py-3.5 text-center italic text-slate-800">23년 기말현금 / 23년 차입금 소계</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-slate-900 tabular-nums">1,844</td>
-                  <td className="border border-slate-400 px-4 py-3.5"></td>
-                  <td className="border border-slate-400 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#e2e8f0', height: '40px' }}>
+                  <td colSpan={3} className="border border-slate-400 px-3 py-2 text-center font-bold text-slate-700 text-xs italic">23년 기말현금 / 23년 차입금 소계</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-bold underline text-slate-800 tabular-nums text-xs">1,844</td>
+                  <td className="border border-slate-400 px-3 py-2"></td>
+                  <td className="border border-slate-400 px-3 py-2"></td>
                 </tr>
-                
+
                 {/* 24년 기중 */}
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td rowSpan={7} className="border border-slate-300 px-4 py-3.5 text-center font-bold align-middle bg-gradient-to-br from-slate-100 to-slate-50 text-slate-800">24년 기중</td>
-                  <td rowSpan={4} className="border border-slate-300 px-4 py-3.5 text-center align-middle bg-blue-50/50 font-semibold text-slate-700">영업활동</td>
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">24년 당기순손실</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right text-rose-600 font-bold tabular-nums">-2,868</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td rowSpan={7} className="border border-slate-300 px-3 py-2 text-center font-bold align-middle text-slate-700 text-xs" style={{ backgroundColor: '#f1f5f9' }}>24년 기중</td>
+                  <td rowSpan={4} className="border border-slate-300 px-3 py-2 text-center align-middle text-slate-600 text-xs font-medium" style={{ backgroundColor: '#eff6ff' }}>영업활동</td>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>24년 당기순손실</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right text-rose-600 font-bold tabular-nums text-xs">-2,868</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">비현금거래</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">590</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>비현금거래</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">590</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">JVA 중재비용</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">1,000</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">1,000</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">JVA 중재비용</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">1,000</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">1,000</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">법인운영비</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">3,000</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">3,000</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-sm text-slate-600">√ 25SS 물품대 지출</td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">법인운영비</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">3,000</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">3,000</td>
+                  <td className="border border-slate-300 px-3 py-2 text-xs text-slate-500">√ 25SS 물품대 지출</td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td rowSpan={2} className="border border-slate-300 px-4 py-3.5 text-center align-middle bg-purple-50/50 font-semibold text-slate-700">재무활동</td>
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">STE 주주대여금 상환 목적 대여</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">3,900</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">3,900</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td rowSpan={2} className="border border-slate-300 px-3 py-2 text-center align-middle text-slate-600 text-xs font-medium" style={{ backgroundColor: '#faf5ff' }}>재무활동</td>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">STE 주주대여금 상환 목적 대여</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">3,900</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">3,900</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">STE 주주대여금 상환 실행</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right text-rose-600 font-bold tabular-nums">-3,900</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-sm text-slate-600">√ STE 주주대여금 상환 대여</td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">STE 주주대여금 상환 실행</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right text-rose-600 font-bold tabular-nums text-xs">-3,900</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2 text-xs text-slate-500">√ STE 주주대여금 상환 대여</td>
                 </tr>
-                <tr className="bg-gradient-to-r from-slate-200 to-slate-100 font-bold hover:from-slate-300 hover:to-slate-200 transition-colors h-12">
-                  <td colSpan={2} className="border border-slate-400 px-4 py-3.5 text-center italic text-slate-800">24년 기말 현금 / 24년 차입금 소계</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-slate-900 tabular-nums">3,565</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-blue-700 tabular-nums font-extrabold">7,900</td>
-                  <td className="border border-slate-400 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#e2e8f0', height: '40px' }}>
+                  <td colSpan={2} className="border border-slate-400 px-3 py-2 text-center font-bold text-slate-700 text-xs italic">24년 기말 현금 / 24년 차입금 소계</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-bold underline text-slate-800 tabular-nums text-xs">3,565</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-extrabold underline text-blue-700 tabular-nums text-xs">7,900</td>
+                  <td className="border border-slate-400 px-3 py-2"></td>
                 </tr>
-                
+
                 {/* 25년 기중 */}
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td rowSpan={5} className="border border-slate-300 px-4 py-3.5 text-center font-bold align-middle bg-gradient-to-br from-slate-100 to-slate-50 text-slate-800">25년 기중</td>
-                  <td rowSpan={4} className="border border-slate-300 px-4 py-3.5 text-center align-middle bg-blue-50/50 font-semibold text-slate-700">영업활동</td>
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">25년 당기순손실</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right text-rose-600 font-bold tabular-nums">-6,218</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td rowSpan={5} className="border border-slate-300 px-3 py-2 text-center font-bold align-middle text-slate-700 text-xs" style={{ backgroundColor: '#f1f5f9' }}>25년 기중</td>
+                  <td rowSpan={4} className="border border-slate-300 px-3 py-2 text-center align-middle text-slate-600 text-xs font-medium" style={{ backgroundColor: '#eff6ff' }}>영업활동</td>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>25년 당기순손실</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right text-rose-600 font-bold tabular-nums text-xs">-6,218</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 bg-gradient-to-r from-orange-50 to-orange-100/50 font-medium text-slate-700">비현금거래</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">716</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs" style={{ backgroundColor: '#fff7ed' }}>비현금거래</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">716</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">JVA 중재비용</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">5,812</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">5,812</td>
-                  <td className="border border-slate-300 px-4 py-3.5"></td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">JVA 중재비용</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">5,812</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">5,812</td>
+                  <td className="border border-slate-300 px-3 py-2"></td>
                 </tr>
-                <tr className="hover:bg-slate-50 transition-colors h-12">
-                  <td className="border border-slate-300 px-4 py-3.5 font-medium text-slate-700">법인운영비</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-semibold text-slate-800 tabular-nums">3,688</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-right font-bold text-blue-700 tabular-nums">3,688</td>
-                  <td className="border border-slate-300 px-4 py-3.5 text-sm leading-relaxed text-slate-600">√ JVA중재로 MCCC비용 STE 미청구, 현금 악화 $1,300K<br/>√ 26SS 물품대 지출 $2,388K</td>
+                <tr style={{ height: '38px' }}>
+                  <td className="border border-slate-300 px-3 py-2 text-slate-600 text-xs">법인운영비</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-semibold text-slate-800 tabular-nums text-xs">3,688</td>
+                  <td className="border border-slate-300 px-3 py-2 text-right font-bold text-blue-700 tabular-nums text-xs">3,688</td>
+                  <td className="border border-slate-300 px-3 py-2 text-xs text-slate-500 leading-relaxed">√ JVA중재로 MCCC비용 STE 미청구, 현금 악화 $1,300K<br/>√ 26SS 물품대 지출 $2,388K</td>
                 </tr>
-                <tr className="bg-gradient-to-r from-slate-200 to-slate-100 font-bold hover:from-slate-300 hover:to-slate-200 transition-colors h-12">
-                  <td colSpan={2} className="border border-slate-400 px-4 py-3.5 text-center italic text-slate-800">25년 기말 현금 / 25년 차입금 소계</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-slate-900 tabular-nums">7,563</td>
-                  <td className="border border-slate-400 px-4 py-3.5 text-right underline decoration-2 text-blue-700 tabular-nums font-extrabold">9,500</td>
-                  <td className="border border-slate-400 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#e2e8f0', height: '40px' }}>
+                  <td colSpan={2} className="border border-slate-400 px-3 py-2 text-center font-bold text-slate-700 text-xs italic">25년 기말 현금 / 25년 차입금 소계</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-bold underline text-slate-800 tabular-nums text-xs">7,563</td>
+                  <td className="border border-slate-400 px-3 py-2 text-right font-extrabold underline text-blue-700 tabular-nums text-xs">9,500</td>
+                  <td className="border border-slate-400 px-3 py-2"></td>
                 </tr>
-                
+
                 {/* 총 차입금 */}
-                <tr className="bg-gradient-to-r from-amber-100 via-yellow-100 to-amber-100 hover:from-amber-200 hover:via-yellow-200 hover:to-amber-200 transition-all shadow-md h-14">
-                  <td colSpan={3} className="border-2 border-amber-400 px-4 py-3.5 text-center text-base font-extrabold text-slate-900">총 차입금</td>
-                  <td className="border-2 border-amber-400 px-4 py-3.5"></td>
-                  <td className="border-2 border-amber-400 px-4 py-3.5 text-right text-2xl font-black text-blue-800 tabular-nums tracking-tight">20,000</td>
-                  <td className="border-2 border-amber-400 px-4 py-3.5"></td>
+                <tr style={{ backgroundColor: '#fef9c3', height: '48px', borderTop: '2px solid #ca8a04' }}>
+                  <td colSpan={3} className="border-2 border-yellow-500 px-3 py-2 text-center font-extrabold text-slate-800 text-sm">총 차입금</td>
+                  <td className="border-2 border-yellow-500 px-3 py-2"></td>
+                  <td className="border-2 border-yellow-500 px-3 py-2 text-right text-xl font-black text-blue-800 tabular-nums">20,000</td>
+                  <td className="border-2 border-yellow-500 px-3 py-2"></td>
                 </tr>
               </tbody>
             </table>
