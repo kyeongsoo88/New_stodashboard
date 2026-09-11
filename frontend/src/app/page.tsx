@@ -15173,7 +15173,7 @@ export default function DashboardPage() {
                           <th className="text-right px-2 py-2 text-violet-500 font-medium">25년 실적</th>
                           <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
                           <th className="text-right px-2 py-2 text-emerald-600 font-medium">New</th>
-                          <th className="text-right px-2 py-2 text-gray-500 font-medium">변동(New-Old)</th>
+                          <th className="text-right px-2 py-2 text-gray-500 font-medium">New-Old</th>
                           <th className="text-right px-2 py-2 text-orange-500 font-medium">New-전년</th>
                         </tr>
                       </thead>
