@@ -15146,7 +15146,7 @@ export default function DashboardPage() {
                         Old는 <span className="text-blue-300 font-semibold">-$661K</span>로 <span className="text-emerald-400 font-semibold">$1,278K 개선</span>을 목표했으나,
                         New에서는 <span className="text-slate-100 font-semibold">-$4,814K</span>로 Old 대비 <span className="text-red-400 font-semibold">-$4,153K 추가 악화</span>.
                         25년 대비로도 <span className="text-red-400 font-semibold">-$2,875K</span> 저하.
-                        Net Sales 감소(-$4.4M) + 광고비 증가($651K→$1,416K) + G&A 상승 복합 작용.
+                        Net Sales 감소(<span className="text-red-400 font-semibold">-$4.4M</span>)가 주된 원인임. 광고비 증가($651K→$1,416K) + G&A 상승 복합 작용.
                       </span>
                     </div>
                   </div>
