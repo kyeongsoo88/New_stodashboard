@@ -15127,7 +15127,8 @@ export default function DashboardPage() {
                           <th className="text-right px-2 py-2 text-violet-500 font-medium">25년 실적</th>
                           <th className="text-right px-2 py-2 text-blue-500 font-medium">Old</th>
                           <th className="text-right px-2 py-2 text-emerald-600 font-medium">New</th>
-                          <th className="text-right px-2 py-2 text-gray-500 font-medium">변동</th>
+                          <th className="text-right px-2 py-2 text-gray-500 font-medium">변동(New-Old)</th>
+                          <th className="text-right px-2 py-2 text-orange-500 font-medium">New-전년</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -15140,6 +15141,8 @@ export default function DashboardPage() {
                         }).map((row: any, i: number) => {
                           const diff = (row.b !== null && row.a !== null) ? row.a - row.b : null;
                           const isGoodDiff = row.isCost ? (diff !== null && diff < 0) : (diff !== null && diff > 0);
+                          const diff2 = (row.a !== null && row.c25 !== null && row.c25 !== undefined) ? row.a - row.c25 : null;
+                          const isGoodDiff2 = row.isCost ? (diff2 !== null && diff2 < 0) : (diff2 !== null && diff2 > 0);
                           const rowBg = row.isMain ? 'bg-slate-50' : '';
                           const fontW = row.isMain ? 'font-bold' : 'font-normal';
                           const isOpen = row.toggleKey === 'direct' ? plDirectOpen : row.toggleKey === 'ga' ? plGAOpen : row.toggleKey === 'nsEcom' ? plNsEcomOpen : row.toggleKey === 'nsWs' ? plNsWsOpen : false;
@@ -15160,6 +15163,7 @@ export default function DashboardPage() {
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{row.bStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-800 font-semibold">{row.aStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-red-500 font-bold">{row.diffStr}</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-300">–</td>
                                 </>
                               ) : (
                                 <>
@@ -15168,6 +15172,9 @@ export default function DashboardPage() {
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW, row.indent === 2 && 'text-[11px] text-gray-500')}>{fmt(row.a)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
                                     {diff !== null ? fmtDiff(diff) : ''}
+                                  </td>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff2 === null ? '' : isGoodDiff2 ? 'text-emerald-600' : 'text-red-500')}>
+                                    {diff2 !== null ? fmtDiff(diff2) : '–'}
                                   </td>
                                 </>
                               )}
