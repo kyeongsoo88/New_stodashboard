@@ -15140,9 +15140,7 @@ export default function DashboardPage() {
                           return true;
                         }).map((row: any, i: number) => {
                           const diff = (row.b !== null && row.a !== null) ? row.a - row.b : null;
-                          const isGoodDiff = row.isCost ? (diff !== null && diff < 0) : (diff !== null && diff > 0);
                           const diff2 = (row.a !== null && row.c25 !== null && row.c25 !== undefined) ? row.a - row.c25 : null;
-                          const isGoodDiff2 = row.isCost ? (diff2 !== null && diff2 < 0) : (diff2 !== null && diff2 > 0);
                           const rowBg = row.isMain ? 'bg-slate-50' : '';
                           const fontW = row.isMain ? 'font-bold' : 'font-normal';
                           const isOpen = row.toggleKey === 'direct' ? plDirectOpen : row.toggleKey === 'ga' ? plGAOpen : row.toggleKey === 'nsEcom' ? plNsEcomOpen : row.toggleKey === 'nsWs' ? plNsWsOpen : false;
@@ -15170,10 +15168,10 @@ export default function DashboardPage() {
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums text-violet-400", row.indent === 2 && 'text-[11px] text-violet-300')}>{fmt(row.c25)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums text-gray-600", row.indent === 2 && 'text-[11px] text-gray-400')}>{fmt(row.b)}</td>
                                   <td className={cn("px-2 py-1.5 text-right tabular-nums", fontW, row.indent === 2 && 'text-[11px] text-gray-500')}>{fmt(row.a)}</td>
-                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff === null ? '' : isGoodDiff ? 'text-emerald-600' : 'text-red-500')}>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff === null ? '' : diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : '')}>
                                     {diff !== null ? fmtDiff(diff) : ''}
                                   </td>
-                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff2 === null ? '' : isGoodDiff2 ? 'text-emerald-600' : 'text-red-500')}>
+                                  <td className={cn("px-2 py-1.5 text-right tabular-nums font-bold", row.indent === 2 && 'text-[11px]', diff2 === null ? '' : diff2 > 0 ? 'text-emerald-600' : diff2 < 0 ? 'text-red-500' : '')}>
                                     {diff2 !== null ? fmtDiff(diff2) : '–'}
                                   </td>
                                 </>
