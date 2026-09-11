@@ -15104,6 +15104,52 @@ export default function DashboardPage() {
                     현금 방어를 위해 <span className="text-amber-300 font-bold">12월 본사 차입금 상환을 $7M → $3M으로 $4M 축소</span> 의사결정 필요,
                     $3M으로 축소했을시 연말현금흐름은 <span className="text-emerald-300 font-bold">~$3,191K</span>가 됩니다.
                   </div>
+
+                  {/* 손익 상세 흐름 분석 */}
+                  <div className="mt-3 px-4 py-3 rounded-lg bg-slate-800 text-xs text-slate-300 leading-relaxed space-y-2">
+                    <div className="text-slate-400 font-bold mb-1.5 text-[11px] tracking-wide uppercase">25년 실적 → Old Plan → New Plan 손익 흐름</div>
+
+                    <div className="flex gap-2">
+                      <span className="shrink-0 text-slate-400 font-bold w-20">① MSRP</span>
+                      <span>
+                        25년 실적 <span className="text-violet-300 font-semibold">$43,736K</span>에서
+                        Old는 <span className="text-blue-300 font-semibold">$41,839K</span>(-$1,897K)으로 소폭 감소를 계획했으나,
+                        8월 실적 반영 후 New는 <span className="text-slate-100 font-semibold">$40,160K</span>로 추가 하향.
+                        25년 대비 <span className="text-red-400 font-semibold">-$3,576K</span>.
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <span className="shrink-0 text-slate-400 font-bold w-20">② 할인율</span>
+                      <span>
+                        25년 <span className="text-violet-300 font-semibold">50.1%</span>에서
+                        Old는 <span className="text-blue-300 font-semibold">45.3%</span>로 <span className="text-emerald-400 font-semibold">-4.8%p 개선</span>을 목표로 했으나,
+                        New에서는 <span className="text-slate-100 font-semibold">53.5%</span>로 <span className="text-red-400 font-semibold">+8.2%p 악화</span>.
+                        재고 소진 하반기 추가 할인 및 8월 Aged 할인 실적 반영 영향.
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <span className="shrink-0 text-slate-400 font-bold w-20">③ Net Sales</span>
+                      <span>
+                        MSRP 하락 × 할인율 상승이 겹치며
+                        Old <span className="text-blue-300 font-semibold">$23,586K</span> → New <span className="text-slate-100 font-semibold">$19,191K</span>으로 <span className="text-red-400 font-semibold">-$4,395K 급감</span>.
+                        25년 실적 <span className="text-violet-300 font-semibold">$22,819K</span> 대비로도 <span className="text-red-400 font-semibold">-$3,628K 하회</span>.
+                        채널별 : E-com <span className="text-red-400">-$4,147K</span>, Wholesale <span className="text-red-400">-$71K</span> (vs Old).
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <span className="shrink-0 text-slate-400 font-bold w-20">④ 영업이익</span>
+                      <span>
+                        25년 <span className="text-violet-300 font-semibold">-$1,939K</span>에서
+                        Old는 <span className="text-blue-300 font-semibold">-$661K</span>로 <span className="text-emerald-400 font-semibold">$1,278K 개선</span>을 목표했으나,
+                        New에서는 <span className="text-slate-100 font-semibold">-$4,814K</span>로 Old 대비 <span className="text-red-400 font-semibold">-$4,153K 추가 악화</span>.
+                        25년 대비로도 <span className="text-red-400 font-semibold">-$2,875K</span> 저하.
+                        Net Sales 감소(-$4.4M) + 광고비 증가($651K→$1,416K) + G&A 상승 복합 작용.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -15474,59 +15520,6 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* ── P&L 분석 코멘트 ── */}
-              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700 leading-relaxed space-y-2.5">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm">📝</span>
-                  <span className="text-sm font-bold text-slate-800">25년 실적 vs Old Plan vs New Plan — 손익 흐름 분석</span>
-                </div>
-
-                {/* MSRP */}
-                <div className="flex gap-2">
-                  <span className="shrink-0 font-bold text-slate-500 w-24">① MSRP Sales</span>
-                  <span>
-                    25년 실적 <span className="font-semibold text-violet-600">$43,736K</span>에서
-                    Old 플랜은 <span className="font-semibold text-blue-600">$41,839K</span>으로 소폭 감소(-$1,897K)를 계획했으나,
-                    8월 실적 반영 및 하반기 보수적 전망 적용 후 New는 <span className="font-semibold text-slate-800">$40,160K</span>으로 추가 하향(-$1,679K).
-                    25년 대비로는 <span className="font-semibold text-red-500">-$3,576K</span> 감소.
-                  </span>
-                </div>
-
-                {/* Discount Rate */}
-                <div className="flex gap-2">
-                  <span className="shrink-0 font-bold text-slate-500 w-24">② 할인율</span>
-                  <span>
-                    25년 실적 <span className="font-semibold text-violet-600">50.1%</span>에서
-                    Old 플랜은 <span className="font-semibold text-blue-600">45.3%</span>으로 <span className="text-emerald-600 font-semibold">-4.8%p 개선</span>을 목표로 했으나,
-                    New에서는 <span className="font-semibold text-slate-800">53.5%</span>로 오히려 <span className="text-red-500 font-semibold">+8.2%p 악화</span>.
-                    재고 소진을 위한 하반기 추가 할인 반영 및 8월 실적(높은 Aged 할인) 영향.
-                  </span>
-                </div>
-
-                {/* Net Sales */}
-                <div className="flex gap-2">
-                  <span className="shrink-0 font-bold text-slate-500 w-24">③ Net Sales</span>
-                  <span>
-                    MSRP 하락과 할인율 상승이 겹치며 Net Sales가 큰 폭으로 하락.
-                    Old 플랜 <span className="font-semibold text-blue-600">$23,586K</span>에서 New <span className="font-semibold text-slate-800">$19,191K</span>으로 <span className="text-red-500 font-semibold">-$4,395K</span> 급감.
-                    25년 실적 <span className="font-semibold text-violet-600">$22,819K</span> 대비로도 <span className="text-red-500 font-semibold">-$3,628K</span> 하회.
-                    채널별로는 E-com -$4,147K, Wholesale -$71K(old 대비).
-                  </span>
-                </div>
-
-                {/* Operating Profit */}
-                <div className="flex gap-2">
-                  <span className="shrink-0 font-bold text-slate-500 w-24">④ 영업이익</span>
-                  <span>
-                    25년 <span className="font-semibold text-violet-600">-$1,939K</span>에서 Old 플랜은 <span className="font-semibold text-blue-600">-$661K</span>으로 <span className="text-emerald-600 font-semibold">$1,278K 개선</span>을 목표로 했으나,
-                    New에서는 <span className="font-semibold text-slate-800">-$4,814K</span>으로 Old 대비 <span className="text-red-500 font-semibold">-$4,153K 추가 악화</span>.
-                    25년 실적 대비로도 <span className="text-red-500 font-semibold">-$2,875K</span> 저하.
-                    Net Sales 감소(-$4.4M)에 광고비 증가($651K→$1,416K) 및 G&A 비용 상승이 복합 작용.
-                  </span>
-                </div>
-              </div>
-
               </div>{/* /section-pl */}
 
               {/* ══════════════════════════════════════════════════════
