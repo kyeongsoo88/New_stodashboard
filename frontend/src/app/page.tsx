@@ -14844,7 +14844,7 @@ export default function DashboardPage() {
             { label:'Core', c25:11, b:1, a:1, isMain:false, indent:2, group:'nsWs' },
             { label:'License', c25:832, b:418, a:173, isMain:false, indent:1 },
             { label:'Others', c25:150, b:283, a:352, isMain:false, indent:1 },
-            { label:'Discount Rate', c25:null, c25Str:'50.1%', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', isRate:true, isMain:false, indent:0 },
+            { label:'Discount Rate', c25:null, c25Str:'50.1%', b:null, a:null, bStr:'45.3%', aStr:'53.5%', diffStr:'+8.2%p', diff2Str:'+3.4%p', isRate:true, isMain:false, indent:0 },
             { label:'CoGs', c25:9071, b:8512, a:8069, isMain:false, indent:0 },
             { label:'Gross Profit', c25:13748, b:15074, a:11121, isMain:true, indent:0, c25Str:'60.2%', bStr:'63.9%', aStr:'57.9%' },
             { label:'Direct Cost', c25:8570, b:9041, a:8942, isMain:false, indent:0, isCost:true, isToggle:true, toggleKey:'direct' },
@@ -15163,7 +15163,7 @@ export default function DashboardPage() {
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-600">{row.bStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-gray-800 font-semibold">{row.aStr}</td>
                                   <td className="px-2 py-1.5 text-right tabular-nums text-red-500 font-bold">{row.diffStr}</td>
-                                  <td className="px-2 py-1.5 text-right tabular-nums text-gray-300">–</td>
+                                  <td className="px-2 py-1.5 text-right tabular-nums text-red-500 font-bold">{row.diff2Str ?? '–'}</td>
                                 </>
                               ) : (
                                 <>
