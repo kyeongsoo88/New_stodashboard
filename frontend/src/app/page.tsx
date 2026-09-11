@@ -15100,7 +15100,7 @@ export default function DashboardPage() {
                     <span className="text-violet-300 font-bold">결론 :</span>
                     &nbsp;MSRP 소폭 감소(-$1.6M)에 비해 할인율이 +8.2%p 상승하면서 Net Sales가 <span className="text-red-300 font-bold">-$3.7M</span> 급감했고,
                     이로 인해 영업이익 <span className="text-red-300 font-bold">-$4.2M 추가 악화</span>, 판매수금 감소로 영업CF <span className="text-red-300 font-bold">-$3.9M 저하</span>됐습니다.
-                    재고는 상대적으로 소폭(<span className="text-orange-300">+$0.4M</span>) 증가에 그쳤으나,
+                    재고는 <span className="text-orange-300">+$1.7M</span> 증가(Old $14.3M → New $16.0M)하였으며,
                     현금 방어를 위해 <span className="text-amber-300 font-bold">12월 본사 차입금 상환을 $7M → $3M으로 $4M 축소</span> 의사결정 필요,
                     $3M으로 축소했을시 연말현금흐름은 <span className="text-emerald-300 font-bold">~$3,191K</span>가 됩니다.
                   </div>
