@@ -8430,6 +8430,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                     ]; // 1월~12월
                     const plan2026 = vals[14] || '0';
                     const total2026 = vals[15] || '0';
+                    const newRF08 = vals[16] || '0';
                     
                     // 계산 함수
                     const parseNum = (str: string) => {
@@ -8461,7 +8462,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                         total2026,
                         formatNum(rollingMinusPrev),
                         formatNum(planDiff),
-                        `${planPercent}%`
+                        `${planPercent}%`,
+                        newRF08
                     ];
                     
                     // 하위 항목 식별
@@ -9391,7 +9393,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     RF_07
                                 </TableHead>
                                 <TableHead
-                                    colSpan={3}
+                                    colSpan={tableType === 'flow' ? 4 : 3}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
@@ -9464,6 +9466,14 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     >
                                         RF_08 - RF_07
                                     </TableHead>
+                                    {tableType === 'flow' && (
+                                        <TableHead
+                                            className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
+                                            style={{ backgroundColor: '#2E5C8A' }}
+                                        >
+                                            NEW_RF_08
+                                        </TableHead>
+                                    )}
                                 </>
                             )}
                         </TableRow>
@@ -9637,6 +9647,10 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             if (vIdx === 18) {
                                                 return null;
                                             }
+                                            // NEW_RF_08(vIdx 19): flow 테이블에서만 표시
+                                            if (vIdx === 19 && tableType !== 'flow') {
+                                                return null;
+                                            }
                                         }
                                         
                                         // 현금흐름표, 현금잔액표, 운전자본표가 아닌 경우 월 컬럼 가시성 확인
@@ -9660,7 +9674,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                         }
                                         
                                         let cellClass = "text-xs py-2 px-2 text-right whitespace-nowrap tabular-nums border border-gray-300" + (isBoldFlowRow ? " font-bold" : tableType === 'flow' ? " font-normal" : " font-semibold");
-                                        const isValueCol = vIdx === 0 || vIdx === 13 || vIdx === 15; // 전년, RF_04, RF_05
+                                        const isValueCol = vIdx === 0 || vIdx === 13 || vIdx === 15 || vIdx === 19; // 전년, RF_04, RF_05, NEW_RF_08
                                         if (isNegative) cellClass += " text-red-600";
                                         else if (!isValueCol && isFinanceColored && formatted !== '0' && formatted !== '' && formatted !== '-') cellClass += " text-blue-600";
                                         else if ((vIdx === 16 || vIdx === 17) && displayValue !== '-' && displayValue !== '0' && !isNegative) cellClass += " text-blue-600";
