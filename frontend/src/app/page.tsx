@@ -5614,7 +5614,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [drillVendor, setDrillVendor] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
   const [txPage, setTxPage] = React.useState(0);
-  const [txGroupMode, setTxGroupMode] = React.useState(false);
+  const [txGroupMode, setTxGroupMode] = React.useState(true);
   const [txExpandedGroups, setTxExpandedGroups] = React.useState<Set<string>>(new Set());
 
   const PAGE_SIZE = 50;
@@ -5848,6 +5848,14 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     '7100': '무형자산 상각',
     '7130': '무형자산 상각',
     '7140': 'ROU 자산 상각',
+    '6105': '식대 및 출장비',
+    '6110': '식대 및 출장비',
+    '6115': '식대 및 출장비',
+    '6120': '식대 및 출장비',
+    '6125': '식대 및 출장비',
+    '6130': '식대 및 출장비',
+    '6135': '식대 및 출장비',
+    '6140': '식대 및 출장비',
   };
   const getGLCategory = (glStr: string) => {
     const num = (glStr || '').match(/\d{4}/)?.[0] || '';
@@ -6469,43 +6477,183 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                     </div>
                   </CardContent>
                 </Card>
+                {/* ── 거래내역 (전년동기 비교 우측으로 이동) ── */}
                 <Card className="border-gray-100">
                   <CardHeader className="pb-2 pt-4">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <CardTitle className="text-sm font-semibold text-gray-700">
-                        연간 계획 대비 진척률 (1~{curMonthNum}월 실적 / 연간)
+                        거래내역 — {txRows.length.toLocaleString()}건 / 합계 {fmtKshort(txTotal)}
                       </CardTitle>
-                      {topCatPlan && (
-                        <span className="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2">
-                          최대: {PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%
+                      <div className="flex-1"/>
+                      {drillVendor && (
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded flex items-center gap-1">
+                          벤더: {drillVendor.slice(0, 20)}
+                          <button onClick={() => setDrillVendor(null)} className="ml-1 hover:text-red-600">×</button>
                         </span>
                       )}
+                      <div className="flex items-center border border-gray-200 rounded overflow-hidden h-8 text-xs">
+                        <button onClick={() => setTxGroupMode(false)}
+                          className={cn("px-2.5 py-1 h-full", !txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
+                          전표
+                        </button>
+                        <button onClick={() => { setTxGroupMode(true); setTxExpandedGroups(new Set()); }}
+                          className={cn("px-2.5 py-1 h-full", txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
+                          그룹
+                        </button>
+                      </div>
+                      <select value={drillPL || ''} onChange={e => { setDrillPL(e.target.value || null); setTxPage(0); }}
+                        className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8">
+                        <option value="">전체 카테고리</option>
+                        {PL_ITEMS.map(pl => <option key={pl} value={pl}>{PL_KR[pl] || pl}</option>)}
+                      </select>
+                      <input type="text" placeholder="거래처 / 메모 검색..."
+                        value={searchText} onChange={e => { setSearchText(e.target.value); setTxPage(0); }}
+                        className="border border-gray-200 rounded px-3 py-1 text-xs w-36 bg-white h-8"/>
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">연간 = 1~{curMonthNum}월 실적 + {curMonthNum + 1}~12월 계획 (Forecast)</p>
                   </CardHeader>
-                  <CardContent className="pb-4">
-                    <div className="space-y-3">
-                      {annualPlanByPL.filter(d => d.plan > 0).map(d => {
-                        const bar = Math.min(d.progress, 100);
-                        return (
-                          <div key={d.pl} className="flex items-center justify-between text-xs gap-2">
-                            <span className="font-medium text-gray-700 w-32 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
-                            <div className="flex-1">
-                              <div className="w-full bg-gray-100 rounded-full h-5 relative overflow-hidden">
-                                <div className={cn("h-5 rounded-full flex items-center justify-end pr-2",
-                                  bar > 60 ? 'bg-red-400' : bar > 45 ? 'bg-amber-400' : 'bg-emerald-400'
-                                )} style={{ width: `${bar}%` }}>
-                                  <span className="text-white text-xs font-bold">{d.progress.toFixed(0)}%</span>
-                                </div>
-                                <div className="absolute top-0 bottom-0 w-px bg-gray-400 opacity-50" style={{ left: '50%' }}/>
-                              </div>
-                            </div>
-                            <span className="text-gray-500 w-28 text-right tabular-nums">{fmtKshort(d.actual)} / {fmtKshort(d.plan)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
+                  <CardContent className="p-0 overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">월</th>
+                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">카테고리</th>
+                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">부서</th>
+                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium">거래처</th>
+                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium">계정 (GL)</th>
+                          <th className="text-right px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">금액 (USD)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {txGroupMode ? (
+                          txGroups.map((cat, ci) => {
+                            const catKey = `cat:${cat.category}`;
+                            const catExpanded = txExpandedGroups.has(catKey);
+                            const totalRows = cat.vendors.reduce((s, v) => s + v.rows.length, 0);
+                            const toggleCat = () => setTxExpandedGroups(prev => {
+                              const next = new Set(prev);
+                              next.has(catKey) ? next.delete(catKey) : next.add(catKey);
+                              return next;
+                            });
+                            return (
+                              <React.Fragment key={ci}>
+                                <tr className="border-b border-gray-300 bg-slate-100 hover:bg-blue-50/50 cursor-pointer" onClick={toggleCat}>
+                                  <td className="px-3 py-2 text-gray-500 text-[11px] tabular-nums whitespace-nowrap font-semibold">
+                                    {catExpanded ? '▼' : '▶'} {cat.vendors.length}곳
+                                  </td>
+                                  <td colSpan={2} className="px-3 py-2">
+                                    <span className="text-slate-800 font-bold text-[12px]">{cat.category}</span>
+                                    <span className="ml-2 text-gray-400 text-[10px]">{totalRows}건</span>
+                                  </td>
+                                  <td className="px-3 py-2 text-gray-400 text-[11px]" colSpan={2}/>
+                                  <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold text-[13px]",
+                                    cat.total < 0 ? 'text-emerald-600' : cat.total >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
+                                    {cat.total < 0 ? '-' : ''}${Math.abs(Math.round(cat.total)).toLocaleString()}
+                                  </td>
+                                </tr>
+                                {catExpanded && cat.vendors.map((v, vi) => {
+                                  const vKey = `ven:${cat.category}:${v.vendor}`;
+                                  const vExpanded = txExpandedGroups.has(vKey);
+                                  const toggleVendor = (e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    setTxExpandedGroups(prev => {
+                                      const next = new Set(prev);
+                                      next.has(vKey) ? next.delete(vKey) : next.add(vKey);
+                                      return next;
+                                    });
+                                  };
+                                  return (
+                                    <React.Fragment key={vi}>
+                                      <tr className="border-b border-gray-100 bg-white hover:bg-blue-50/30 cursor-pointer" onClick={toggleVendor}>
+                                        <td className="px-3 py-1.5 pl-8 text-gray-400 text-[10px] whitespace-nowrap">
+                                          {v.rows.length > 1 ? (vExpanded ? '▼' : '▶') : '  '} {v.rows.length}건
+                                        </td>
+                                        <td className="px-3 py-1.5 whitespace-nowrap">
+                                          <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[v.pl] || '#94a3b8' }}/>
+                                            <span className="text-gray-500 text-[10px]">{PL_KR[v.pl] || v.pl}</span>
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] whitespace-nowrap">{v.dept || '–'}</td>
+                                        <td className="px-3 py-1.5 text-gray-800 font-medium text-[12px] max-w-48 truncate">{v.vendor}</td>
+                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] max-w-36 truncate">{v.gl}</td>
+                                        <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-semibold text-[12px]",
+                                          v.total < 0 ? 'text-emerald-600' : 'text-gray-800')}>
+                                          {v.total < 0 ? '-' : ''}${Math.abs(Math.round(v.total)).toLocaleString()}
+                                        </td>
+                                      </tr>
+                                      {vExpanded && v.rows.map((r, ri) => {
+                                        const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                                        return (
+                                          <tr key={ri} className="border-b border-gray-50 bg-blue-50/10">
+                                            <td className="px-3 py-1 pl-14 text-gray-400 text-[10px] whitespace-nowrap tabular-nums">{r['Date2']}</td>
+                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
+                                            <td className="px-3 py-1 text-gray-400 text-[10px] whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                                            <td className="px-3 py-1 text-gray-500 max-w-48 truncate text-[10px]">{r['Memo'] || r['Name']}</td>
+                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
+                                            <td className={cn("px-3 py-1 text-right font-mono tabular-nums text-[11px]",
+                                              amt < 0 ? 'text-emerald-500' : 'text-gray-500')}>
+                                              {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </React.Fragment>
+                            );
+                          })
+                        ) : (
+                          txSlice.map((r, i) => {
+                            const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                            return (
+                              <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                                <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
+                                <td className="px-3 py-1.5 whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }}/>
+                                    <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
+                                  </span>
+                                </td>
+                                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                                <td className="px-3 py-1.5 text-gray-800 max-w-40 truncate">{r['Name']}</td>
+                                <td className="px-3 py-1.5 text-gray-400 max-w-32 truncate">{r['Account (GL)']}</td>
+                                <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
+                                  amt < 0 ? 'text-emerald-600' : Math.abs(amt) >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
+                                  {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-gray-300 bg-gray-50">
+                          <td colSpan={5} className="px-3 py-2 text-xs font-semibold text-gray-600">
+                            {txGroupMode
+                              ? `소계 (${txGroups.length}카테고리 / ${txGroups.reduce((s,c)=>s+c.vendors.length,0)}거래처 / ${txRows.length.toLocaleString()}건 전체)`
+                              : `소계 (${txRows.length.toLocaleString()}건 전체)`}
+                          </td>
+                          <td className={cn("px-3 py-2 text-right font-mono tabular-nums text-sm font-bold", txTotal < 0 ? 'text-emerald-600' : 'text-gray-900')}>
+                            {txTotal < 0 ? '-' : ''}${Math.abs(Math.round(txTotal)).toLocaleString()}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                    {!txGroupMode && txPages > 1 && (
+                      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+                        <span className="text-xs text-gray-400">
+                          {txPage * PAGE_SIZE + 1}–{Math.min((txPage + 1) * PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setTxPage(0)} disabled={txPage === 0} className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">처음</button>
+                          <button onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0} className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">← 이전</button>
+                          <span className="text-xs text-gray-500">{txPage + 1} / {txPages}</span>
+                          <button onClick={() => setTxPage(p => Math.min(txPages - 1, p + 1))} disabled={txPage >= txPages - 1} className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">다음 →</button>
+                          <button onClick={() => setTxPage(txPages - 1)} disabled={txPage >= txPages - 1} className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">마지막</button>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -6679,195 +6827,44 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                 </Card>
               </div>
               <div>
+                {/* ── 연간 계획 대비 진척률 (거래내역 자리로 이동) ── */}
                 <Card className="border-gray-100">
                   <CardHeader className="pb-2 pt-4">
-                    <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-start justify-between">
                       <CardTitle className="text-sm font-semibold text-gray-700">
-                        거래내역 — {txRows.length.toLocaleString()}건 / 합계 {fmtKshort(txTotal)}
+                        연간 계획 대비 진척률 (1~{curMonthNum}월 실적 / 연간)
                       </CardTitle>
-                      <div className="flex-1"/>
-                      {drillVendor && (
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded flex items-center gap-1">
-                          벤더: {drillVendor.slice(0, 20)}
-                          <button onClick={() => setDrillVendor(null)} className="ml-1 hover:text-red-600">×</button>
+                      {topCatPlan && (
+                        <span className="text-xs bg-indigo-50 text-indigo-700 rounded-full px-2 py-0.5 font-medium whitespace-nowrap ml-2">
+                          최대: {PL_KR[topCatPlan.pl] || topCatPlan.pl} {topCatPlan.progress.toFixed(0)}%
                         </span>
                       )}
-                      <div className="flex items-center border border-gray-200 rounded overflow-hidden h-8 text-xs">
-                        <button onClick={() => setTxGroupMode(false)}
-                          className={cn("px-2.5 py-1 h-full", !txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
-                          전표
-                        </button>
-                        <button onClick={() => { setTxGroupMode(true); setTxExpandedGroups(new Set()); }}
-                          className={cn("px-2.5 py-1 h-full", txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
-                          그룹
-                        </button>
-                      </div>
-                      <select value={drillPL || ''} onChange={e => { setDrillPL(e.target.value || null); setTxPage(0); }}
-                        className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8">
-                        <option value="">전체 카테고리</option>
-                        {PL_ITEMS.map(pl => <option key={pl} value={pl}>{PL_KR[pl] || pl}</option>)}
-                      </select>
-                      <input type="text" placeholder="거래처 / 메모 검색..."
-                        value={searchText} onChange={e => { setSearchText(e.target.value); setTxPage(0); }}
-                        className="border border-gray-200 rounded px-3 py-1 text-xs w-40 bg-white h-8"/>
                     </div>
+                    <p className="text-xs text-gray-400 mt-0.5">연간 = 1~{curMonthNum}월 실적 + {curMonthNum + 1}~12월 계획 (Forecast)</p>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">월</th>
-                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">카테고리</th>
-                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">부서</th>
-                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium">거래처</th>
-                          <th className="text-left px-3 py-2.5 text-gray-500 font-medium">계정 (GL)</th>
-                          <th className="text-right px-3 py-2.5 text-gray-500 font-medium whitespace-nowrap">금액 (USD)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {txGroupMode ? (
-                          txGroups.map((cat, ci) => {
-                            const catKey = `cat:${cat.category}`;
-                            const catExpanded = txExpandedGroups.has(catKey);
-                            const totalRows = cat.vendors.reduce((s, v) => s + v.rows.length, 0);
-                            const toggleCat = () => setTxExpandedGroups(prev => {
-                              const next = new Set(prev);
-                              next.has(catKey) ? next.delete(catKey) : next.add(catKey);
-                              return next;
-                            });
-                            return (
-                              <React.Fragment key={ci}>
-                                {/* ── 카테고리 헤더 행 (Level 1) ── */}
-                                <tr className="border-b border-gray-300 bg-slate-100 hover:bg-blue-50/50 cursor-pointer"
-                                    onClick={toggleCat}>
-                                  <td className="px-3 py-2 text-gray-500 text-[11px] tabular-nums whitespace-nowrap font-semibold">
-                                    {catExpanded ? '▼' : '▶'} {cat.vendors.length}곳
-                                  </td>
-                                  <td colSpan={2} className="px-3 py-2">
-                                    <span className="text-slate-800 font-bold text-[12px]">{cat.category}</span>
-                                    <span className="ml-2 text-gray-400 text-[10px]">{totalRows}건</span>
-                                  </td>
-                                  <td className="px-3 py-2 text-gray-400 text-[11px]" colSpan={2}/>
-                                  <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold text-[13px]",
-                                    cat.total < 0 ? 'text-emerald-600' : cat.total >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
-                                    {cat.total < 0 ? '-' : ''}${Math.abs(Math.round(cat.total)).toLocaleString()}
-                                  </td>
-                                </tr>
-                                {/* ── 벤더 행들 (Level 2, 카테고리 펼침 시) ── */}
-                                {catExpanded && cat.vendors.map((v, vi) => {
-                                  const vKey = `ven:${cat.category}:${v.vendor}`;
-                                  const vExpanded = txExpandedGroups.has(vKey);
-                                  const toggleVendor = (e: React.MouseEvent) => {
-                                    e.stopPropagation();
-                                    setTxExpandedGroups(prev => {
-                                      const next = new Set(prev);
-                                      next.has(vKey) ? next.delete(vKey) : next.add(vKey);
-                                      return next;
-                                    });
-                                  };
-                                  return (
-                                    <React.Fragment key={vi}>
-                                      {/* 벤더 행 */}
-                                      <tr className="border-b border-gray-100 bg-white hover:bg-blue-50/30 cursor-pointer"
-                                          onClick={toggleVendor}>
-                                        <td className="px-3 py-1.5 pl-8 text-gray-400 text-[10px] whitespace-nowrap">
-                                          {v.rows.length > 1 ? (vExpanded ? '▼' : '▶') : '  '} {v.rows.length}건
-                                        </td>
-                                        <td className="px-3 py-1.5 whitespace-nowrap">
-                                          <span className="inline-flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[v.pl] || '#94a3b8' }}/>
-                                            <span className="text-gray-500 text-[10px]">{PL_KR[v.pl] || v.pl}</span>
-                                          </span>
-                                        </td>
-                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] whitespace-nowrap">{v.dept || '–'}</td>
-                                        <td className="px-3 py-1.5 text-gray-800 font-medium text-[12px] max-w-48 truncate">{v.vendor}</td>
-                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] max-w-36 truncate">{v.gl}</td>
-                                        <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-semibold text-[12px]",
-                                          v.total < 0 ? 'text-emerald-600' : 'text-gray-800')}>
-                                          {v.total < 0 ? '-' : ''}${Math.abs(Math.round(v.total)).toLocaleString()}
-                                        </td>
-                                      </tr>
-                                      {/* 개별 전표 (벤더 펼침 시) */}
-                                      {vExpanded && v.rows.map((r, ri) => {
-                                        const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
-                                        return (
-                                          <tr key={ri} className="border-b border-gray-50 bg-blue-50/10">
-                                            <td className="px-3 py-1 pl-14 text-gray-400 text-[10px] whitespace-nowrap tabular-nums">{r['Date2']}</td>
-                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
-                                            <td className="px-3 py-1 text-gray-400 text-[10px] whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
-                                            <td className="px-3 py-1 text-gray-500 max-w-48 truncate text-[10px]">{r['Memo'] || r['Name']}</td>
-                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
-                                            <td className={cn("px-3 py-1 text-right font-mono tabular-nums text-[11px]",
-                                              amt < 0 ? 'text-emerald-500' : 'text-gray-500')}>
-                                              {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
-                                            </td>
-                                          </tr>
-                                        );
-                                      })}
-                                    </React.Fragment>
-                                  );
-                                })}
-                              </React.Fragment>
-                            );
-                          })
-                        ) : (
-                          txSlice.map((r, i) => {
-                            const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
-                            return (
-                              <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
-                                <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
-                                <td className="px-3 py-1.5 whitespace-nowrap">
-                                  <span className="inline-flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }}/>
-                                    <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
-                                  </span>
-                                </td>
-                                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
-                                <td className="px-3 py-1.5 text-gray-800 max-w-40 truncate">{r['Name']}</td>
-                                <td className="px-3 py-1.5 text-gray-400 max-w-32 truncate">{r['Account (GL)']}</td>
-                                <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
-                                  amt < 0 ? 'text-emerald-600' : Math.abs(amt) >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
-                                  {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t-2 border-gray-300 bg-gray-50">
-                          <td colSpan={5} className="px-3 py-2 text-xs font-semibold text-gray-600">
-                            {txGroupMode
-                              ? `소계 (${txGroups.length}카테고리 / ${txGroups.reduce((s,c)=>s+c.vendors.length,0)}거래처 / ${txRows.length.toLocaleString()}건 전체)`
-                              : `소계 (${txRows.length.toLocaleString()}건 전체)`}
-                          </td>
-                          <td className={cn(
-                            "px-3 py-2 text-right font-mono tabular-nums text-sm font-bold",
-                            txTotal < 0 ? 'text-emerald-600' : 'text-gray-900'
-                          )}>
-                            {txTotal < 0 ? '-' : ''}${Math.abs(Math.round(txTotal)).toLocaleString()}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                    {!txGroupMode && txPages > 1 && (
-                      <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                        <span className="text-xs text-gray-400">
-                          {txPage * PAGE_SIZE + 1}–{Math.min((txPage + 1) * PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setTxPage(0)} disabled={txPage === 0}
-                            className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">처음</button>
-                          <button onClick={() => setTxPage(p => Math.max(0, p - 1))} disabled={txPage === 0}
-                            className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">← 이전</button>
-                          <span className="text-xs text-gray-500">{txPage + 1} / {txPages}</span>
-                          <button onClick={() => setTxPage(p => Math.min(txPages - 1, p + 1))} disabled={txPage >= txPages - 1}
-                            className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">다음 →</button>
-                          <button onClick={() => setTxPage(txPages - 1)} disabled={txPage >= txPages - 1}
-                            className="px-2 py-1 text-xs border border-gray-200 rounded disabled:opacity-30 bg-white hover:bg-gray-50">마지막</button>
-                        </div>
-                      </div>
-                    )}
+                  <CardContent className="pb-4">
+                    <div className="space-y-3">
+                      {annualPlanByPL.filter(d => d.plan > 0).map(d => {
+                        const bar = Math.min(d.progress, 100);
+                        return (
+                          <div key={d.pl} className="flex items-center justify-between text-xs gap-2">
+                            <span className="font-medium text-gray-700 w-32 flex-shrink-0">{PL_KR[d.pl] || d.pl}</span>
+                            <div className="flex-1">
+                              <div className="w-full bg-gray-100 rounded-full h-5 relative overflow-hidden">
+                                <div className={cn("h-5 rounded-full flex items-center justify-end pr-2",
+                                  bar > 60 ? 'bg-red-400' : bar > 45 ? 'bg-amber-400' : 'bg-emerald-400'
+                                )} style={{ width: `${bar}%` }}>
+                                  <span className="text-white text-xs font-bold">{d.progress.toFixed(0)}%</span>
+                                </div>
+                                <div className="absolute top-0 bottom-0 w-px bg-gray-400 opacity-50" style={{ left: '50%' }}/>
+                              </div>
+                            </div>
+                            <span className="text-gray-500 w-28 text-right tabular-nums">{fmtKshort(d.actual)} / {fmtKshort(d.plan)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-3">※ 50% 기준선 = 상반기 정상 페이스. 초과=적색, 50% 근접=황색, 미달=녹색</p>
                   </CardContent>
                 </Card>
               </div>
