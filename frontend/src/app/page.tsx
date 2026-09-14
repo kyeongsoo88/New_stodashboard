@@ -3111,44 +3111,44 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           return (d >= 0 ? '+' : '') + d.toFixed(1) + '%p';
         };
 
-        // OLD (Before) – 9~12월 합계, raw USD → K USD
+        // OLD (Before 'old' sheet) – 9~12월 합계, raw USD → K USD
         const old = {
-          msrp: K(21224617.56), msrpEcom: K(19954642.56),
-          msrpEcomSeason: { '26FW': K(5072400), '26SS': K(6025500), '25FW': K(5316840), '25SS': K(2098360), 'Aged': K(380358), 'Core': K(1061184) },
-          msrpWS: K(1269975),
-          netSales: K(12666631), netSalesEcom: K(11889218.83),
-          netSalesEcomSeason: { '26FW': K(3772685), '26SS': K(3852500), '25FW': K(2507050), '25SS': K(739200), 'Aged': K(156659), 'Core': K(861125) },
-          netSalesWS: K(469000), license: K(278000),
+          msrp: 21225, msrpEcom: 19955,
+          msrpEcomSeason: { '26FW': 5072, '26SS': 6026, '25FW': 5317, '25SS': 2098, 'Aged': 380, 'Core': 1061 },
+          msrpWS: 1270,
+          netSales: 12667, netSalesEcom: 11889,
+          netSalesEcomSeason: { '26FW': 3773, '26SS': 3853, '25FW': 2507, '25SS': 739, 'Aged': 157, 'Core': 861 },
+          netSalesWS: 469, license: 278,
           discountRate: 0.4177,
-          grossProfit: K(8422405.6), grossPct: 0.6649,
-          directProfit: K(4088972.4), directPct: 0.3228,
-          ga: K(2229627.3),
-          opProfit: K(1859345), opPct: 0.1468,
-          netProfit: K(1014079), netPct: 0.0801,
+          grossProfit: 8422, grossPct: 0.6649,
+          directProfit: 4089, directPct: 0.3228,
+          ga: 2230,
+          gaDetail: { Salaries: 1363, Advertising: 247, 'T&E': 12, Rent: 99, Sample: 46, 'Professional Service': 379, 'D&A': 16, Others: 69 },
+          opProfit: 1859, opPct: 0.1468,
           monthly: {
-            msrpEcom: [K(3888798), K(3422176), K(6321719), K(6321949)],
-            netSalesEcom: [K(2455359), K(2126830), K(3653492), K(3653538)],
+            msrpEcom: [3889, 3422, 6322, 6322],
+            netSalesEcom: [2455, 2127, 3653, 3654],
             dr: [0.4006, 0.4053, 0.4273, 0.4273],
           }
         };
-        // NEW (After) – 9~12월 합계
+        // NEW ('new' sheet) – 9~12월 합계
         const nw = {
-          msrp: K(22751170.51), msrpEcom: K(21460668.51),
-          msrpEcomSeason: { '26FW': K(5762098.64), '26SS': K(5426535.18), '25FW': K(6257744.13), '25SS': K(2487176.31), 'Aged': K(662212.06), 'Core': K(864702.19) },
-          msrpWS: K(1290502),
-          netSales: K(9878523.12), netSalesEcom: K(9299951.61),
-          netSalesEcomSeason: { '26FW': K(3340744.3), '26SS': K(2169711.8), '25FW': K(2292952.75), '25SS': K(753834.08), 'Aged': K(187469.57), 'Core': K(554839.11) },
-          netSalesWS: K(474620), license: K(73390),
-          discountRate: 0.5704,
-          grossProfit: K(5467794.08), grossPct: 0.5535,
-          directProfit: K(451478.35), directPct: 0.0457,
-          ga: K(3023458.86),
-          opProfit: K(-2571980.51), opPct: -0.2604,
-          netProfit: K(-3732523.91), netPct: -0.3778,
+          msrp: 20215, msrpEcom: 18945,
+          msrpEcomSeason: { '26FW': 5762, '26SS': 5423, '25FW': 5163, '25SS': 1488, 'Aged': 329, 'Core': 780 },
+          msrpWS: 1270,
+          netSales: 8703, netSalesEcom: 8130,
+          netSalesEcomSeason: { '26FW': 3341, '26SS': 2166, '25FW': 1651, '25SS': 402, 'Aged': 79, 'Core': 491 },
+          netSalesWS: 469, license: 80,
+          discountRate: 0.5746,
+          grossProfit: 4831, grossPct: 0.5551,
+          directProfit: 510, directPct: 0.0586,
+          ga: 2448,
+          gaDetail: { Salaries: 1453, Advertising: 200, 'T&E': 14, Rent: 102, Sample: 46, 'Professional Service': 500, 'D&A': 33, Others: 100 },
+          opProfit: -1938, opPct: -0.2227,
           monthly: {
-            msrpEcom: [K(2609298.74), K(3153173.53), K(6849029.52), K(6333728.73)],
-            netSalesEcom: [K(1248484.56), K(1448152.3), K(2744867.52), K(2688149.74)],
-            dr: [0.5403, 0.551, 0.5999, 0.5770],
+            msrpEcom: [2609, 3153, 6849, 6334],
+            netSalesEcom: [1248, 1448, 2745, 2688],
+            dr: [0.5403, 0.5510, 0.5999, 0.5769],
           }
         };
         const seasons = ['26FW','26SS','25FW','25SS','Aged','Core'] as const;
@@ -3165,14 +3165,14 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           { label: 'Gross Profit', o: old.grossProfit, n: nw.grossProfit, isCurrency: true, pctO: old.grossPct, pctN: nw.grossPct, isBold: true },
           { label: 'Direct Profit', o: old.directProfit, n: nw.directProfit, isCurrency: true, pctO: old.directPct, pctN: nw.directPct, isBold: true },
           { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true, isExpandable: true },
-          { label: '└ Salaries', o: K(1105314), n: K(1195314), isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 신규 채용 직원 2인 급여 $90K' },
-          { label: '└ Advertising', o: K(312000), n: K(640000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ T&E', o: K(105000), n: K(130000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Rent', o: K(280000), n: K(360000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Sample', o: K(85000), n: K(115000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Professional Service', o: K(180000), n: K(301000), isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 리쿠르팅 비용' },
-          { label: '└ D&A', o: K(120000), n: K(150000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Others', o: K(43313), n: K(132145), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Salaries', o: old.gaDetail['Salaries'], n: nw.gaDetail['Salaries'], isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 신규 채용 직원 2인 급여 $90K' },
+          { label: '└ Advertising', o: old.gaDetail['Advertising'], n: nw.gaDetail['Advertising'], isCurrency: true, indent: true, isGASub: true },
+          { label: '└ T&E', o: old.gaDetail['T&E'], n: nw.gaDetail['T&E'], isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Rent', o: old.gaDetail['Rent'], n: nw.gaDetail['Rent'], isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Sample', o: old.gaDetail['Sample'], n: nw.gaDetail['Sample'], isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Professional Service', o: old.gaDetail['Professional Service'], n: nw.gaDetail['Professional Service'], isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 리쿠르팅 비용' },
+          { label: '└ D&A', o: old.gaDetail['D&A'], n: nw.gaDetail['D&A'], isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Others', o: old.gaDetail['Others'], n: nw.gaDetail['Others'], isCurrency: true, indent: true, isGASub: true },
           { label: 'Operating Profit', o: old.opProfit, n: nw.opProfit, isCurrency: true, pctO: old.opPct, pctN: nw.opPct, isBold: true },
         ];
         return (
@@ -3206,11 +3206,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                   </div>
                   <div className="flex items-stretch bg-white rounded-b-lg border border-slate-200 shadow-sm p-4 gap-0">
                     {[
-                      { step:'① MSRP', color:'text-slate-600', bg:'bg-white', border:'border-slate-200', oldV:`$${old.msrp.toLocaleString()}K`, newV:`$${nw.msrp.toLocaleString()}K`, diffV:`+$${(nw.msrp-old.msrp).toLocaleString()}K`, diffPos:true, note:'E-com +7.5%↑, MSRP 증가' },
-                      { step:'② 할인율', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV: pct(old.discountRate), newV: pct(nw.discountRate), diffV: fmtPp(nw.discountRate,old.discountRate), diffPos:false, note:'할인율 +15.3%p 급등' },
-                      { step:'③ Net Sales', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV:`$${old.netSales.toLocaleString()}K`, newV:`$${nw.netSales.toLocaleString()}K`, diffV:`-$${Math.abs(nw.netSales-old.netSales).toLocaleString()}K`, diffPos:false, note:'MSRP 상승에도 Net Sales 급감' },
-                      { step:'④ Gross Profit', color:'text-red-600', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.grossProfit.toLocaleString()}K`, newV:`$${nw.grossProfit.toLocaleString()}K`, diffV:`-$${Math.abs(nw.grossProfit-old.grossProfit).toLocaleString()}K`, diffPos:false, note:'마진율 66.5% → 55.4%' },
-                      { step:'⑤ 영업이익', color:'text-red-700', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.opProfit.toLocaleString()}K`, newV:`-$${Math.abs(nw.opProfit).toLocaleString()}K`, diffV:`-$${Math.abs(nw.opProfit-old.opProfit).toLocaleString()}K`, diffPos:false, note:'G&A 증가($793K) 복합 작용' },
+                      { step:'① MSRP', color:'text-slate-600', bg:'bg-white', border:'border-slate-200', oldV:`$${old.msrp.toLocaleString()}K`, newV:`$${nw.msrp.toLocaleString()}K`, diffV:`${nw.msrp-old.msrp>=0?'+':'-'}$${Math.abs(nw.msrp-old.msrp).toLocaleString()}K`, diffPos:nw.msrp>=old.msrp, note:`E-com ${((nw.msrpEcom-old.msrpEcom)/old.msrpEcom*100).toFixed(1)}%, MSRP 변화` },
+                      { step:'② 할인율', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV: pct(old.discountRate), newV: pct(nw.discountRate), diffV: fmtPp(nw.discountRate,old.discountRate), diffPos:false, note:`할인율 +${((nw.discountRate-old.discountRate)*100).toFixed(1)}%p 급등` },
+                      { step:'③ Net Sales', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV:`$${old.netSales.toLocaleString()}K`, newV:`$${nw.netSales.toLocaleString()}K`, diffV:`${nw.netSales-old.netSales>=0?'+':'-'}$${Math.abs(nw.netSales-old.netSales).toLocaleString()}K`, diffPos:false, note:'할인율 급등으로 Net Sales 급감' },
+                      { step:'④ Gross Profit', color:'text-red-600', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.grossProfit.toLocaleString()}K`, newV:`$${nw.grossProfit.toLocaleString()}K`, diffV:`${nw.grossProfit-old.grossProfit>=0?'+':'-'}$${Math.abs(nw.grossProfit-old.grossProfit).toLocaleString()}K`, diffPos:false, note:`마진율 ${(old.grossPct*100).toFixed(1)}% → ${(nw.grossPct*100).toFixed(1)}%` },
+                      { step:'⑤ 영업이익', color:'text-red-700', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.opProfit.toLocaleString()}K`, newV:`${nw.opProfit<0?'-$':'$'}${Math.abs(nw.opProfit).toLocaleString()}K`, diffV:`${nw.opProfit-old.opProfit>=0?'+':'-'}$${Math.abs(nw.opProfit-old.opProfit).toLocaleString()}K`, diffPos:false, note:`G&A +$${nw.ga-old.ga}K 복합 작용` },
                     ].map((card, ci) => (
                       <React.Fragment key={ci}>
                         {ci > 0 && (
@@ -3456,10 +3456,10 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     <span className="text-xs font-bold text-slate-200 tracking-wide">종합 분석 — 계획 변경의 핵심 함의</span>
                   </div>
                   <div className="bg-slate-900 p-4 space-y-2.5 text-xs text-slate-300 leading-relaxed">
-                    <p><span className="text-blue-400 font-bold">① MSRP</span> &nbsp;E-com MSRP는 +{(nw.msrpEcom-old.msrpEcom).toLocaleString()}K 증가. 26SS(-599K)·Core(-196K) 감소에도 25FW(+941K)·26FW(+690K)·25SS(+389K) 증가로 전체 MSRP는 상승. Wholesale은 거의 동일 수준.</p>
-                    <p><span className="text-red-400 font-bold">② 할인율</span> &nbsp;Old 41.8% → New 57.0%로 <span className="text-red-300 font-bold">+15.2%p 급등</span>. 특히 11월(+17.3%p)이 가장 크며, 과시즌 재고 소진 전략이 반영된 결과. MSRP 증가에도 불구하고 Net Sales를 역방향으로 압박.</p>
-                    <p><span className="text-red-400 font-bold">③ Net Sales</span> &nbsp;E-com 기준 -2,589K(-21.8%) 감소. 26SS가 -1,683K로 단일 최대 감소 요인. 26FW(-432K)·Core(-306K)·25FW(-214K) 순. Wholesale/License도 합산 -198K 추가 감소.</p>
-                    <p><span className="text-red-400 font-bold">④ 수익성</span> &nbsp;Gross Profit -2,955K(마진율 66.5%→55.4%), G&A +793K(비용 증가), 결과적으로 Operating Profit -4,431K 악화. Old Plan 흑자(+1,859K)에서 New Plan 적자(-2,572K)로 전환. <span className="text-orange-300 font-semibold">9~12월 누적 영업이익 약 $4.4M 악화가 예상됨.</span></p>
+                    <p><span className="text-blue-400 font-bold">① MSRP</span> &nbsp;E-com MSRP는 {(nw.msrpEcom-old.msrpEcom).toLocaleString()}K 감소(−{((1-nw.msrpEcom/old.msrpEcom)*100).toFixed(1)}%). 26FW(+{(nw.msrpEcomSeason['26FW']-old.msrpEcomSeason['26FW']).toLocaleString()}K) 제외한 전 시즌 감소. 26SS −{(old.msrpEcomSeason['26SS']-nw.msrpEcomSeason['26SS']).toLocaleString()}K, 25SS −{(old.msrpEcomSeason['25SS']-nw.msrpEcomSeason['25SS']).toLocaleString()}K 감소 두드러짐.</p>
+                    <p><span className="text-red-400 font-bold">② 할인율</span> &nbsp;Old {(old.discountRate*100).toFixed(1)}% → New {(nw.discountRate*100).toFixed(1)}%로 <span className="text-red-300 font-bold">+{((nw.discountRate-old.discountRate)*100).toFixed(1)}%p 급등</span>. 11월(+{((nw.monthly.dr[2]-old.monthly.dr[2])*100).toFixed(1)}%p)이 최대. 과시즌 재고 소진 전략으로 MSRP 감소에 할인율까지 악화.</p>
+                    <p><span className="text-red-400 font-bold">③ Net Sales</span> &nbsp;E-com 기준 −{(old.netSalesEcom-nw.netSalesEcom).toLocaleString()}K(−{((1-nw.netSalesEcom/old.netSalesEcom)*100).toFixed(1)}%) 감소. 26SS −{(old.netSalesEcomSeason['26SS']-nw.netSalesEcomSeason['26SS']).toLocaleString()}K, 25FW −{(old.netSalesEcomSeason['25FW']-nw.netSalesEcomSeason['25FW']).toLocaleString()}K 순으로 감소. License도 −{old.license-nw.license}K 급감.</p>
+                    <p><span className="text-red-400 font-bold">④ 수익성</span> &nbsp;Gross Profit −{(old.grossProfit-nw.grossProfit).toLocaleString()}K(마진율 {(old.grossPct*100).toFixed(1)}%→{(nw.grossPct*100).toFixed(1)}%), G&A +{nw.ga-old.ga}K(비용 증가), 결과적으로 Operating Profit −{(old.opProfit-nw.opProfit).toLocaleString()}K 악화. Old Plan 흑자(+${old.opProfit.toLocaleString()}K)에서 New Plan 적자(−${Math.abs(nw.opProfit).toLocaleString()}K)로 전환. <span className="text-orange-300 font-semibold">9~12월 누적 영업이익 약 ${(old.opProfit-nw.opProfit).toLocaleString()}K 악화 예상.</span></p>
                   </div>
                 </div>
 
