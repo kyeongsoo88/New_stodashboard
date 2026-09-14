@@ -5816,20 +5816,71 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const txPages = Math.ceil(txRows.length / PAGE_SIZE);
   const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
 
-  // 거래처 × GL계정 그룹핑
+  // GL 계정 → 한국어 시멘틱 카테고리 매핑
+  const GL_SEMANTIC: Record<string, string> = {
+    '6380': '법률·회계 수수료',
+    '6390': 'IT·소프트웨어',
+    '6200': '컨설팅·외주용역',
+    '6300': '급여관리 서비스',
+    '6385': '보험',
+    '6375': '기타 운송·수수료',
+    '6450': '은행·기타 수수료',
+    '6040': '복리후생',
+    '6420': '라이선스·멤버십',
+    '6340': '기타비용',
+    '6240': '사진·영상 촬영',
+    '6280': '광고·마케팅',
+    '6005': '임직원 급여',
+    '6000': '임직원 급여',
+    '6010': '임직원 급여',
+    '6015': '유급휴가',
+    '6035': '퇴직금·해고비용',
+    '6050': '사용자 세금',
+    '6055': '사회보장세',
+    '6205': '외주 인력',
+    '6320': '임차료',
+    '6350': '샘플·개발비',
+    '6400': '공과금',
+    '6440': '대손충당금',
+    '6445': '재고 평가손실',
+    '6520': '세금·공과금',
+    '7000': '감가상각',
+    '7100': '무형자산 상각',
+    '7130': '무형자산 상각',
+    '7140': 'ROU 자산 상각',
+  };
+  const getGLCategory = (glStr: string) => {
+    const num = (glStr || '').match(/\d{4}/)?.[0] || '';
+    return GL_SEMANTIC[num] || (glStr.includes(' - ') ? glStr.split(' - ')[1] : glStr) || '기타';
+  };
+
+  // GL 시멘틱 카테고리 기반 2단계 그룹핑 (카테고리 → 벤더)
   const txGroups = React.useMemo(() => {
-    const map = new Map<string, { vendor: string; gl: string; pl: string; rows: typeof txRows; total: number }>();
+    type VendorEntry = { vendor: string; gl: string; pl: string; dept: string; rows: typeof txRows; total: number };
+    type CatEntry = { category: string; vendors: Map<string, VendorEntry>; total: number; pl: string };
+    const catMap = new Map<string, CatEntry>();
     txRows.forEach(r => {
-      const vendor = r['Name'] || '–';
-      const gl = r['Account (GL)'] || '–';
+      const vendor = (r['Name'] || '').trim() || '(미지정)';
+      const gl = r['Account (GL)'] || '';
       const pl = r['P&L Line Item'] || '';
-      const key = `${vendor}|||${gl}`;
-      if (!map.has(key)) map.set(key, { vendor, gl, pl, rows: [], total: 0 });
-      const g = map.get(key)!;
-      g.rows.push(r);
-      g.total += parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+      const dept = r['Dept. Mapping for G&A'] || '';
+      const category = getGLCategory(gl);
+      const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+      if (!catMap.has(category)) catMap.set(category, { category, vendors: new Map(), total: 0, pl });
+      const cat = catMap.get(category)!;
+      cat.total += amt;
+      const vKey = vendor;
+      if (!cat.vendors.has(vKey)) cat.vendors.set(vKey, { vendor, gl, pl, dept, rows: [], total: 0 });
+      const v = cat.vendors.get(vKey)!;
+      v.rows.push(r);
+      v.total += amt;
     });
-    return Array.from(map.values()).sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+    return Array.from(catMap.values())
+      .sort((a, b) => Math.abs(b.total) - Math.abs(a.total))
+      .map(cat => ({
+        ...cat,
+        vendors: Array.from(cat.vendors.values()).sort((a, b) => Math.abs(b.total) - Math.abs(a.total)),
+      }));
   }, [txRows]);
   const txCount = txRows.length;
   const topPL = PL_ITEMS.reduce((best, pl) => getCurVal(pl) > getCurVal(best) ? pl : best, PL_ITEMS[0]);
@@ -6675,53 +6726,85 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                       </thead>
                       <tbody>
                         {txGroupMode ? (
-                          txGroups.map((g, gi) => {
-                            const key = `${g.vendor}|||${g.gl}`;
-                            const expanded = txExpandedGroups.has(key);
-                            const toggleGroup = () => setTxExpandedGroups(prev => {
+                          txGroups.map((cat, ci) => {
+                            const catKey = `cat:${cat.category}`;
+                            const catExpanded = txExpandedGroups.has(catKey);
+                            const totalRows = cat.vendors.reduce((s, v) => s + v.rows.length, 0);
+                            const toggleCat = () => setTxExpandedGroups(prev => {
                               const next = new Set(prev);
-                              next.has(key) ? next.delete(key) : next.add(key);
+                              next.has(catKey) ? next.delete(catKey) : next.add(catKey);
                               return next;
                             });
                             return (
-                              <React.Fragment key={gi}>
-                                {/* 그룹 헤더 행 */}
-                                <tr className="border-b border-gray-200 bg-slate-50 hover:bg-blue-50/40 cursor-pointer"
-                                    onClick={toggleGroup}>
-                                  <td className="px-3 py-2 text-gray-400 text-[11px] tabular-nums whitespace-nowrap">
-                                    {expanded ? '▼' : '▶'} {g.rows.length}건
+                              <React.Fragment key={ci}>
+                                {/* ── 카테고리 헤더 행 (Level 1) ── */}
+                                <tr className="border-b border-gray-300 bg-slate-100 hover:bg-blue-50/50 cursor-pointer"
+                                    onClick={toggleCat}>
+                                  <td className="px-3 py-2 text-gray-500 text-[11px] tabular-nums whitespace-nowrap font-semibold">
+                                    {catExpanded ? '▼' : '▶'} {cat.vendors.length}곳
                                   </td>
-                                  <td className="px-3 py-2 whitespace-nowrap">
-                                    <span className="inline-flex items-center gap-1.5">
-                                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[g.pl] || '#94a3b8' }}/>
-                                      <span className="text-gray-600 text-[11px]">{PL_KR[g.pl] || g.pl}</span>
-                                    </span>
+                                  <td colSpan={2} className="px-3 py-2">
+                                    <span className="text-slate-800 font-bold text-[12px]">{cat.category}</span>
+                                    <span className="ml-2 text-gray-400 text-[10px]">{totalRows}건</span>
                                   </td>
-                                  <td className="px-3 py-2 text-gray-500 text-[11px] whitespace-nowrap">
-                                    {g.rows[0]?.['Dept. Mapping for G&A'] || '–'}
-                                  </td>
-                                  <td className="px-3 py-2 text-gray-900 font-semibold max-w-48 truncate text-[12px]">{g.vendor}</td>
-                                  <td className="px-3 py-2 text-gray-500 max-w-36 truncate text-[11px]">{g.gl}</td>
+                                  <td className="px-3 py-2 text-gray-400 text-[11px]" colSpan={2}/>
                                   <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold text-[13px]",
-                                    g.total < 0 ? 'text-emerald-600' : g.total >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
-                                    {g.total < 0 ? '-' : ''}${Math.abs(Math.round(g.total)).toLocaleString()}
+                                    cat.total < 0 ? 'text-emerald-600' : cat.total >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
+                                    {cat.total < 0 ? '-' : ''}${Math.abs(Math.round(cat.total)).toLocaleString()}
                                   </td>
                                 </tr>
-                                {/* 펼쳐진 세부 전표 */}
-                                {expanded && g.rows.map((r, ri) => {
-                                  const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                                {/* ── 벤더 행들 (Level 2, 카테고리 펼침 시) ── */}
+                                {catExpanded && cat.vendors.map((v, vi) => {
+                                  const vKey = `ven:${cat.category}:${v.vendor}`;
+                                  const vExpanded = txExpandedGroups.has(vKey);
+                                  const toggleVendor = (e: React.MouseEvent) => {
+                                    e.stopPropagation();
+                                    setTxExpandedGroups(prev => {
+                                      const next = new Set(prev);
+                                      next.has(vKey) ? next.delete(vKey) : next.add(vKey);
+                                      return next;
+                                    });
+                                  };
                                   return (
-                                    <tr key={ri} className="border-b border-gray-50 bg-blue-50/20">
-                                      <td className="px-3 py-1 pl-7 text-gray-400 whitespace-nowrap tabular-nums text-[11px]">{r['Date2']}</td>
-                                      <td className="px-3 py-1 text-gray-400 text-[11px]">–</td>
-                                      <td className="px-3 py-1 text-gray-400 text-[11px] whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
-                                      <td className="px-3 py-1 text-gray-500 max-w-48 truncate text-[11px]">{r['Memo/Description'] || r['Name']}</td>
-                                      <td className="px-3 py-1 text-gray-400 text-[11px]">–</td>
-                                      <td className={cn("px-3 py-1 text-right font-mono tabular-nums text-[11px]",
-                                        amt < 0 ? 'text-emerald-500' : 'text-gray-600')}>
-                                        {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
-                                      </td>
-                                    </tr>
+                                    <React.Fragment key={vi}>
+                                      {/* 벤더 행 */}
+                                      <tr className="border-b border-gray-100 bg-white hover:bg-blue-50/30 cursor-pointer"
+                                          onClick={toggleVendor}>
+                                        <td className="px-3 py-1.5 pl-8 text-gray-400 text-[10px] whitespace-nowrap">
+                                          {v.rows.length > 1 ? (vExpanded ? '▼' : '▶') : '  '} {v.rows.length}건
+                                        </td>
+                                        <td className="px-3 py-1.5 whitespace-nowrap">
+                                          <span className="inline-flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[v.pl] || '#94a3b8' }}/>
+                                            <span className="text-gray-500 text-[10px]">{PL_KR[v.pl] || v.pl}</span>
+                                          </span>
+                                        </td>
+                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] whitespace-nowrap">{v.dept || '–'}</td>
+                                        <td className="px-3 py-1.5 text-gray-800 font-medium text-[12px] max-w-48 truncate">{v.vendor}</td>
+                                        <td className="px-3 py-1.5 text-gray-400 text-[10px] max-w-36 truncate">{v.gl}</td>
+                                        <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-semibold text-[12px]",
+                                          v.total < 0 ? 'text-emerald-600' : 'text-gray-800')}>
+                                          {v.total < 0 ? '-' : ''}${Math.abs(Math.round(v.total)).toLocaleString()}
+                                        </td>
+                                      </tr>
+                                      {/* 개별 전표 (벤더 펼침 시) */}
+                                      {vExpanded && v.rows.map((r, ri) => {
+                                        const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                                        return (
+                                          <tr key={ri} className="border-b border-gray-50 bg-blue-50/10">
+                                            <td className="px-3 py-1 pl-14 text-gray-400 text-[10px] whitespace-nowrap tabular-nums">{r['Date2']}</td>
+                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
+                                            <td className="px-3 py-1 text-gray-400 text-[10px] whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                                            <td className="px-3 py-1 text-gray-500 max-w-48 truncate text-[10px]">{r['Memo'] || r['Name']}</td>
+                                            <td className="px-3 py-1 text-gray-300 text-[10px]">–</td>
+                                            <td className={cn("px-3 py-1 text-right font-mono tabular-nums text-[11px]",
+                                              amt < 0 ? 'text-emerald-500' : 'text-gray-500')}>
+                                              {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </React.Fragment>
                                   );
                                 })}
                               </React.Fragment>
@@ -6755,7 +6838,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                         <tr className="border-t-2 border-gray-300 bg-gray-50">
                           <td colSpan={5} className="px-3 py-2 text-xs font-semibold text-gray-600">
                             {txGroupMode
-                              ? `소계 (${txGroups.length.toLocaleString()}그룹 / ${txRows.length.toLocaleString()}건 전체)`
+                              ? `소계 (${txGroups.length}카테고리 / ${txGroups.reduce((s,c)=>s+c.vendors.length,0)}거래처 / ${txRows.length.toLocaleString()}건 전체)`
                               : `소계 (${txRows.length.toLocaleString()}건 전체)`}
                           </td>
                           <td className={cn(
