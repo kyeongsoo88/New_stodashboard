@@ -2767,6 +2767,40 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       });
   }, []);
 
+  // YTD_RF_08 계산 (26년 1월~8월 합계, values[1..8])
+  const stoYtdValues = React.useMemo(() => {
+    const sumJanAug = (vals: string[]) => {
+      let s = 0;
+      for (let j = 1; j <= 8; j++) {
+        const n = parseFloat((vals[j] || '').replace(/,/g, ''));
+        if (!isNaN(n)) s += n;
+      }
+      return s;
+    };
+    let tagEcom = 0, tagWS = 0, salesEcom = 0, salesWS = 0;
+    let currentMainCat = '';
+    csvData.forEach(row => {
+      if (row.isMainCategory) currentMainCat = row.label;
+      if (!row.isRatioRow) {
+        const s = sumJanAug(row.values);
+        if (row.label === 'E-com' && currentMainCat === 'TAG 판매가') tagEcom = s;
+        if (row.label === 'Wholesale' && currentMainCat === 'TAG 판매가') tagWS = s;
+        if (row.label === 'E-com' && currentMainCat === '실판 매출') salesEcom = s;
+        if (row.label === 'Wholesale' && currentMainCat === '실판 매출') salesWS = s;
+      }
+    });
+    const tagTotal = tagEcom + tagWS;
+    const salesTotal = salesEcom + salesWS;
+    return csvData.map(row => {
+      if (row.isRatioRow) {
+        if ((row.label === 'Discount Rate' || row.label === '할인율') && tagTotal > 0)
+          return { val: (1 - salesTotal / tagTotal) * 100, isRate: true };
+        return { val: null, isRate: false };
+      }
+      return { val: sumJanAug(row.values), isRate: false };
+    });
+  }, [csvData]);
+
   if (loading) {
     return <div className="text-center py-8">데이터를 불러오는 중...</div>;
   }
@@ -2842,15 +2876,24 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                 </TableHead>
                 {headers.slice(1).map((h, i) => {
                   if (!isColumnVisible(i + 1)) return null;
-
+                  const isRF08 = h === 'RF_08';
                   return (
-                    <TableHead 
-                      key={i} 
-                      className="text-center border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
-                      style={{ backgroundColor: '#2E5C8A', width: showAllMonths ? 'auto' : '160px' }}
-                    >
-                      {h}
-                    </TableHead>
+                    <React.Fragment key={i}>
+                      <TableHead
+                        className="text-center border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
+                        style={{ backgroundColor: '#2E5C8A', width: showAllMonths ? 'auto' : '120px' }}
+                      >
+                        {h}
+                      </TableHead>
+                      {!showAllMonths && isRF08 && (
+                        <TableHead
+                          className="text-center border border-gray-300 whitespace-nowrap text-[11px] px-1 h-10 text-white font-bold"
+                          style={{ backgroundColor: '#4A7DB0', width: '120px' }}
+                        >
+                          YTD_RF_08
+                        </TableHead>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </TableRow>
@@ -2996,7 +3039,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                       if (!isColumnVisible(vIdx + 1)) return null;
 
                       let cellTextColor = textStyle;
-                      
+
                       // 값에 따른 색상 처리 (음수: 빨강)
                       const isNegative = val.includes("-") || val.startsWith("(");
                       if (isNegative) {
@@ -3005,18 +3048,38 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
                       // YoY 컬럼 강조 (새 구조에서 YoY는 idx 2와 14)
                       const isYoYCol = vIdx === 2 || headers[vIdx+1] === "연간 YoY";
-                      
+                      const isRF08Col = headers[vIdx + 1] === 'RF_08';
+                      const ytdEntry = stoYtdValues[idx];
+
+                      let ytdDisplay: React.ReactNode = '-';
+                      let ytdColor = 'text-gray-400';
+                      if (ytdEntry && ytdEntry.val !== null) {
+                        if (ytdEntry.isRate) {
+                          ytdDisplay = ytdEntry.val.toFixed(1) + '%';
+                          ytdColor = 'text-gray-900';
+                        } else {
+                          ytdDisplay = Math.round(ytdEntry.val).toLocaleString();
+                          ytdColor = ytdEntry.val < 0 ? 'text-red-600' : 'text-gray-900';
+                        }
+                      }
+
                       return (
-                        <TableCell 
-                          key={vIdx} 
-                          className={cn(
-                            "text-right px-2 border border-gray-300 tabular-nums whitespace-nowrap",
-                            cellTextColor,
-                            isYoYCol && !isNegative && "font-normal"
+                        <React.Fragment key={vIdx}>
+                          <TableCell
+                            className={cn(
+                              "text-right px-2 border border-gray-300 tabular-nums whitespace-nowrap",
+                              cellTextColor,
+                              isYoYCol && !isNegative && "font-normal"
+                            )}
+                          >
+                            {formatNumber(val)}
+                          </TableCell>
+                          {!showAllMonths && isRF08Col && (
+                            <TableCell className={cn("text-right px-2 border border-gray-300 tabular-nums whitespace-nowrap", ytdColor)}>
+                              {ytdDisplay}
+                            </TableCell>
                           )}
-                        >
-                          {formatNumber(val)}
-                        </TableCell>
+                        </React.Fragment>
                       );
                     })}
                   </TableRow>
@@ -4039,6 +4102,18 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
     });
   }, [rows]);
 
+  // YTD_RF_08 계산 (26년 1월~8월 합계, values[1..8])
+  const steYtdValues = React.useMemo(() => {
+    return processedRows.map(row => {
+      let s = 0;
+      for (let j = 1; j <= 8; j++) {
+        const n = parseFloat((row.values[j] || '').replace(/,/g, ''));
+        if (!isNaN(n)) s += n;
+      }
+      return s;
+    });
+  }, [processedRows]);
+
   if (loading) {
     return (
       <Card className="p-8">
@@ -4099,19 +4174,28 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
               <TableRow className="text-xs font-bold hover:bg-[#2E5C8A]" style={{ backgroundColor: '#2E5C8A' }}>
                 {visibleHeaderIndices.map((index) => {
                   const header = headers[index];
-
+                  const isRF08 = header === 'RF_08';
                   return (
-                    <TableHead
-                      key={index}
-                      className={cn(
-                        "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
-                        "min-w-[80px]",
-                        index === 0 && "w-[12%] min-w-[120px] text-left pl-4 sticky left-0 z-20"
+                    <React.Fragment key={index}>
+                      <TableHead
+                        className={cn(
+                          "text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold",
+                          "min-w-[80px]",
+                          index === 0 && "w-[12%] min-w-[120px] text-left pl-4 sticky left-0 z-20"
+                        )}
+                        style={{ backgroundColor: '#2E5C8A' }}
+                      >
+                        {header}
+                      </TableHead>
+                      {!showAllMonths && isRF08 && (
+                        <TableHead
+                          className="text-center border border-gray-300 whitespace-nowrap text-[11px] px-2 h-10 text-white font-bold min-w-[80px]"
+                          style={{ backgroundColor: '#4A7DB0' }}
+                        >
+                          YTD_RF_08
+                        </TableHead>
                       )}
-                      style={{ backgroundColor: '#2E5C8A' }}
-                    >
-                      {header}
-                    </TableHead>
+                    </React.Fragment>
                   );
                 })}
               </TableRow>
@@ -4167,17 +4251,35 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
                       .map((headerIdx) => {
                         const valueIndex = headerIdx - 1;
                         const value = row.values[valueIndex] ?? '';
+                        const isRF08Col = headers[headerIdx] === 'RF_08';
+                        const ytdVal = steYtdValues[rowIndex];
+                        const ytdDisplay = ytdVal !== undefined
+                          ? Math.round(ytdVal).toLocaleString()
+                          : '-';
+                        const ytdColor = ytdVal < 0 ? 'text-red-600' : 'text-gray-900';
                         return (
-                          <TableCell
-                            key={`${rowIndex}-${headerIdx}`}
-                            className={cn(
-                              "text-right px-2 border border-gray-300 tabular-nums min-w-[80px] whitespace-nowrap truncate",
-                              isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
-                              isBold && !isNegative(value) && "font-bold"
+                          <React.Fragment key={`${rowIndex}-${headerIdx}`}>
+                            <TableCell
+                              className={cn(
+                                "text-right px-2 border border-gray-300 tabular-nums min-w-[80px] whitespace-nowrap truncate",
+                                isNegative(value) ? "text-red-600 font-normal" : "text-gray-900",
+                                isBold && !isNegative(value) && "font-bold"
+                              )}
+                            >
+                              {formatCurrency(value)}
+                            </TableCell>
+                            {!showAllMonths && isRF08Col && (
+                              <TableCell
+                                className={cn(
+                                  "text-right px-2 border border-gray-300 tabular-nums min-w-[80px] whitespace-nowrap",
+                                  ytdColor,
+                                  isBold && ytdVal >= 0 && "font-bold"
+                                )}
+                              >
+                                {ytdDisplay}
+                              </TableCell>
                             )}
-                          >
-                            {formatCurrency(value)}
-                          </TableCell>
+                          </React.Fragment>
                         );
                       })}
                   </TableRow>
