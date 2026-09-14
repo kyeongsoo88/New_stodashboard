@@ -5614,6 +5614,8 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const [drillVendor, setDrillVendor] = React.useState<string | null>(null);
   const [searchText, setSearchText] = React.useState('');
   const [txPage, setTxPage] = React.useState(0);
+  const [txGroupMode, setTxGroupMode] = React.useState(false);
+  const [txExpandedGroups, setTxExpandedGroups] = React.useState<Set<string>>(new Set());
 
   const PAGE_SIZE = 50;
 
@@ -5813,6 +5815,22 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
   const txTotal = txRows.reduce((s, r) => s + (parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0), 0);
   const txPages = Math.ceil(txRows.length / PAGE_SIZE);
   const txSlice = txRows.slice(txPage * PAGE_SIZE, (txPage + 1) * PAGE_SIZE);
+
+  // 거래처 × GL계정 그룹핑
+  const txGroups = React.useMemo(() => {
+    const map = new Map<string, { vendor: string; gl: string; pl: string; rows: typeof txRows; total: number }>();
+    txRows.forEach(r => {
+      const vendor = r['Name'] || '–';
+      const gl = r['Account (GL)'] || '–';
+      const pl = r['P&L Line Item'] || '';
+      const key = `${vendor}|||${gl}`;
+      if (!map.has(key)) map.set(key, { vendor, gl, pl, rows: [], total: 0 });
+      const g = map.get(key)!;
+      g.rows.push(r);
+      g.total += parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+    });
+    return Array.from(map.values()).sort((a, b) => Math.abs(b.total) - Math.abs(a.total));
+  }, [txRows]);
   const txCount = txRows.length;
   const topPL = PL_ITEMS.reduce((best, pl) => getCurVal(pl) > getCurVal(best) ? pl : best, PL_ITEMS[0]);
 
@@ -6623,6 +6641,16 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                           <button onClick={() => setDrillVendor(null)} className="ml-1 hover:text-red-600">×</button>
                         </span>
                       )}
+                      <div className="flex items-center border border-gray-200 rounded overflow-hidden h-8 text-xs">
+                        <button onClick={() => setTxGroupMode(false)}
+                          className={cn("px-2.5 py-1 h-full", !txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
+                          전표
+                        </button>
+                        <button onClick={() => { setTxGroupMode(true); setTxExpandedGroups(new Set()); }}
+                          className={cn("px-2.5 py-1 h-full", txGroupMode ? 'bg-blue-600 text-white font-semibold' : 'bg-white text-gray-500 hover:bg-gray-50')}>
+                          그룹
+                        </button>
+                      </div>
                       <select value={drillPL || ''} onChange={e => { setDrillPL(e.target.value || null); setTxPage(0); }}
                         className="border border-gray-200 rounded px-2 py-1 text-xs bg-white h-8">
                         <option value="">전체 카테고리</option>
@@ -6646,32 +6674,89 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {txSlice.map((r, i) => {
-                          const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
-                          return (
-                            <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
-                              <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
-                              <td className="px-3 py-1.5 whitespace-nowrap">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }}/>
-                                  <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
-                                </span>
-                              </td>
-                              <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
-                              <td className="px-3 py-1.5 text-gray-800 max-w-40 truncate">{r['Name']}</td>
-                              <td className="px-3 py-1.5 text-gray-400 max-w-32 truncate">{r['Account (GL)']}</td>
-                              <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
-                                amt < 0 ? 'text-emerald-600' : Math.abs(amt) >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
-                                {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                        {txGroupMode ? (
+                          txGroups.map((g, gi) => {
+                            const key = `${g.vendor}|||${g.gl}`;
+                            const expanded = txExpandedGroups.has(key);
+                            const toggleGroup = () => setTxExpandedGroups(prev => {
+                              const next = new Set(prev);
+                              next.has(key) ? next.delete(key) : next.add(key);
+                              return next;
+                            });
+                            return (
+                              <React.Fragment key={gi}>
+                                {/* 그룹 헤더 행 */}
+                                <tr className="border-b border-gray-200 bg-slate-50 hover:bg-blue-50/40 cursor-pointer"
+                                    onClick={toggleGroup}>
+                                  <td className="px-3 py-2 text-gray-400 text-[11px] tabular-nums whitespace-nowrap">
+                                    {expanded ? '▼' : '▶'} {g.rows.length}건
+                                  </td>
+                                  <td className="px-3 py-2 whitespace-nowrap">
+                                    <span className="inline-flex items-center gap-1.5">
+                                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[g.pl] || '#94a3b8' }}/>
+                                      <span className="text-gray-600 text-[11px]">{PL_KR[g.pl] || g.pl}</span>
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-gray-500 text-[11px] whitespace-nowrap">
+                                    {g.rows[0]?.['Dept. Mapping for G&A'] || '–'}
+                                  </td>
+                                  <td className="px-3 py-2 text-gray-900 font-semibold max-w-48 truncate text-[12px]">{g.vendor}</td>
+                                  <td className="px-3 py-2 text-gray-500 max-w-36 truncate text-[11px]">{g.gl}</td>
+                                  <td className={cn("px-3 py-2 text-right font-mono tabular-nums font-bold text-[13px]",
+                                    g.total < 0 ? 'text-emerald-600' : g.total >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
+                                    {g.total < 0 ? '-' : ''}${Math.abs(Math.round(g.total)).toLocaleString()}
+                                  </td>
+                                </tr>
+                                {/* 펼쳐진 세부 전표 */}
+                                {expanded && g.rows.map((r, ri) => {
+                                  const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                                  return (
+                                    <tr key={ri} className="border-b border-gray-50 bg-blue-50/20">
+                                      <td className="px-3 py-1 pl-7 text-gray-400 whitespace-nowrap tabular-nums text-[11px]">{r['Date2']}</td>
+                                      <td className="px-3 py-1 text-gray-400 text-[11px]">–</td>
+                                      <td className="px-3 py-1 text-gray-400 text-[11px] whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                                      <td className="px-3 py-1 text-gray-500 max-w-48 truncate text-[11px]">{r['Memo/Description'] || r['Name']}</td>
+                                      <td className="px-3 py-1 text-gray-400 text-[11px]">–</td>
+                                      <td className={cn("px-3 py-1 text-right font-mono tabular-nums text-[11px]",
+                                        amt < 0 ? 'text-emerald-500' : 'text-gray-600')}>
+                                        {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </React.Fragment>
+                            );
+                          })
+                        ) : (
+                          txSlice.map((r, i) => {
+                            const amt = parseFloat((r['Amount'] || '').replace(/,/g, '')) || 0;
+                            return (
+                              <tr key={i} className={cn("border-b border-gray-50", i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30')}>
+                                <td className="px-3 py-1.5 text-gray-400 whitespace-nowrap tabular-nums">{r['Date2']}</td>
+                                <td className="px-3 py-1.5 whitespace-nowrap">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PL_COLORS[r['P&L Line Item']] || '#94a3b8' }}/>
+                                    <span className="text-gray-700">{PL_KR[r['P&L Line Item']] || r['P&L Line Item']}</span>
+                                  </span>
+                                </td>
+                                <td className="px-3 py-1.5 text-gray-500 whitespace-nowrap">{r['Dept. Mapping for G&A'] || '–'}</td>
+                                <td className="px-3 py-1.5 text-gray-800 max-w-40 truncate">{r['Name']}</td>
+                                <td className="px-3 py-1.5 text-gray-400 max-w-32 truncate">{r['Account (GL)']}</td>
+                                <td className={cn("px-3 py-1.5 text-right font-mono tabular-nums font-medium",
+                                  amt < 0 ? 'text-emerald-600' : Math.abs(amt) >= 50000 ? 'text-orange-600' : 'text-gray-900')}>
+                                  {amt < 0 ? '-' : ''}${Math.abs(Math.round(amt)).toLocaleString()}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 border-gray-300 bg-gray-50">
                           <td colSpan={5} className="px-3 py-2 text-xs font-semibold text-gray-600">
-                            소계 ({txRows.length.toLocaleString()}건 전체)
+                            {txGroupMode
+                              ? `소계 (${txGroups.length.toLocaleString()}그룹 / ${txRows.length.toLocaleString()}건 전체)`
+                              : `소계 (${txRows.length.toLocaleString()}건 전체)`}
                           </td>
                           <td className={cn(
                             "px-3 py-2 text-right font-mono tabular-nums text-sm font-bold",
@@ -6682,7 +6767,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                         </tr>
                       </tfoot>
                     </table>
-                    {txPages > 1 && (
+                    {!txGroupMode && txPages > 1 && (
                       <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
                         <span className="text-xs text-gray-400">
                           {txPage * PAGE_SIZE + 1}–{Math.min((txPage + 1) * PAGE_SIZE, txRows.length)} / 총 {txRows.length.toLocaleString()}건
