@@ -11054,6 +11054,12 @@ export default function DashboardPage() {
             value: formatNumber(getDataValue('카드_MSRP_채널_라이선스_값', month, '-')),
             yoy: getDataValue('카드_MSRP_채널_라이선스_YOY', month, '-'),
             percent: formatPercent(getDataValue('카드_MSRP_채널_라이선스_비중', month, '-'))
+          },
+          {
+            name: "샘플세일",
+            value: formatNumber(getDataValue('카드_MSRP_채널_샘플세일_값', month, '-')),
+            yoy: getDataValue('카드_MSRP_채널_샘플세일_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_MSRP_채널_샘플세일_비중', month, '-'))
           }
         ],
         itemDetails: isJul2026OrLater ? [
@@ -11101,6 +11107,12 @@ export default function DashboardPage() {
             value: formatNumber(getDataValue('카드_실판매출_채널_라이선스_값', month, '2255')),
             yoy: getDataValue('카드_실판매출_채널_라이선스_YOY', month, '95%'),
             percent: formatPercent(getDataValue('카드_실판매출_채널_라이선스_비중', month, '7.1%'))
+          },
+          {
+            name: "샘플세일",
+            value: formatNumber(getDataValue('카드_실판매출_채널_샘플세일_값', month, '-')),
+            yoy: getDataValue('카드_실판매출_채널_샘플세일_YOY', month, '-'),
+            percent: formatPercent(getDataValue('카드_실판매출_채널_샘플세일_비중', month, '-'))
           }
         ],
         itemDetails: isJul2026OrLater ? [
@@ -11306,6 +11318,12 @@ export default function DashboardPage() {
             name: "EU EC",
             value: formatPercent(getDataValue('카드_할인율_채널_EUEC_값', month, '4.8%')),
             yoy: getDataValue('카드_할인율_채널_EUEC_YOY', month, '(3.2%)'),
+            percent: ""
+          },
+          {
+            name: "샘플세일",
+            value: formatPercent(getDataValue('카드_할인율_채널_샘플세일_값', month, '-')),
+            yoy: getDataValue('카드_할인율_채널_샘플세일_YOY', month, '-'),
             percent: ""
           }
         ],
