@@ -358,7 +358,7 @@ function DetailedMetricCard({
     itemDetails?: { name: string, value: string, yoy: string, percent: string }[],
     channelProfitDetails?: { name: string, value: string, yoy: string, margin: string }[],
     topStoresDetails?: { name: string, value: string, yoy: string }[],
-    expenseBreakdown?: { name: string, value?: string, yoy?: string, subItems?: { name: string, value?: string, yoy?: string }[] }[],
+    expenseBreakdown?: { name: string, value?: string, yoy?: string, tooltip?: string, subItems?: { name: string, value?: string, yoy?: string }[] }[],
     commonExpenses?: { name: string, value: string, yoy: string }[],
     directProfitYtdDetails?: { name: string, value: string, percent: string, margin: string, change: string }[],
     directProfitPopupData?: DirectProfitPopupData | null,
@@ -665,10 +665,16 @@ function DetailedMetricCard({
                                                         <div className="flex justify-between items-center py-0.5">
                                                             {(
                                                                 <span
-                                                                    className={cn("text-xs min-w-[80px]", item.subItems && "cursor-pointer select-none text-sky-700 font-medium")}
+                                                                    className={cn(
+                                                                      "text-xs min-w-[80px]",
+                                                                      item.subItems && "cursor-pointer select-none text-sky-700 font-medium",
+                                                                      item.tooltip && "bg-blue-100/70 text-blue-800 px-1.5 py-0.5 rounded cursor-help"
+                                                                    )}
                                                                     onClick={item.subItems ? toggleSub : undefined}
+                                                                    title={item.tooltip}
                                                                 >
                                                                     {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
+                                                                    {item.tooltip && <span className="ml-1 text-blue-400 text-[9px]">ℹ</span>}
                                                                 </span>
                                                             )}
                                                             <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
@@ -11976,7 +11982,8 @@ export default function DashboardPage() {
           {
             name: "감가상각비",
             value: formatNumber(getDataValue('카드_영업비_감가상각비_값', month, '145')),
-            yoy: getDataValue('카드_영업비_감가상각비_YOY', month, '168%')
+            yoy: getDataValue('카드_영업비_감가상각비_YOY', month, '168%'),
+            tooltip: "AI 데이터 본사 인터페이스 구축 자산 인식 후, 매달 $4K 감가상각중"
           },
           {
             name: "기타비용",
