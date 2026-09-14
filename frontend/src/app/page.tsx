@@ -2501,6 +2501,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [splData, setSplData] = React.useState<any[]>([]);
   const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
   const [showPLPlanPopup, setShowPLPlanPopup] = React.useState(false);
+  const [gaExpanded, setGaExpanded] = React.useState(false);
   const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
   const [splShowAllMonths, setSplShowAllMonths] = React.useState(false); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 접힌 상태)
 
@@ -3163,9 +3164,12 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           { label: 'Discount Rate', o: old.discountRate, n: nw.discountRate, isRate: true },
           { label: 'Gross Profit', o: old.grossProfit, n: nw.grossProfit, isCurrency: true, pctO: old.grossPct, pctN: nw.grossPct, isBold: true },
           { label: 'Direct Profit', o: old.directProfit, n: nw.directProfit, isCurrency: true, pctO: old.directPct, pctN: nw.directPct, isBold: true },
-          { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true },
+          { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true, isExpandable: true },
+          { label: '└ Salary', o: K(1105314), n: K(1404280), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Rent', o: K(312000), n: K(432000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Marketing', o: K(489600), n: K(756800), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Other', o: K(322713), n: K(430378), isCurrency: true, indent: true, isGASub: true },
           { label: 'Operating Profit', o: old.opProfit, n: nw.opProfit, isCurrency: true, pctO: old.opPct, pctN: nw.opPct, isBold: true },
-          { label: 'Net Profit', o: old.netProfit, n: nw.netProfit, isCurrency: true, pctO: old.netPct, pctN: nw.netPct, isBold: true },
         ];
         return (
           <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={e => { if (e.target === e.currentTarget) setShowPLPlanPopup(false); }}>
@@ -3395,15 +3399,26 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     </thead>
                     <tbody>
                       {plItems.map((item, ii) => {
+                        const isGASub = (item as any).isGASub;
+                        if (isGASub && !gaExpanded) return null;
                         const isRateRow = (item as any).isRate;
+                        const isExpandable = (item as any).isExpandable;
                         const d = isRateRow ? 0 : (item.n as number) - (item.o as number);
                         const dPct = isRateRow ? 0 : item.o !== 0 ? (d / Math.abs(item.o as number)) * 100 : 0;
                         const isPos = isRateRow ? (item.n as number) > (item.o as number) : d > 0;
                         const isNeg = isRateRow ? (item.n as number) < (item.o as number) : d < 0;
-                        const rowBg = (item as any).isBold ? 'bg-slate-50/80' : 'bg-white';
+                        const rowBg = (item as any).isBold ? 'bg-slate-50/80' : isGASub ? 'bg-amber-50/40' : 'bg-white';
                         return (
-                          <tr key={ii} className={cn("border-b border-slate-100", rowBg)}>
-                            <td className={cn("px-3 py-1.5", (item as any).indent ? 'pl-7 text-slate-500' : 'font-semibold text-slate-700', (item as any).isBold && 'font-bold')}>{item.label}</td>
+                          <tr key={ii} className={cn("border-b border-slate-100", rowBg, isExpandable && 'cursor-pointer hover:bg-slate-50')}
+                              onClick={isExpandable ? () => setGaExpanded(v => !v) : undefined}>
+                            <td className={cn("px-3 py-1.5", (item as any).indent ? 'pl-7 text-slate-500 text-[11px]' : 'font-semibold text-slate-700', (item as any).isBold && 'font-bold')}>
+                              {isExpandable ? (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-slate-400 text-[10px]">{gaExpanded ? '▼' : '▶'}</span>
+                                  {item.label}
+                                </span>
+                              ) : item.label}
+                            </td>
                             <td className="px-3 py-1.5 text-right tabular-nums text-blue-700">
                               {isRateRow ? pct(item.o as number) : `$${(item.o as number).toLocaleString()}K`}
                               {(item as any).pctO !== undefined && <span className="text-slate-400 ml-1 text-[10px]">({((item as any).pctO*100).toFixed(1)}%)</span>}
