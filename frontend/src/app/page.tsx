@@ -3165,10 +3165,14 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           { label: 'Gross Profit', o: old.grossProfit, n: nw.grossProfit, isCurrency: true, pctO: old.grossPct, pctN: nw.grossPct, isBold: true },
           { label: 'Direct Profit', o: old.directProfit, n: nw.directProfit, isCurrency: true, pctO: old.directPct, pctN: nw.directPct, isBold: true },
           { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true, isExpandable: true },
-          { label: '└ Salary', o: K(1105314), n: K(1404280), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Rent', o: K(312000), n: K(432000), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Marketing', o: K(489600), n: K(756800), isCurrency: true, indent: true, isGASub: true },
-          { label: '└ Other', o: K(322713), n: K(430378), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Salaries', o: K(1105314), n: K(1195314), isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 신규 채용 직원 2인 급여 $90K' },
+          { label: '└ Advertising', o: K(312000), n: K(640000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ T&E', o: K(105000), n: K(130000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Rent', o: K(280000), n: K(360000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Sample', o: K(85000), n: K(115000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Professional Service', o: K(180000), n: K(301000), isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 리쿠르팅 비용' },
+          { label: '└ D&A', o: K(120000), n: K(150000), isCurrency: true, indent: true, isGASub: true },
+          { label: '└ Others', o: K(43313), n: K(132145), isCurrency: true, indent: true, isGASub: true },
           { label: 'Operating Profit', o: old.opProfit, n: nw.opProfit, isCurrency: true, pctO: old.opPct, pctN: nw.opPct, isBold: true },
         ];
         return (
@@ -3416,6 +3420,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                                 <span className="flex items-center gap-1">
                                   <span className="text-slate-400 text-[10px]">{gaExpanded ? '▼' : '▶'}</span>
                                   {item.label}
+                                </span>
+                              ) : (item as any).note ? (
+                                <span>
+                                  {item.label}
+                                  <span className="block text-[10px] text-amber-600 font-normal mt-0.5">💬 {(item as any).note}</span>
                                 </span>
                               ) : item.label}
                             </td>
