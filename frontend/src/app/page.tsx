@@ -2813,7 +2813,9 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
     return csvData.map(row => {
       if (row.isMainCategory) prevMainCat = row.label;
       if (row.isRatioRow) {
-        if ((row.label === 'Discount Rate' || row.label === '할인율') && tagTotal > 0)
+        // 할인율: 레이블에 '할인율' 포함 or Discount Rate or TAG 판매가 다음에 오는 (%) 행
+        const isDiscountRow = row.label === 'Discount Rate' || row.label.includes('할인율') || prevMainCat === 'TAG 판매가';
+        if (isDiscountRow && tagTotal > 0)
           return { val: (1 - salesForDiscount / tagTotal) * 100, isRate: true };
         if (row.label.startsWith('(%)') && salesForMargin !== 0) {
           if (prevMainCat === '매출총이익' || prevMainCat === 'Gross Profit')
