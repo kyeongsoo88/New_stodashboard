@@ -6306,6 +6306,19 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
                           );
                         })}
                       </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-gray-300 bg-gray-50">
+                          <td colSpan={5} className="px-3 py-2 text-xs font-semibold text-gray-600">
+                            소계 ({txRows.length.toLocaleString()}건 전체)
+                          </td>
+                          <td className={cn(
+                            "px-3 py-2 text-right font-mono tabular-nums text-sm font-bold",
+                            txTotal < 0 ? 'text-emerald-600' : 'text-gray-900'
+                          )}>
+                            {txTotal < 0 ? '-' : ''}${Math.abs(Math.round(txTotal)).toLocaleString()}
+                          </td>
+                        </tr>
+                      </tfoot>
                     </table>
                     {txPages > 1 && (
                       <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
