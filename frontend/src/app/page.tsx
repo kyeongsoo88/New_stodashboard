@@ -2502,6 +2502,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
   const [showPLPlanPopup, setShowPLPlanPopup] = React.useState(false);
   const [gaExpanded, setGaExpanded] = React.useState(false);
+  const [dcExpanded, setDcExpanded] = React.useState(false);
   const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
   const [splShowAllMonths, setSplShowAllMonths] = React.useState(false); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 접힌 상태)
 
@@ -3146,6 +3147,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           netSalesWS: 469, license: 278,
           discountRate: 0.4177,
           grossProfit: 8422, grossPct: 0.6649,
+          directCost: 4333,
+          directCostDetail: { Marketing: 2184, Freight: 639, 'Order Processing': 487, 'Professional Service': 1024, Others: 0 },
           directProfit: 4089, directPct: 0.3228,
           ga: 2230,
           gaDetail: { Salaries: 1363, Advertising: 247, 'T&E': 12, Rent: 99, Sample: 46, 'Professional Service': 379, 'D&A': 16, Others: 69 },
@@ -3166,6 +3169,8 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           netSalesWS: 469, license: 80,
           discountRate: 0.5746,
           grossProfit: 4831, grossPct: 0.5551,
+          directCost: 4321,
+          directCostDetail: { Marketing: 1842, Freight: 732, 'Order Processing': 772, 'Professional Service': 976, Others: 0 },
           directProfit: 510, directPct: 0.0586,
           ga: 2448,
           gaDetail: { Salaries: 1453, Advertising: 200, 'T&E': 14, Rent: 102, Sample: 46, 'Professional Service': 500, 'D&A': 33, Others: 100 },
@@ -3188,6 +3193,11 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           { label: '└ License', o: old.license, n: nw.license, isCurrency: true, indent: true },
           { label: 'Discount Rate', o: old.discountRate, n: nw.discountRate, isRate: true },
           { label: 'Gross Profit', o: old.grossProfit, n: nw.grossProfit, isCurrency: true, pctO: old.grossPct, pctN: nw.grossPct, isBold: true },
+          { label: 'Direct Cost', o: old.directCost, n: nw.directCost, isCurrency: true, isExpandableDC: true },
+          { label: '└ Marketing', o: old.directCostDetail['Marketing'], n: nw.directCostDetail['Marketing'], isCurrency: true, indent: true, isDCSub: true },
+          { label: '└ Freight', o: old.directCostDetail['Freight'], n: nw.directCostDetail['Freight'], isCurrency: true, indent: true, isDCSub: true },
+          { label: '└ Order Processing', o: old.directCostDetail['Order Processing'], n: nw.directCostDetail['Order Processing'], isCurrency: true, indent: true, isDCSub: true },
+          { label: '└ Professional Service', o: old.directCostDetail['Professional Service'], n: nw.directCostDetail['Professional Service'], isCurrency: true, indent: true, isDCSub: true },
           { label: 'Direct Profit', o: old.directProfit, n: nw.directProfit, isCurrency: true, pctO: old.directPct, pctN: nw.directPct, isBold: true },
           { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true, isExpandable: true },
           { label: '└ Salaries', o: old.gaDetail['Salaries'], n: nw.gaDetail['Salaries'], isCurrency: true, indent: true, isGASub: true, note: 'Wholesale VP, Marketing Director 신규 채용 직원 2인 급여 $90K' },
@@ -3429,21 +3439,29 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
                     <tbody>
                       {plItems.map((item, ii) => {
                         const isGASub = (item as any).isGASub;
+                        const isDCSub = (item as any).isDCSub;
                         if (isGASub && !gaExpanded) return null;
+                        if (isDCSub && !dcExpanded) return null;
                         const isRateRow = (item as any).isRate;
                         const isExpandable = (item as any).isExpandable;
+                        const isExpandableDC = (item as any).isExpandableDC;
                         const d = isRateRow ? 0 : (item.n as number) - (item.o as number);
                         const dPct = isRateRow ? 0 : item.o !== 0 ? (d / Math.abs(item.o as number)) * 100 : 0;
                         const isPos = isRateRow ? (item.n as number) > (item.o as number) : d > 0;
                         const isNeg = isRateRow ? (item.n as number) < (item.o as number) : d < 0;
-                        const rowBg = (item as any).isBold ? 'bg-slate-50/80' : isGASub ? 'bg-amber-50/40' : 'bg-white';
+                        const rowBg = (item as any).isBold ? 'bg-slate-50/80' : isGASub ? 'bg-amber-50/40' : isDCSub ? 'bg-sky-50/40' : 'bg-white';
                         return (
-                          <tr key={ii} className={cn("border-b border-slate-100", rowBg, isExpandable && 'cursor-pointer hover:bg-slate-50')}
-                              onClick={isExpandable ? () => setGaExpanded(v => !v) : undefined}>
+                          <tr key={ii} className={cn("border-b border-slate-100", rowBg, (isExpandable || isExpandableDC) && 'cursor-pointer hover:bg-slate-50')}
+                              onClick={isExpandable ? () => setGaExpanded(v => !v) : isExpandableDC ? () => setDcExpanded(v => !v) : undefined}>
                             <td className={cn("px-3 py-1.5", (item as any).indent ? 'pl-7 text-slate-500 text-[11px]' : 'font-semibold text-slate-700', (item as any).isBold && 'font-bold')}>
                               {isExpandable ? (
                                 <span className="flex items-center gap-1">
                                   <span className="text-slate-400 text-[10px]">{gaExpanded ? '▼' : '▶'}</span>
+                                  {item.label}
+                                </span>
+                              ) : isExpandableDC ? (
+                                <span className="flex items-center gap-1">
+                                  <span className="text-slate-400 text-[10px]">{dcExpanded ? '▼' : '▶'}</span>
                                   {item.label}
                                 </span>
                               ) : (item as any).note ? (
