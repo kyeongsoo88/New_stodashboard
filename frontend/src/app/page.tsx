@@ -2780,39 +2780,47 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       return s;
     };
     let tagEcom = 0, tagWS = 0, salesEcom = 0, salesWS = 0;
+    let tagMainTotal = 0, netSalesMain = 0;
     let grossProfit = 0, directProfit = 0, opProfit = 0;
     let currentMainCat = '';
     csvData.forEach(row => {
-      if (row.isMainCategory) currentMainCat = row.label;
-      if (!row.isRatioRow) {
+      if (row.isMainCategory) {
+        currentMainCat = row.label;
+        const s = sumJanAug(row.values);
+        if (row.label === 'TAG 판매가') tagMainTotal = s;
+        if (row.label === '실판 매출') netSalesMain = s;
+        if (row.label === '매출총이익' || row.label === 'Gross Profit') grossProfit = s;
+        if (row.label === '직접이익' || row.label === 'Direct Profit') directProfit = s;
+        if (row.label === '영업이익' || row.label === 'Operating Profit') opProfit = s;
+      }
+      if (!row.isRatioRow && !row.isMainCategory) {
         const s = sumJanAug(row.values);
         if (row.label === 'E-com' && currentMainCat === 'TAG 판매가') tagEcom = s;
         if (row.label === 'Wholesale' && currentMainCat === 'TAG 판매가') tagWS = s;
         if (row.label === 'E-com' && currentMainCat === '실판 매출') salesEcom = s;
         if (row.label === 'Wholesale' && currentMainCat === '실판 매출') salesWS = s;
-        if (row.isMainCategory) {
-          if (row.label === '매출총이익' || row.label === 'Gross Profit') grossProfit = s;
-          if (row.label === '직접이익' || row.label === 'Direct Profit') directProfit = s;
-          if (row.label === '영업이익' || row.label === 'Operating Profit') opProfit = s;
-        }
       }
     });
-    const tagTotal = tagEcom + tagWS;
-    const salesTotal = salesEcom + salesWS;
+    // 할인율 분모: E-com+WS 합계 우선, 없으면 main row 합계 fallback
+    const tagTotal = (tagEcom + tagWS) > 0 ? (tagEcom + tagWS) : tagMainTotal;
+    // 할인율 분자: E-com+WS 합계 우선, 없으면 실판 main row fallback
+    const salesForDiscount = (salesEcom + salesWS) > 0 ? (salesEcom + salesWS) : netSalesMain;
+    // 이익률 분모: 실판 매출 main row (License 포함 전체)
+    const salesForMargin = netSalesMain > 0 ? netSalesMain : (salesEcom + salesWS);
     // 비율 행 → 직전 메인 카테고리 기반으로 분자 선택
     let prevMainCat = '';
     return csvData.map(row => {
       if (row.isMainCategory) prevMainCat = row.label;
       if (row.isRatioRow) {
         if ((row.label === 'Discount Rate' || row.label === '할인율') && tagTotal > 0)
-          return { val: (1 - salesTotal / tagTotal) * 100, isRate: true };
-        if (row.label.startsWith('(%)') && salesTotal !== 0) {
+          return { val: (1 - salesForDiscount / tagTotal) * 100, isRate: true };
+        if (row.label.startsWith('(%)') && salesForMargin !== 0) {
           if (prevMainCat === '매출총이익' || prevMainCat === 'Gross Profit')
-            return { val: (grossProfit / salesTotal) * 100, isRate: true };
+            return { val: (grossProfit / salesForMargin) * 100, isRate: true };
           if (prevMainCat === '직접이익' || prevMainCat === 'Direct Profit')
-            return { val: (directProfit / salesTotal) * 100, isRate: true };
+            return { val: (directProfit / salesForMargin) * 100, isRate: true };
           if (prevMainCat === '영업이익' || prevMainCat === 'Operating Profit')
-            return { val: (opProfit / salesTotal) * 100, isRate: true };
+            return { val: (opProfit / salesForMargin) * 100, isRate: true };
         }
         return { val: null, isRate: false };
       }
