@@ -6242,7 +6242,7 @@ const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전
 const isStoBalanceSheetCollapsedColumn = (header: string) => {
   const h = (header || '').trim();
   if (!h) return false;
-  if (h === '전년' || h === 'RF_04' || h === 'RF_05' || h === '상세' || h === 'NEW_RF_08') return true;
+  if (h === '전년' || h === 'RF_05' || h === '상세' || h === 'NEW_RF_08') return true;
   if (/RF_05\s*-\s*RF_?04/i.test(h)) return true;
   if (/RF_05\s*-\s*전년/.test(h)) return true;
   return false;
@@ -6253,6 +6253,7 @@ const getStoBalanceSheetVisibleHeaderIndices = (headers: string[], showAllMonths
     .map((h, idx) => ({ h: (h || '').trim(), idx }))
     .filter(({ h, idx }) => {
       if (idx === 0) return true;
+      if (h === 'RF_04') return false; // RF_07 항상 숨김
       if (showAllMonths) return true;
       return isStoBalanceSheetCollapsedColumn(h);
     })
