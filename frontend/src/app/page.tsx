@@ -2500,6 +2500,7 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
   const [showSPLPopup, setShowSPLPopup] = React.useState(false);
   const [splData, setSplData] = React.useState<any[]>([]);
   const [splHeaders, setSplHeaders] = React.useState<string[]>([]);
+  const [showPLPlanPopup, setShowPLPlanPopup] = React.useState(false);
   const [splExpandedRows, setSplExpandedRows] = React.useState<Set<string>>(new Set()); // SPL 팝업의 토글 상태 (기본: 접힌 상태)
   const [splShowAllMonths, setSplShowAllMonths] = React.useState(false); // SPL 팝업의 월별 컬럼 표시 여부 (기본: 접힌 상태)
 
@@ -2810,9 +2811,17 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STO 손익계산서 (단위: K $)</CardTitle>
         <div className="flex gap-2">
-            <Button 
-                variant="outline" 
-                size="sm" 
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPLPlanPopup(true)}
+                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-300 font-semibold"
+            >
+                📊 9~12월 계획 분석
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   // JSON Export 로직
                   console.log('Exporting csvData:', csvData);
@@ -3089,6 +3098,352 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
           </Table>
         </div>
       </CardContent>
+
+      {/* 9~12월 계획 변경 분석 팝업 */}
+      {showPLPlanPopup && (() => {
+        const K = (v: number) => Math.round(v / 1000);
+        const pct = (v: number) => (v * 100).toFixed(1) + '%';
+        const diff = (n: number, o: number) => n - o;
+        const fmtK = (v: number) => (v >= 0 ? '+' : '') + v.toLocaleString() + 'K';
+        const fmtPp = (n: number, o: number) => {
+          const d = ((n - o) * 100);
+          return (d >= 0 ? '+' : '') + d.toFixed(1) + '%p';
+        };
+
+        // OLD (Before) – 9~12월 합계, raw USD → K USD
+        const old = {
+          msrp: K(21224617.56), msrpEcom: K(19954642.56),
+          msrpEcomSeason: { '26FW': K(5072400), '26SS': K(6025500), '25FW': K(5316840), '25SS': K(2098360), 'Aged': K(380358), 'Core': K(1061184) },
+          msrpWS: K(1269975),
+          netSales: K(12666631), netSalesEcom: K(11889218.83),
+          netSalesEcomSeason: { '26FW': K(3772685), '26SS': K(3852500), '25FW': K(2507050), '25SS': K(739200), 'Aged': K(156659), 'Core': K(861125) },
+          netSalesWS: K(469000), license: K(278000),
+          discountRate: 0.4177,
+          grossProfit: K(8422405.6), grossPct: 0.6649,
+          directProfit: K(4088972.4), directPct: 0.3228,
+          ga: K(2229627.3),
+          opProfit: K(1859345), opPct: 0.1468,
+          netProfit: K(1014079), netPct: 0.0801,
+          monthly: {
+            msrpEcom: [K(3888798), K(3422176), K(6321719), K(6321949)],
+            netSalesEcom: [K(2455359), K(2126830), K(3653492), K(3653538)],
+            dr: [0.4006, 0.4053, 0.4273, 0.4273],
+          }
+        };
+        // NEW (After) – 9~12월 합계
+        const nw = {
+          msrp: K(22751170.51), msrpEcom: K(21460668.51),
+          msrpEcomSeason: { '26FW': K(5762098.64), '26SS': K(5426535.18), '25FW': K(6257744.13), '25SS': K(2487176.31), 'Aged': K(662212.06), 'Core': K(864702.19) },
+          msrpWS: K(1290502),
+          netSales: K(9878523.12), netSalesEcom: K(9299951.61),
+          netSalesEcomSeason: { '26FW': K(3340744.3), '26SS': K(2169711.8), '25FW': K(2292952.75), '25SS': K(753834.08), 'Aged': K(187469.57), 'Core': K(554839.11) },
+          netSalesWS: K(474620), license: K(73390),
+          discountRate: 0.5704,
+          grossProfit: K(5467794.08), grossPct: 0.5535,
+          directProfit: K(451478.35), directPct: 0.0457,
+          ga: K(3023458.86),
+          opProfit: K(-2571980.51), opPct: -0.2604,
+          netProfit: K(-3732523.91), netPct: -0.3778,
+          monthly: {
+            msrpEcom: [K(2609298.74), K(3153173.53), K(6849029.52), K(6333728.73)],
+            netSalesEcom: [K(1248484.56), K(1448152.3), K(2744867.52), K(2688149.74)],
+            dr: [0.5403, 0.551, 0.5999, 0.5770],
+          }
+        };
+        const seasons = ['26FW','26SS','25FW','25SS','Aged','Core'] as const;
+        const months = ['Sep','Oct','Nov','Dec'];
+        const plItems = [
+          { label: 'MSRP Sales', o: old.msrp, n: nw.msrp, isCurrency: true },
+          { label: '└ E-com', o: old.msrpEcom, n: nw.msrpEcom, isCurrency: true, indent: true },
+          { label: '└ Wholesale', o: old.msrpWS, n: nw.msrpWS, isCurrency: true, indent: true },
+          { label: 'Net Sales', o: old.netSales, n: nw.netSales, isCurrency: true },
+          { label: '└ E-com', o: old.netSalesEcom, n: nw.netSalesEcom, isCurrency: true, indent: true },
+          { label: '└ Wholesale', o: old.netSalesWS, n: nw.netSalesWS, isCurrency: true, indent: true },
+          { label: '└ License', o: old.license, n: nw.license, isCurrency: true, indent: true },
+          { label: 'Discount Rate', o: old.discountRate, n: nw.discountRate, isRate: true },
+          { label: 'Gross Profit', o: old.grossProfit, n: nw.grossProfit, isCurrency: true, pctO: old.grossPct, pctN: nw.grossPct, isBold: true },
+          { label: 'Direct Profit', o: old.directProfit, n: nw.directProfit, isCurrency: true, pctO: old.directPct, pctN: nw.directPct, isBold: true },
+          { label: 'G&A', o: old.ga, n: nw.ga, isCurrency: true },
+          { label: 'Operating Profit', o: old.opProfit, n: nw.opProfit, isCurrency: true, pctO: old.opPct, pctN: nw.opPct, isBold: true },
+          { label: 'Net Profit', o: old.netProfit, n: nw.netProfit, isCurrency: true, pctO: old.netPct, pctN: nw.netPct, isBold: true },
+        ];
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto" onClick={e => { if (e.target === e.currentTarget) setShowPLPlanPopup(false); }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[1100px] my-4 overflow-hidden">
+              {/* 팝업 헤더 */}
+              <div className="flex items-center justify-between px-6 py-4 bg-[#1E3A5F] text-white">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-300"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <h2 className="text-base font-bold tracking-wide">9~12월 계획 변경 분석</h2>
+                    <span className="text-xs bg-blue-700/60 text-blue-200 px-2 py-0.5 rounded-full">Old → New Plan</span>
+                  </div>
+                  <p className="text-xs text-blue-300 mt-0.5">Before (기존 계획) vs After (신규 계획) · Unit: K USD</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-blue-400 inline-block"/>Old Plan</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-emerald-400 inline-block"/>New Plan</span>
+                  </div>
+                  <button onClick={() => setShowPLPlanPopup(false)} className="text-blue-200 hover:text-white text-xl leading-none px-1">✕</button>
+                </div>
+              </div>
+
+              <div className="p-5 space-y-5 bg-slate-50">
+                {/* ① 핵심 플로우 카드 */}
+                <div>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-t-lg">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <span className="text-xs font-bold text-slate-200 tracking-wide">핵심 변화 플로우 — 9~12월 합계 기준</span>
+                  </div>
+                  <div className="flex items-stretch bg-white rounded-b-lg border border-slate-200 shadow-sm p-4 gap-0">
+                    {[
+                      { step:'① MSRP', color:'text-slate-600', bg:'bg-white', border:'border-slate-200', oldV:`$${old.msrp.toLocaleString()}K`, newV:`$${nw.msrp.toLocaleString()}K`, diffV:`+$${(nw.msrp-old.msrp).toLocaleString()}K`, diffPos:true, note:'E-com +7.5%↑, MSRP 증가' },
+                      { step:'② 할인율', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV: pct(old.discountRate), newV: pct(nw.discountRate), diffV: fmtPp(nw.discountRate,old.discountRate), diffPos:false, note:'할인율 +15.3%p 급등' },
+                      { step:'③ Net Sales', color:'text-red-600', bg:'bg-red-50', border:'border-red-200', oldV:`$${old.netSales.toLocaleString()}K`, newV:`$${nw.netSales.toLocaleString()}K`, diffV:`-$${Math.abs(nw.netSales-old.netSales).toLocaleString()}K`, diffPos:false, note:'MSRP 상승에도 Net Sales 급감' },
+                      { step:'④ Gross Profit', color:'text-red-600', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.grossProfit.toLocaleString()}K`, newV:`$${nw.grossProfit.toLocaleString()}K`, diffV:`-$${Math.abs(nw.grossProfit-old.grossProfit).toLocaleString()}K`, diffPos:false, note:'마진율 66.5% → 55.4%' },
+                      { step:'⑤ 영업이익', color:'text-red-700', bg:'bg-red-100/70', border:'border-red-300', oldV:`$${old.opProfit.toLocaleString()}K`, newV:`-$${Math.abs(nw.opProfit).toLocaleString()}K`, diffV:`-$${Math.abs(nw.opProfit-old.opProfit).toLocaleString()}K`, diffPos:false, note:'G&A 증가($793K) 복합 작용' },
+                    ].map((card, ci) => (
+                      <React.Fragment key={ci}>
+                        {ci > 0 && (
+                          <div className="flex flex-col items-center justify-center px-2 shrink-0">
+                            <div className="text-[10px] text-red-400 font-bold mb-0.5">→</div>
+                          </div>
+                        )}
+                        <div className={cn("flex-1 rounded-lg border shadow-sm px-3 py-2.5 min-w-0", card.bg, card.border)}>
+                          <div className={cn("text-[11px] font-bold uppercase tracking-wide mb-1.5", card.color)}>{card.step}</div>
+                          <div className="text-[12px] text-slate-600 space-y-0.5">
+                            <div className="flex justify-between"><span className="text-blue-500 font-medium">Old</span><span className="tabular-nums font-semibold">{card.oldV}</span></div>
+                            <div className="flex justify-between"><span className="text-emerald-600 font-medium">New</span><span className={cn("tabular-nums font-bold", card.diffPos ? 'text-emerald-600' : 'text-red-600')}>{card.newV}</span></div>
+                          </div>
+                          <div className="mt-1.5 pt-1.5 border-t border-slate-100 text-[11px]">
+                            <span className={cn("font-bold", card.diffPos ? 'text-emerald-600' : 'text-red-600')}>{card.diffV}</span>
+                            <span className="text-slate-500 ml-1">{card.note}</span>
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* ② MSRP E-com 시즌별 */}
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-2.5 bg-[#2E5C8A] text-white">
+                      <span className="text-xs font-bold tracking-wide">MSRP E-com — 시즌별 변화 (K USD)</span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                          <th className="text-left px-3 py-2 text-slate-500 font-semibold">시즌</th>
+                          <th className="text-right px-3 py-2 text-blue-600 font-semibold">Old</th>
+                          <th className="text-right px-3 py-2 text-emerald-600 font-semibold">New</th>
+                          <th className="text-right px-3 py-2 text-slate-500 font-semibold">차이</th>
+                          <th className="text-right px-2 py-2 text-slate-400 font-semibold">%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {seasons.map((s, si) => {
+                          const o = old.msrpEcomSeason[s]; const n = nw.msrpEcomSeason[s]; const d = n - o;
+                          return (
+                            <tr key={s} className={si % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                              <td className="px-3 py-1.5 font-medium text-slate-700">{s}</td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-blue-700">{o.toLocaleString()}</td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700">{n.toLocaleString()}</td>
+                              <td className={cn("px-3 py-1.5 text-right tabular-nums font-semibold", d >= 0 ? 'text-emerald-600' : 'text-red-500')}>{d >= 0 ? '+' : ''}{d.toLocaleString()}</td>
+                              <td className={cn("px-2 py-1.5 text-right tabular-nums text-[11px]", d >= 0 ? 'text-emerald-500' : 'text-red-400')}>{o !== 0 ? ((d/o)*100).toFixed(1)+'%' : '-'}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold">
+                          <td className="px-3 py-2 text-slate-700">합계</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-blue-700">{old.msrpEcom.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{nw.msrpEcom.toLocaleString()}</td>
+                          <td className={cn("px-3 py-2 text-right tabular-nums", (nw.msrpEcom-old.msrpEcom)>=0?'text-emerald-600':'text-red-500')}>{nw.msrpEcom-old.msrpEcom>=0?'+':''}{(nw.msrpEcom-old.msrpEcom).toLocaleString()}</td>
+                          <td className={cn("px-2 py-2 text-right tabular-nums text-[11px]", (nw.msrpEcom-old.msrpEcom)>=0?'text-emerald-500':'text-red-400')}>{(((nw.msrpEcom-old.msrpEcom)/old.msrpEcom)*100).toFixed(1)}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* ③ Net Sales E-com 시즌별 */}
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-2.5 bg-[#2E5C8A] text-white">
+                      <span className="text-xs font-bold tracking-wide">Net Sales E-com — 시즌별 변화 (K USD)</span>
+                    </div>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                          <th className="text-left px-3 py-2 text-slate-500 font-semibold">시즌</th>
+                          <th className="text-right px-3 py-2 text-blue-600 font-semibold">Old</th>
+                          <th className="text-right px-3 py-2 text-emerald-600 font-semibold">New</th>
+                          <th className="text-right px-3 py-2 text-slate-500 font-semibold">차이</th>
+                          <th className="text-right px-2 py-2 text-slate-400 font-semibold">%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {seasons.map((s, si) => {
+                          const o = old.netSalesEcomSeason[s]; const n = nw.netSalesEcomSeason[s]; const d = n - o;
+                          return (
+                            <tr key={s} className={si % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                              <td className="px-3 py-1.5 font-medium text-slate-700">{s}</td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-blue-700">{o.toLocaleString()}</td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700">{n.toLocaleString()}</td>
+                              <td className={cn("px-3 py-1.5 text-right tabular-nums font-semibold", d >= 0 ? 'text-emerald-600' : 'text-red-500')}>{d >= 0 ? '+' : ''}{d.toLocaleString()}</td>
+                              <td className={cn("px-2 py-1.5 text-right tabular-nums text-[11px]", d >= 0 ? 'text-emerald-500' : 'text-red-400')}>{o !== 0 ? ((d/o)*100).toFixed(1)+'%' : '-'}</td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold">
+                          <td className="px-3 py-2 text-slate-700">합계</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-blue-700">{old.netSalesEcom.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{nw.netSalesEcom.toLocaleString()}</td>
+                          <td className={cn("px-3 py-2 text-right tabular-nums", (nw.netSalesEcom-old.netSalesEcom)>=0?'text-emerald-600':'text-red-500')}>{nw.netSalesEcom-old.netSalesEcom>=0?'+':''}{(nw.netSalesEcom-old.netSalesEcom).toLocaleString()}</td>
+                          <td className={cn("px-2 py-2 text-right tabular-nums text-[11px]", (nw.netSalesEcom-old.netSalesEcom)>=0?'text-emerald-500':'text-red-400')}>{(((nw.netSalesEcom-old.netSalesEcom)/old.netSalesEcom)*100).toFixed(1)}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* ④ 월별 추이 */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-4 py-2.5 bg-[#2E5C8A] text-white">
+                    <span className="text-xs font-bold tracking-wide">월별 비교 — MSRP E-com / Net Sales E-com / Discount Rate</span>
+                  </div>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="text-left px-3 py-2 text-slate-500 font-semibold">항목</th>
+                        {months.map(m => (
+                          <th key={m} colSpan={3} className="text-center px-2 py-2 text-slate-500 font-semibold border-l border-slate-200">{m}</th>
+                        ))}
+                        <th colSpan={3} className="text-center px-2 py-2 text-slate-600 font-bold border-l border-slate-300 bg-slate-100">9~12월 합계</th>
+                      </tr>
+                      <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px]">
+                        <th className="px-3 py-1"/>
+                        {[...months, '합계'].map(m => (
+                          <React.Fragment key={m}>
+                            <th className="text-right px-2 py-1 text-blue-500 border-l border-slate-200">Old</th>
+                            <th className="text-right px-2 py-1 text-emerald-600">New</th>
+                            <th className="text-right px-2 py-1 text-slate-400">차이</th>
+                          </React.Fragment>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* MSRP E-com */}
+                      <tr className="border-b border-slate-100 bg-blue-50/30">
+                        <td className="px-3 py-1.5 font-semibold text-slate-700">MSRP E-com</td>
+                        {[...old.monthly.msrpEcom.map((o,i)=>({o, n: nw.monthly.msrpEcom[i]})), {o: old.msrpEcom, n: nw.msrpEcom}].map((item,i) => {
+                          const d = item.n - item.o;
+                          return (
+                            <React.Fragment key={i}>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-blue-700", i===4?"font-bold bg-slate-100/80 border-l border-slate-300":"")}>{item.o.toLocaleString()}</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-emerald-700", i===4?"font-bold bg-slate-100/80":"")}>{item.n.toLocaleString()}</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums font-semibold", d>=0?'text-emerald-600':'text-red-500', i===4?"bg-slate-100/80":"")}>{d>=0?'+':''}{d.toLocaleString()}</td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+                      {/* Net Sales E-com */}
+                      <tr className="border-b border-slate-100">
+                        <td className="px-3 py-1.5 font-semibold text-slate-700">Net Sales E-com</td>
+                        {[...old.monthly.netSalesEcom.map((o,i)=>({o, n: nw.monthly.netSalesEcom[i]})), {o: old.netSalesEcom, n: nw.netSalesEcom}].map((item,i) => {
+                          const d = item.n - item.o;
+                          return (
+                            <React.Fragment key={i}>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-blue-700", i===4?"font-bold bg-slate-100/80 border-l border-slate-300":"")}>{item.o.toLocaleString()}</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-emerald-700", i===4?"font-bold bg-slate-100/80":"")}>{item.n.toLocaleString()}</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums font-semibold", d>=0?'text-emerald-600':'text-red-500', i===4?"bg-slate-100/80":"")}>{d>=0?'+':''}{d.toLocaleString()}</td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+                      {/* Discount Rate */}
+                      <tr className="bg-red-50/50">
+                        <td className="px-3 py-1.5 font-semibold text-red-700">Discount Rate</td>
+                        {[...old.monthly.dr.map((o,i)=>({o, n: nw.monthly.dr[i]})), {o: old.discountRate, n: nw.discountRate}].map((item,i) => {
+                          const d = item.n - item.o;
+                          return (
+                            <React.Fragment key={i}>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-blue-600 text-[11px]", i===4?"font-bold bg-red-50/80 border-l border-slate-300":"")}>{(item.o*100).toFixed(1)}%</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-red-600 text-[11px] font-semibold", i===4?"font-bold bg-red-50/80":"")}>{(item.n*100).toFixed(1)}%</td>
+                              <td className={cn("text-right px-2 py-1.5 tabular-nums text-red-500 font-bold text-[11px]", i===4?"bg-red-50/80":"")}>{d>=0?'+':''}{(d*100).toFixed(1)}%p</td>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ⑤ P&L 요약 비교 */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-4 py-2.5 bg-[#2E5C8A] text-white">
+                    <span className="text-xs font-bold tracking-wide">P&L 요약 비교 — 9~12월 합계 (K USD)</span>
+                  </div>
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="text-left px-3 py-2 text-slate-500 font-semibold w-40">항목</th>
+                        <th className="text-right px-3 py-2 text-blue-600 font-semibold">Old Plan</th>
+                        <th className="text-right px-3 py-2 text-emerald-600 font-semibold">New Plan</th>
+                        <th className="text-right px-3 py-2 text-slate-500 font-semibold">차이 (New-Old)</th>
+                        <th className="text-right px-3 py-2 text-slate-400 font-semibold">변동율</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {plItems.map((item, ii) => {
+                        const isRateRow = (item as any).isRate;
+                        const d = isRateRow ? 0 : (item.n as number) - (item.o as number);
+                        const dPct = isRateRow ? 0 : item.o !== 0 ? (d / Math.abs(item.o as number)) * 100 : 0;
+                        const isPos = isRateRow ? (item.n as number) > (item.o as number) : d > 0;
+                        const isNeg = isRateRow ? (item.n as number) < (item.o as number) : d < 0;
+                        const rowBg = (item as any).isBold ? 'bg-slate-50/80' : 'bg-white';
+                        return (
+                          <tr key={ii} className={cn("border-b border-slate-100", rowBg)}>
+                            <td className={cn("px-3 py-1.5", (item as any).indent ? 'pl-7 text-slate-500' : 'font-semibold text-slate-700', (item as any).isBold && 'font-bold')}>{item.label}</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-blue-700">
+                              {isRateRow ? pct(item.o as number) : `$${(item.o as number).toLocaleString()}K`}
+                              {(item as any).pctO !== undefined && <span className="text-slate-400 ml-1 text-[10px]">({((item as any).pctO*100).toFixed(1)}%)</span>}
+                            </td>
+                            <td className={cn("px-3 py-1.5 text-right tabular-nums font-medium", isRateRow && isNeg ? 'text-red-600' : 'text-emerald-700')}>
+                              {isRateRow ? pct(item.n as number) : `$${(item.n as number).toLocaleString()}K`}
+                              {(item as any).pctN !== undefined && <span className={cn("ml-1 text-[10px]", (item as any).pctN < (item as any).pctO ? 'text-red-400' : 'text-slate-400')}>({((item as any).pctN*100).toFixed(1)}%)</span>}
+                            </td>
+                            <td className={cn("px-3 py-1.5 text-right tabular-nums font-bold", isRateRow ? (isNeg?'text-red-500':'text-emerald-600') : (d>0?'text-emerald-600':d<0?'text-red-500':'text-slate-400'))}>
+                              {isRateRow ? fmtPp(item.n as number, item.o as number) : (d>=0?'+':'')+`$${d.toLocaleString()}K`}
+                            </td>
+                            <td className={cn("px-3 py-1.5 text-right tabular-nums text-[11px]", isPos&&!isRateRow?'text-emerald-500':isNeg&&!isRateRow?'text-red-400':'text-slate-400')}>
+                              {isRateRow ? '—' : (dPct>=0?'+':'')+dPct.toFixed(1)+'%'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ⑥ AI 종합 분석 */}
+                <div className="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 border-b border-slate-700">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-violet-400 shrink-0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <span className="text-xs font-bold text-slate-200 tracking-wide">종합 분석 — 계획 변경의 핵심 함의</span>
+                  </div>
+                  <div className="bg-slate-900 p-4 space-y-2.5 text-xs text-slate-300 leading-relaxed">
+                    <p><span className="text-blue-400 font-bold">① MSRP</span> &nbsp;E-com MSRP는 +{(nw.msrpEcom-old.msrpEcom).toLocaleString()}K 증가. 26SS(-599K)·Core(-196K) 감소에도 25FW(+941K)·26FW(+690K)·25SS(+389K) 증가로 전체 MSRP는 상승. Wholesale은 거의 동일 수준.</p>
+                    <p><span className="text-red-400 font-bold">② 할인율</span> &nbsp;Old 41.8% → New 57.0%로 <span className="text-red-300 font-bold">+15.2%p 급등</span>. 특히 11월(+17.3%p)이 가장 크며, 과시즌 재고 소진 전략이 반영된 결과. MSRP 증가에도 불구하고 Net Sales를 역방향으로 압박.</p>
+                    <p><span className="text-red-400 font-bold">③ Net Sales</span> &nbsp;E-com 기준 -2,589K(-21.8%) 감소. 26SS가 -1,683K로 단일 최대 감소 요인. 26FW(-432K)·Core(-306K)·25FW(-214K) 순. Wholesale/License도 합산 -198K 추가 감소.</p>
+                    <p><span className="text-red-400 font-bold">④ 수익성</span> &nbsp;Gross Profit -2,955K(마진율 66.5%→55.4%), G&A +793K(비용 증가), 결과적으로 Operating Profit -4,431K 악화. Old Plan 흑자(+1,859K)에서 New Plan 적자(-2,572K)로 전환. <span className="text-orange-300 font-semibold">9~12월 누적 영업이익 약 $4.4M 악화가 예상됨.</span></p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 시나리오 PL 비교 팝업 */}
       {showSPLPopup && (
