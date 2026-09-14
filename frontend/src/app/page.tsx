@@ -3958,7 +3958,7 @@ function STEIncomeStatementSection({ selectedMonth }: { selectedMonth?: string }
   const [rows, setRows] = React.useState<Array<{ label: string; originalLabel?: string; values: string[] }>>([]);
   const [loading, setLoading] = React.useState(true);
   const [expandedRows, setExpandedRows] = React.useState<Set<string>>(new Set());
-  const [showAllMonths, setShowAllMonths] = React.useState(true); // 기본값: 펼침
+  const [showAllMonths, setShowAllMonths] = React.useState(false); // 기본값: 접기
 
   const toggleRow = (label: string) => {
     setExpandedRows((prev) => {
