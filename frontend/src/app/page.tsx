@@ -6242,7 +6242,7 @@ const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전
 const isStoBalanceSheetCollapsedColumn = (header: string) => {
   const h = (header || '').trim();
   if (!h) return false;
-  if (h === '전년' || h === 'RF_04' || h === 'RF_05' || h === '상세') return true;
+  if (h === '전년' || h === 'RF_04' || h === 'RF_05' || h === '상세' || h === 'NEW_RF_08') return true;
   if (/RF_05\s*-\s*RF_?04/i.test(h)) return true;
   if (/RF_05\s*-\s*전년/.test(h)) return true;
   return false;
@@ -6397,6 +6397,7 @@ function STOBalanceSheetSection({ selectedMonth }: { selectedMonth: string }) {
     if (h === 'RF_05 - 전년') return 'RF_08 - 전년';
     if (h === 'RF_05') return 'RF_08';
     if (h === 'RF_04') return 'RF_07';
+    if (h === 'NEW_RF_08') return 'NEW_RF_08';
     return h;
   };
 
