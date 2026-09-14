@@ -6345,7 +6345,7 @@ const isStoBalanceSheetCollapsedColumn = (header: string) => {
   const h = (header || '').trim();
   if (!h) return false;
   if (h === '전년' || h === 'RF_05' || h === '상세' || h === 'NEW_RF_08') return true;
-  if (/RF_05\s*-\s*RF_?04/i.test(h)) return true;
+  if (/RF_05\s*-\s*전년/.test(h)) return true; // RF_08 - 전년 접기 상태에서 표시
   return false;
 };
 
@@ -6355,7 +6355,7 @@ const getStoBalanceSheetVisibleHeaderIndices = (headers: string[], showAllMonths
     .filter(({ h, idx }) => {
       if (idx === 0) return true;
       if (h === 'RF_04') return false; // RF_07 항상 숨김
-      if (/RF_05\s*-\s*전년/.test(h)) return false; // RF_08 - 전년 항상 숨김
+      if (/RF_05\s*-\s*RF_?04/i.test(h)) return false; // RF_08 - RF_07 항상 숨김
       if (showAllMonths) return true;
       return isStoBalanceSheetCollapsedColumn(h);
     })
