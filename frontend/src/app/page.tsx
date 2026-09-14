@@ -6533,23 +6533,6 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
               <span className="text-xs text-gray-400">{txCount.toLocaleString()}건</span>
             </div>
 
-            {/* 상단: 부서별 추이 */}
-            <Card className="border-gray-100">
-              <CardHeader className="pb-2 pt-4">
-                <CardTitle className="text-sm font-semibold text-gray-700">부서별 월별 영업비 추이 (최근 12개월)</CardTitle>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <DeptBarChart />
-                <div className="flex flex-wrap gap-3 mt-3">
-                  {DEPTS.map(d => (
-                    <div key={d} className="flex items-center gap-1.5">
-                      <span className="inline-block w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: DEPT_COLORS[d] || '#94a3b8' }}/>
-                      <span className="text-xs text-gray-600">{d}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* 하단: 벤더 랭킹 + 거래내역 */}
             <div className="grid grid-cols-2 gap-4">
