@@ -681,11 +681,11 @@ function DetailedMetricCard({
                                                                     )}
                                                                 </span>
                                                             )}
-                                                            <div className="flex items-center gap-1 justify-end flex-shrink-0">
+                                                            <div className="flex items-center gap-1.5 justify-end flex-shrink-0" style={{ minWidth: '130px' }}>
                                                                 {item.value && (
-                                                                    <span className={cn("font-medium text-xs text-right tabular-nums", item.subItems && "px-1 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
+                                                                    <span className={cn("font-medium text-xs w-[90px] text-right tabular-nums", item.subItems && "px-1 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
                                                                 )}
-                                                                {item.yoy && <span className={cn("text-xs px-1.5 py-0.5 rounded font-bold text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
+                                                                {item.yoy && <span className={cn("text-xs px-1.5 py-0.5 rounded font-bold min-w-[62px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
                                                             </div>
                                                         </div>
                                                         {item.subItems && isSubExpanded && (
