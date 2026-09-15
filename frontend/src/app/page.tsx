@@ -10090,7 +10090,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     RF_07
                                 </TableHead>
                                 <TableHead
-                                    colSpan={tableType === 'flow' ? 4 : 3}
+                                    colSpan={3}
                                     className="text-xs font-bold text-white h-10 px-2 text-center border border-gray-300"
                                     style={{ backgroundColor: '#2E5C8A' }}
                                 >
