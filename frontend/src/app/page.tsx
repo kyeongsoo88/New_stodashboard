@@ -5885,6 +5885,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     '6205': '외주 인력',
     '6320': '임차료',
     '6350': '샘플·개발비',
+    '6370': '샘플·개발비',
     '6400': '공과금',
     '6440': '대손충당금',
     '6445': '재고 평가손실',
