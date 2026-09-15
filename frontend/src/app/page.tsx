@@ -1465,79 +1465,69 @@ function ShippingCostDialog({ data }: { data: any }) {
     const { chartData } = data;
 
     return (
-        <div className="space-y-4 bg-gradient-to-br from-blue-50 to-purple-50 p-4 rounded-lg">
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-lg font-bold mb-3 text-slate-800">US/EU 건당 운반비 / 고객 부담 %</h3>
-            </div>
-            
-            <div className="h-[400px] bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex flex-col gap-3 bg-gradient-to-br from-blue-50 to-purple-50 p-3 rounded-lg">
+            {/* 차트 */}
+            <div className="h-[260px] bg-white px-3 pt-3 pb-1 rounded-lg shadow-sm">
                 <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData}>
+                    <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="month" stroke="#6b7280" />
-                        <YAxis yAxisId="left" domain={[0, 30]} stroke="#6b7280" label={{ value: '$', angle: -90, position: 'insideLeft' }} />
-                        <YAxis yAxisId="right" orientation="right" domain={[0, 90]} stroke="#6b7280" label={{ value: '%', angle: 90, position: 'insideRight' }} />
-                        <Tooltip 
-                            contentStyle={{ 
-                                backgroundColor: 'white', 
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                            }}
+                        <XAxis dataKey="month" stroke="#6b7280" tick={{ fontSize: 11 }} />
+                        <YAxis yAxisId="left" domain={[0, 30]} stroke="#6b7280" tick={{ fontSize: 11 }} label={{ value: '$', angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} width={32} />
+                        <YAxis yAxisId="right" orientation="right" domain={[0, 90]} stroke="#6b7280" tick={{ fontSize: 11 }} label={{ value: '%', angle: 90, position: 'insideRight', style: { fontSize: 11 } }} width={32} />
+                        <Tooltip
+                            contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', fontSize: 12 }}
                             formatter={(value: number, name: string) => {
-                                if (name === 'EU 고객 부담%' || name === 'US 고객 부담%') {
-                                    return [`${value.toFixed(1)}%`, name];
-                                }
+                                if (name === 'EU 고객 부담%' || name === 'US 고객 부담%') return [`${value.toFixed(1)}%`, name];
                                 return [`$${value.toFixed(2)}`, name];
                             }}
                         />
-                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                        <Line yAxisId="left" type="monotone" dataKey="usCost" stroke="#000000" strokeWidth={2} dot={{ r: 4, fill: "#000000" }} name="US 건당 운반비 단가" />
-                        <Line yAxisId="left" type="monotone" dataKey="euCost" stroke="#ef4444" strokeWidth={2} dot={{ r: 4, fill: "#ef4444" }} name="EU 건당 운반비 단가" />
-                        <Line yAxisId="right" type="monotone" dataKey="euBurden" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4, fill: "#3b82f6" }} name="EU 고객 부담%" />
-                        <Line yAxisId="right" type="monotone" dataKey="usBurden" stroke="#10b981" strokeWidth={2} dot={{ r: 4, fill: "#10b981" }} name="US 고객 부담%" />
+                        <Legend wrapperStyle={{ paddingTop: '4px', fontSize: 11 }} />
+                        <Line yAxisId="left" type="monotone" dataKey="usCost" stroke="#000000" strokeWidth={2} dot={{ r: 3, fill: "#000000" }} name="US 건당 운반비 단가" />
+                        <Line yAxisId="left" type="monotone" dataKey="euCost" stroke="#ef4444" strokeWidth={2} dot={{ r: 3, fill: "#ef4444" }} name="EU 건당 운반비 단가" />
+                        <Line yAxisId="right" type="monotone" dataKey="euBurden" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: "#3b82f6" }} name="EU 고객 부담%" />
+                        <Line yAxisId="right" type="monotone" dataKey="usBurden" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: "#10b981" }} name="US 고객 부담%" />
                     </ComposedChart>
                 </ResponsiveContainer>
             </div>
 
-            <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h4 className="text-sm font-bold mb-3 text-slate-800">채널</h4>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[200px]">채널</TableHead>
+            {/* 데이터 테이블 */}
+            <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+                <table className="w-full text-[11px] border-collapse">
+                    <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="text-left px-3 py-2 font-semibold text-slate-700 whitespace-nowrap w-[140px]">채널</th>
                             {chartData.map((d: any, idx: number) => (
-                                <TableHead key={`${d.month}-${idx}`} className="text-center">{d.month}</TableHead>
+                                <th key={`${d.month}-${idx}`} className="text-center px-1.5 py-2 font-medium text-slate-500 whitespace-nowrap">{d.month}</th>
                             ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell className="font-medium">US 건당 운반비 단가</TableCell>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-3 py-1.5 font-medium text-slate-700 whitespace-nowrap">US 건당 운반비 단가</td>
                             {chartData.map((d: any, idx: number) => (
-                                <TableCell key={`us-${d.month}-${idx}`} className="text-center">${d.usCost.toFixed(2)}</TableCell>
+                                <td key={`us-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums">${d.usCost.toFixed(2)}</td>
                             ))}
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="font-medium">EU 건당 운반비 단가</TableCell>
+                        </tr>
+                        <tr className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-3 py-1.5 font-medium text-slate-700 whitespace-nowrap">EU 건당 운반비 단가</td>
                             {chartData.map((d: any, idx: number) => (
-                                <TableCell key={`eu-${d.month}-${idx}`} className="text-center">${d.euCost.toFixed(2)}</TableCell>
+                                <td key={`eu-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums">${d.euCost.toFixed(2)}</td>
                             ))}
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="font-medium">EU 고객 부담%</TableCell>
+                        </tr>
+                        <tr className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-3 py-1.5 font-medium text-blue-700 whitespace-nowrap">EU 고객 부담%</td>
                             {chartData.map((d: any, idx: number) => (
-                                <TableCell key={`burden-${d.month}-${idx}`} className="text-center">{d.euBurden.toFixed(1)}%</TableCell>
+                                <td key={`eu-burden-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums text-blue-600">{d.euBurden.toFixed(1)}%</td>
                             ))}
-                        </TableRow>
-                        <TableRow>
-                            <TableCell className="font-medium">US 고객 부담%</TableCell>
+                        </tr>
+                        <tr className="hover:bg-slate-50">
+                            <td className="px-3 py-1.5 font-medium text-emerald-700 whitespace-nowrap">US 고객 부담%</td>
                             {chartData.map((d: any, idx: number) => (
-                                <TableCell key={`us-burden-${d.month}-${idx}`} className="text-center">{d.usBurden.toFixed(1)}%</TableCell>
+                                <td key={`us-burden-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums text-emerald-600">{d.usBurden.toFixed(1)}%</td>
                             ))}
-                        </TableRow>
-                    </TableBody>
-                </Table>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     );
@@ -1634,8 +1624,8 @@ function DetailedExpenseCard({
                                     US/EU건당 운반비 단가
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-                                <DialogHeader>
+                            <DialogContent className="max-w-5xl w-[900px]">
+                                <DialogHeader className="pb-1">
                                     <DialogTitle>US/EU 건당 운반비 단가</DialogTitle>
                                 </DialogHeader>
                                 <ShippingCostDialog data={shippingPopupData} />
