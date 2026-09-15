@@ -2841,14 +2841,14 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
       <CardHeader className="py-4 border-b flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-bold">STO 손익계산서 (단위: K $)</CardTitle>
         <div className="flex gap-2">
-            <Button
+            {false && <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowPLPlanPopup(true)}
                 className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-300 font-semibold"
             >
                 📊 9~12월 계획 분석
-            </Button>
+            </Button>}
             <Button
                 variant="outline"
                 size="sm"
@@ -5878,7 +5878,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     '6040': '복리후생',
     '6420': '라이선스·멤버십',
     '6340': '기타비용',
-    '6240': '사진·영상 촬영',
+    '6240': '광고·마케팅',
     '6280': '광고·마케팅',
     '6005': '임직원 급여',
     '6000': '임직원 급여',
@@ -12935,7 +12935,7 @@ export default function DashboardPage() {
     { id: "현금흐름표", label: "현금흐름표", icon: WalletIcon },
     { id: "영업비 분석", label: "영업비 분석", icon: BarChart3Icon },
     // { id: "시뮬레이션", label: "기말 시뮬레이션", icon: PackageIcon }, // 임시 숨김
-    { id: "26년 신규 계획", label: "26년 변경 계획", icon: TrendingUpIcon },
+    // { id: "26년 신규 계획", label: "26년 변경 계획", icon: TrendingUpIcon }, // 임시 숨김
   ];
   
   // 조회 기준 변경 핸들러 (현재 활성 탭의 월만 변경)
