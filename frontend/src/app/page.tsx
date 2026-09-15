@@ -11899,7 +11899,8 @@ export default function DashboardPage() {
           {
             name: "운반비",
             value: formatNumber(getDataValue('카드_직접비_운반비_값', month, '-')),
-            yoy: getDataValue('카드_직접비_운반비_YOY', month, '-')
+            yoy: getDataValue('카드_직접비_운반비_YOY', month, '-'),
+            tooltip: "US EC 운반비 고객부담률 26년 8월 4.8% (전년 4.3% YoY 112%)"
           },
           {
             name: "보관료",
