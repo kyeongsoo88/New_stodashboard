@@ -11925,7 +11925,7 @@ export default function DashboardPage() {
             yoy: getDataValue('카드_직접비_물류용역비_YOY', month, '-')
           },
           {
-            name: "지급수수료",
+            name: "지급수수료(EC 플랫폼 고정비)",
             value: formatNumber(getDataValue('카드_직접비_지급수수료_값', month, '-')),
             yoy: getDataValue('카드_직접비_지급수수료_YOY', month, '-')
           },
