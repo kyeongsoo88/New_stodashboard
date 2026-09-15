@@ -5715,8 +5715,12 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
             'Jan':'01','Feb':'02','Mar':'03','Apr':'04','May':'05','Jun':'06',
             'Jul':'07','Aug':'08','Sep':'09','Oct':'10','Nov':'11','Dec':'12'
           };
-          const m = d.match(/^([A-Za-z]{3})-(\d{2})$/);
-          if (m && MM[m[1]]) return `20${m[2]}-${MM[m[1]]}`;
+          // "Jan-25" → "2025-01"
+          const m1 = d.match(/^([A-Za-z]{3})-(\d{2})$/);
+          if (m1 && MM[m1[1]]) return `20${m1[2]}-${MM[m1[1]]}`;
+          // "25-Jan" → "2025-01"
+          const m2 = d.match(/^(\d{2})-([A-Za-z]{3})$/);
+          if (m2 && MM[m2[2]]) return `20${m2[1]}-${MM[m2[2]]}`;
           return d;
         };
         const rows: Record<string, string>[] = [];
