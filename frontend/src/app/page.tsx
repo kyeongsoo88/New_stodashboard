@@ -12245,7 +12245,7 @@ export default function DashboardPage() {
         };
       })(),
       {
-        label: "생산원가",
+        label: "생산원가율",
         m_prev: getSummaryValue('손익요약_생산원가_당월실적_전년', month, '20.3%'),
         m_prev_p: '',
         m_curr: getSummaryValue('손익요약_생산원가_당월실적_당년', month, '19.3%'),
