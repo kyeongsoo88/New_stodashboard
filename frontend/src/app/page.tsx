@@ -666,15 +666,19 @@ function DetailedMetricCard({
                                                             {(
                                                                 <span
                                                                     className={cn(
-                                                                      "text-xs flex-1 min-w-0",
+                                                                      "text-xs flex-1 min-w-0 relative group/tip",
                                                                       item.subItems && "cursor-pointer select-none text-sky-700 font-medium",
                                                                       item.tooltip && "bg-blue-100/70 text-blue-800 px-1.5 py-0.5 rounded cursor-help"
                                                                     )}
                                                                     onClick={item.subItems ? toggleSub : undefined}
-                                                                    title={item.tooltip}
                                                                 >
                                                                     {item.subItems ? (isSubExpanded ? '▼ ' : '▶ ') : ''}{item.name}
                                                                     {item.tooltip && <span className="ml-1 text-blue-400 text-[9px]">ℹ</span>}
+                                                                    {item.tooltip && (
+                                                                        <span className="pointer-events-none absolute left-0 bottom-full mb-1 z-50 hidden group-hover/tip:block bg-gray-800 text-white text-[11px] rounded px-2 py-1 w-52 whitespace-normal shadow-lg leading-snug">
+                                                                            {item.tooltip}
+                                                                        </span>
+                                                                    )}
                                                                 </span>
                                                             )}
                                                             <div className="flex items-center gap-1 justify-end flex-shrink-0">
