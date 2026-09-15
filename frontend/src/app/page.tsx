@@ -11954,8 +11954,7 @@ export default function DashboardPage() {
           {
             name: "광고선전비",
             value: formatNumber(getDataValue('카드_영업비_광고선전비_값', month, '898')),
-            yoy: getDataValue('카드_영업비_광고선전비_YOY', month, '76%'),
-            tooltip: "2026MCCC 본사 청구분 비용인식"
+            yoy: getDataValue('카드_영업비_광고선전비_YOY', month, '76%')
           },
           {
             name: "지급수수료",
