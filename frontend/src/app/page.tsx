@@ -1471,7 +1471,7 @@ function ShippingCostDialog({ data }: { data: any }) {
     return (
         <div className="flex flex-col gap-3 bg-gradient-to-br from-blue-50 to-purple-50 p-3 rounded-lg">
             {/* 차트 */}
-            <div className="h-[260px] bg-white px-3 pt-3 pb-1 rounded-lg shadow-sm">
+            <div className="h-[240px] bg-white px-3 pt-3 pb-1 rounded-lg shadow-sm">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -1628,7 +1628,7 @@ function DetailedExpenseCard({
                                     US/EU건당 운반비 단가
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-5xl w-[900px]">
+                            <DialogContent className="w-[min(920px,95vw)] max-w-[95vw] max-h-[90vh] overflow-y-auto">
                                 <DialogHeader className="pb-1">
                                     <DialogTitle>US/EU 건당 운반비 단가</DialogTitle>
                                 </DialogHeader>
