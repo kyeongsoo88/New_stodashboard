@@ -1509,21 +1509,21 @@ function ShippingCostDialog({ data }: { data: any }) {
                             ))}
                         </tr>
                         <tr className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="px-3 py-1.5 font-medium text-emerald-700 whitespace-nowrap">US 고객 부담%</td>
+                            {chartData.map((d: any, idx: number) => (
+                                <td key={`us-burden-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums text-emerald-600">{d.usBurden.toFixed(1)}%</td>
+                            ))}
+                        </tr>
+                        <tr className="border-b border-slate-100 hover:bg-slate-50">
                             <td className="px-3 py-1.5 font-medium text-slate-700 whitespace-nowrap">EU 건당 운반비 단가</td>
                             {chartData.map((d: any, idx: number) => (
                                 <td key={`eu-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums">${d.euCost.toFixed(2)}</td>
                             ))}
                         </tr>
-                        <tr className="border-b border-slate-100 hover:bg-slate-50">
+                        <tr className="hover:bg-slate-50">
                             <td className="px-3 py-1.5 font-medium text-blue-700 whitespace-nowrap">EU 고객 부담%</td>
                             {chartData.map((d: any, idx: number) => (
                                 <td key={`eu-burden-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums text-blue-600">{d.euBurden.toFixed(1)}%</td>
-                            ))}
-                        </tr>
-                        <tr className="hover:bg-slate-50">
-                            <td className="px-3 py-1.5 font-medium text-emerald-700 whitespace-nowrap">US 고객 부담%</td>
-                            {chartData.map((d: any, idx: number) => (
-                                <td key={`us-burden-${idx}`} className="text-center px-1.5 py-1.5 tabular-nums text-emerald-600">{d.usBurden.toFixed(1)}%</td>
                             ))}
                         </tr>
                     </tbody>
