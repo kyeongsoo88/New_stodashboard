@@ -2535,14 +2535,15 @@ function STOIncomeStatementSection({ selectedMonth }: { selectedMonth: string })
 
   // 컬럼 표시 여부 확인
   const isColumnVisible = (idx: number) => {
-    // CSV 구조: 0: 계정과목, 1: 전년, 2~13: 월별 실적/예측, 14: RF_06, 15: RF_07, 16: RF_07 - 전년
+    // CSV 구조: 0: 계정과목, 1: 전년, 2~13: 월별 실적/예측, 14: RF_07, 15: RF_08, 16: New_RF_08, 17: RF_08-전년, 18: RF_08-RF_07
+    if (idx === 16) return false; // New_RF_08 항상 숨김
 
     if (showAllMonths) return true;
 
-    // 월 접기 상태: 전년(1), RF_06(14) 이후만 표시
+    // 월 접기 상태: 전년(1), RF_07(14) 이후만 표시
     if (idx === 0) return true; // 계정과목
     if (idx === 1) return true; // 전년
-    if (idx >= 14) return true; // RF_06, RF_07, RF_07 - 전년
+    if (idx >= 14) return true; // RF_07, RF_08, RF_08-전년, RF_08-RF_07
 
     return false; // 26년 1월(실적) ~ Dec-26F 숨김
   };
@@ -6935,7 +6936,7 @@ const workingCapitalParents = ['운전자본', '현금/차입금', '기타운전
 const isStoBalanceSheetCollapsedColumn = (header: string) => {
   const h = (header || '').trim();
   if (!h) return false;
-  if (h === '전년' || h === 'RF_05' || h === '상세' || h === 'NEW_RF_08') return true;
+  if (h === '전년' || h === 'RF_05' || h === '상세') return true;
   if (/RF_05\s*-\s*전년/.test(h)) return true; // RF_08 - 전년 접기 상태에서 표시
   return false;
 };
@@ -6947,6 +6948,7 @@ const getStoBalanceSheetVisibleHeaderIndices = (headers: string[], showAllMonths
       if (idx === 0) return true;
       if (h === 'RF_04') return false; // RF_07 항상 숨김
       if (/RF_05\s*-\s*RF_?04/i.test(h)) return false; // RF_08 - RF_07 항상 숨김
+      if (h === 'NEW_RF_08') return false; // 항상 숨김
       if (showAllMonths) return true;
       return isStoBalanceSheetCollapsedColumn(h);
     })
@@ -10161,7 +10163,7 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                     >
                                         RF_08 - RF_07
                                     </TableHead>
-                                    {tableType === 'flow' && (
+                                    {false && tableType === 'flow' && (
                                         <TableHead
                                             className="text-xs font-bold text-white h-10 px-2 text-center min-w-[100px] border border-gray-300"
                                             style={{ backgroundColor: '#2E5C8A' }}
@@ -10342,8 +10344,8 @@ function CashFlowSection({ selectedMonth }: { selectedMonth: string }) {
                                             if (vIdx === 18) {
                                                 return null;
                                             }
-                                            // NEW_RF_08(vIdx 19): flow 테이블에서만 표시
-                                            if (vIdx === 19 && tableType !== 'flow') {
+                                            // NEW_RF_08(vIdx 19): 항상 숨김
+                                            if (vIdx === 19) {
                                                 return null;
                                             }
                                         }
