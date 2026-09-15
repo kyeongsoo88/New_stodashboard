@@ -666,7 +666,7 @@ function DetailedMetricCard({
                                                             {(
                                                                 <span
                                                                     className={cn(
-                                                                      "text-xs min-w-[80px]",
+                                                                      "text-xs flex-1 min-w-0",
                                                                       item.subItems && "cursor-pointer select-none text-sky-700 font-medium",
                                                                       item.tooltip && "bg-blue-100/70 text-blue-800 px-1.5 py-0.5 rounded cursor-help"
                                                                     )}
@@ -677,11 +677,11 @@ function DetailedMetricCard({
                                                                     {item.tooltip && <span className="ml-1 text-blue-400 text-[9px]">ℹ</span>}
                                                                 </span>
                                                             )}
-                                                            <div className="flex items-center gap-1.5 justify-end" style={{ minWidth: '140px' }}>
+                                                            <div className="flex items-center gap-1 justify-end flex-shrink-0">
                                                                 {item.value && (
-                                                                    <span className={cn("font-medium text-xs w-[100px] text-right tabular-nums", item.subItems && "px-1.5 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
+                                                                    <span className={cn("font-medium text-xs text-right tabular-nums", item.subItems && "px-1 py-0.5 rounded bg-sky-100 text-sky-700")}>{item.value}</span>
                                                                 )}
-                                                                {item.yoy && <span className={cn("text-xs px-2 py-0.5 rounded font-bold flex-shrink-0 min-w-[70px] text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
+                                                                {item.yoy && <span className={cn("text-xs px-1.5 py-0.5 rounded font-bold text-center", "bg-emerald-100", getExpenseYoyColor(item.yoy))}>{removeYoYParentheses(item.yoy)}</span>}
                                                             </div>
                                                         </div>
                                                         {item.subItems && isSubExpanded && (
@@ -689,8 +689,8 @@ function DetailedMetricCard({
                                                                 {item.subItems.map((subItem: any, subIdx: number) => (
                                                                     <div key={subIdx} className={cn("flex justify-between items-center py-0.5 px-1 text-xs", subItem.isTotal && "border-t border-gray-200 mt-0.5 pt-1 font-semibold")}>
                                                                         {subItem.popupId
-                                                                            ? <span onClick={() => setActiveSubPopup(subItem.popupId)} className="text-blue-600 underline cursor-pointer min-w-[120px]">{subItem.name}</span>
-                                                                            : <span className="text-gray-600 min-w-[120px]">{subItem.name}</span>
+                                                                            ? <span onClick={() => setActiveSubPopup(subItem.popupId)} className="text-blue-600 underline cursor-pointer flex-1 min-w-0">{subItem.name}</span>
+                                                                            : <span className="text-gray-600 flex-1 min-w-0">{subItem.name}</span>
                                                                         }
                                                                         <span className={cn("tabular-nums text-right", subItem.isTotal ? "text-gray-800" : "text-gray-500", parseFloat((subItem.value||'').replace(/,/g,'')) < 0 && "text-red-500")}>{subItem.value}</span>
                                                                     </div>
