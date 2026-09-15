@@ -5893,6 +5893,7 @@ function OperatingExpenseSection({ selectedMonth }: { selectedMonth: string }) {
     '7100': '무형자산 상각',
     '7130': '무형자산 상각',
     '7140': 'ROU 자산 상각',
+    '6100': '식대 및 출장비',
     '6105': '식대 및 출장비',
     '6110': '식대 및 출장비',
     '6115': '식대 및 출장비',
