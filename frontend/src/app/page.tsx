@@ -12214,6 +12214,36 @@ export default function DashboardPage() {
         y_diff: formatDiff(getSummaryValue('손익요약_실판(v+)_연간누적_전년비', month, '-15397')),
         y_yoy: getSummaryValue('손익요약_실판(v+)_연간누적_YOY', month, '95%')
       },
+      (() => {
+        const pn = (s: string) => parseFloat((s || '0').replace(/,/g, '')) || 0;
+        const mSalesPrev = pn(getSummaryValue('손익요약_실판(v+)_당월실적_전년', month, '33428'));
+        const mSalesCurr = pn(getSummaryValue('손익요약_실판(v+)_당월실적_당년', month, '34803'));
+        const mGrossPrev = pn(getSummaryValue('손익요약_매출이익_당월실적_전년', month, '14985'));
+        const mGrossCurr = pn(getSummaryValue('손익요약_매출이익_당월실적_당년', month, '15669'));
+        const mCogsPrev = mSalesPrev - mGrossPrev;
+        const mCogsCurr = mSalesCurr - mGrossCurr;
+        const ySalesPrev = pn(getSummaryValue('손익요약_실판(v+)_연간누적_전년', month, '313702'));
+        const ySalesCurr = pn(getSummaryValue('손익요약_실판(v+)_연간누적_당년', month, '298305'));
+        const yGrossPrev = pn(getSummaryValue('손익요약_매출이익_연간누적_전년', month, '135713'));
+        const yGrossCurr = pn(getSummaryValue('손익요약_매출이익_연간누적_당년', month, '130388'));
+        const yCogsPrev = ySalesPrev - yGrossPrev;
+        const yCogsCurr = ySalesCurr - yGrossCurr;
+        return {
+          label: "원가",
+          m_prev: formatNumber(String(Math.round(mCogsPrev))),
+          m_prev_p: '',
+          m_curr: formatNumber(String(Math.round(mCogsCurr))),
+          m_curr_p: '',
+          m_diff: formatDiff(String(Math.round(mCogsCurr - mCogsPrev))),
+          m_yoy: '',
+          y_prev: formatNumber(String(Math.round(yCogsPrev))),
+          y_prev_p: '',
+          y_curr: formatNumber(String(Math.round(yCogsCurr))),
+          y_curr_p: '',
+          y_diff: formatDiff(String(Math.round(yCogsCurr - yCogsPrev))),
+          y_yoy: ''
+        };
+      })(),
       {
         label: "생산원가",
         m_prev: getSummaryValue('손익요약_생산원가_당월실적_전년', month, '20.3%'),
